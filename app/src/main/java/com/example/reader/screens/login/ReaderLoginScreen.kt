@@ -152,9 +152,9 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
             ) {
                 Text(
                     "Login",
-                    style = if (isVeryNarrow) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.background
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
                 )
             }
 

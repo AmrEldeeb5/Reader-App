@@ -101,7 +101,7 @@ fun OnBoardingScreen(navController: NavController) {
 
                 Text(
                     text = "Read smarter,\nanytime & anywhere",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 38.sp,
