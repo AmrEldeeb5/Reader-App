@@ -1,12 +1,16 @@
 package com.example.reader.screens.login
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -31,6 +35,7 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
+    var rememberMe by remember { mutableStateOf(false) }
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp
@@ -132,6 +137,47 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 )
             )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Remember me row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Clickable square
+                Surface(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clickable { rememberMe = !rememberMe },
+                    shape = RoundedCornerShape(4.dp),
+                    color = if (rememberMe) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                    border = BorderStroke(
+                        1.dp,
+                        if (rememberMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        if (rememberMe) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = "Checked",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Remember me",
+                    style = if (isVeryNarrow) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.clickable { rememberMe = !rememberMe }
+                )
+            }
+
             Spacer(modifier = Modifier.height(verticalSpacingAfterFields))
 
             // Login button
@@ -160,18 +206,17 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
 
             Spacer(modifier = Modifier.height(if (isCompactHeight) 12.dp else 16.dp))
 
-            // Sign up link
+            // Forgot password
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("New user?", style = if (isVeryNarrow) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                 TextButton(onClick = {
                     navController.navigate(ReaderScreens.CreateAccountScreen.name)
                 }) {
                     Text(
-                        "Sign up",
+                        "Forgot Password?",
                         style = if (isVeryNarrow) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
