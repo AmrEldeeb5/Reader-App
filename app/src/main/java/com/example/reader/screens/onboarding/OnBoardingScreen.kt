@@ -1,4 +1,4 @@
-package com.example.reader.screens
+package com.example.reader.screens.onboarding
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.BorderStroke
@@ -74,40 +74,7 @@ fun OnBoardingScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "R",
-                            style = MaterialTheme.typography.displayLarge.copy(
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = 2.sp,
-                                fontFamily = FontFamily.Serif,
-                                color = Color.White.copy(alpha = 0.95f)
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Reader",
-                            style = MaterialTheme.typography.displaySmall.copy(
-                                fontWeight = FontWeight.Medium,
-                                letterSpacing = 2.sp,
-                                fontFamily = FontFamily.SansSerif,
-                                color = Color.White.copy(alpha = 0.95f)
-                            )
-                        )
-                    }
-                },
-                actions = {
-                    TextButton(onClick = {
-                        navController.navigate(ReaderScreens.LoginScreen.name) {
-                            popUpTo(ReaderScreens.OnBoardingScreen.name) { inclusive = true }
-                        }
-                    }) { Text("Skip", color = Color.White.copy(alpha = 0.9f)) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                modifier = Modifier.background(Color.Transparent)
-            )
+            OnBoardingTopAppBar(navController)
         },
         containerColor = Color.Transparent
     ) { innerPadding ->
