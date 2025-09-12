@@ -31,6 +31,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.style.TextAlign
 import com.example.reader.R
+import androidx.compose.ui.platform.LocalConfiguration
+import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +46,31 @@ fun OnBoardingScreen(navController: NavController) {
             Color(0xFF3FAF9E)  // lighter accent
         )
     )
+
+    val configuration = LocalConfiguration.current
+    val sw = configuration.screenWidthDp
+    val sh = configuration.screenHeightDp
+    val isTablet = sw >= 600
+    val isNarrow = sw < 340
+    val isShort = sh < 600
+
+    val horizontalPadding = when {
+        isTablet -> 64.dp
+        isNarrow -> 16.dp
+        else -> 24.dp
+    }
+
+    val headingSize = when {
+        isTablet -> 44.sp
+        isNarrow -> 26.sp
+        else -> 32.sp
+    }
+    val headingLineHeight = (headingSize.value * 1.18f).sp
+    val subTextSize = when {
+        isTablet -> 18.sp
+        isNarrow -> 12.sp
+        else -> 14.sp
+    }
 
     Scaffold(
         topBar = {
@@ -89,7 +116,7 @@ fun OnBoardingScreen(navController: NavController) {
                 .fillMaxSize()
                 .background(gradient)
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = horizontalPadding)
         ) {
             Column(
                 modifier = Modifier
@@ -97,51 +124,74 @@ fun OnBoardingScreen(navController: NavController) {
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(if (isShort) 32.dp else 48.dp))
 
                 Text(
-                    text = "Read smarter,\nanytime & anywhere",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 32.sp,
+                    text = if (isTablet) "Read smarter,\non any device" else "Read smarter,\nanytime & anywhere",
+                    color = Color.White,
+                    fontSize = headingSize,
                     fontWeight = FontWeight.Bold,
-                    lineHeight = 38.sp,
+                    lineHeight = headingLineHeight,
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(if (isShort) 12.dp else 16.dp))
 
                 // Subtext
                 Text(
                     text = "Your digital bookshelf with hand-picked stories, novels, and more — always within reach.",
-                    color = Color.LightGray,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center
+                    color = Color.White.copy(alpha = 0.82f),
+                    fontSize = subTextSize,
+                    lineHeight = (subTextSize.value * 1.3f).sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = if (isNarrow) 4.dp else 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(if (isShort) 24.dp else 32.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SocialButton(
-                        modifier = Modifier.weight(1f),
-                        iconRes = R.drawable.facebook,
-                        label = "Facebook",
-                        onClick = { /* TODO: Facebook auth */ }
-                    )
-                    SocialButton(
-                        modifier = Modifier.weight(1f),
-                        iconRes = R.drawable.search,
-                        label = "Google",
-                        onClick = { /* TODO: Google auth */ }
-                    )
+                // Responsive social auth layout
+                if (isNarrow) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        SocialButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            iconRes = R.drawable.facebook,
+                            label = "Facebook",
+                            onClick = { }
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+                        SocialButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            iconRes = R.drawable.search,
+                            label = "Google",
+                            onClick = { }
+                        )
+                    }
+                } else {
+                    val maxButtonWidth = min((sw - (horizontalPadding.value * 2) - 40), 300f) // leave spacing
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SocialButton(
+                            modifier = Modifier.width(maxButtonWidth.dp / 2f),
+                            iconRes = R.drawable.facebook,
+                            label = "Facebook",
+                            onClick = { }
+                        )
+                        Spacer(modifier = Modifier.width(20.dp))
+                        SocialButton(
+                            modifier = Modifier.width(maxButtonWidth.dp / 2f),
+                            iconRes = R.drawable.search,
+                            label = "Google",
+                            onClick = { }
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(if (isShort) 20.dp else 24.dp))
                 Text("OR", color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.bodySmall)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(if (isShort) 12.dp else 16.dp))
 
                 Button(
                     onClick = { navController.navigate(ReaderScreens.LoginScreen.name) {
@@ -152,18 +202,18 @@ fun OnBoardingScreen(navController: NavController) {
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(24.dp)
+                        .height(if (isNarrow) 46.dp else 50.dp),
+                    shape = RoundedCornerShape(if (isNarrow) 20.dp else 24.dp)
                 ) {
                     Text(
                         "Continue with email",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        style = if (isNarrow) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(if (isShort) 24.dp else 32.dp))
 
                 val signInTag = "SIGN_IN_TAG"
                 val annotated = buildAnnotatedString {
