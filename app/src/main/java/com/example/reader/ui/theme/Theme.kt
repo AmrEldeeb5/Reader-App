@@ -11,14 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-// App brand palette (greens from splash / onboarding gradient)
-private val GreenDark      = Color(0xFF0F4F47) // darkest
-private val GreenPrimary   = Color(0xFF24786D) // base brand
-private val GreenMid       = Color(0xFF2F8F81) // mid accent
-private val GreenLight     = Color(0xFF3FAF9E) // lighter accent
-private val GreenExtraLight= Color(0xFFBEEDE5) // very light container / tones
-private val ErrorRed       = Color(0xFFBA1A1A)
-
 private val DarkColorScheme = darkColorScheme(
     primary = GreenLight,
     onPrimary = Color(0xFF003731),
@@ -40,7 +32,7 @@ private val DarkColorScheme = darkColorScheme(
     surface = Color(0xFF0E2724),
     onSurface = Color(0xFFCFE7E3),
 
-    error = ErrorRed,
+    error = BrandErrorRed,
     onError = Color.White,
     errorContainer = Color(0xFFFFDAD6),
     onErrorContainer = Color(0xFF410002)
@@ -67,7 +59,7 @@ private val LightColorScheme = lightColorScheme(
     surface = Color(0xFFF6FBFA),
     onSurface = Color(0xFF102725),
 
-    error = ErrorRed,
+    error = BrandErrorRed,
     onError = Color.White,
     errorContainer = Color(0xFFFFDAD6),
     onErrorContainer = Color(0xFF410002)
