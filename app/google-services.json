@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "548918856522",
+    "project_id": "jetreader-c7c46",
+    "storage_bucket": "jetreader-c7c46.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:548918856522:android:0531c277265c8bf1a8cfb3",
+        "android_client_info": {
+          "package_name": "com.example.reader"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUdYz-Fc_w5TJJPwcTZHq9gNNvm1v0hdc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
