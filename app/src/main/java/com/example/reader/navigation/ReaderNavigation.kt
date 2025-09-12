@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.reader.screens.OnBoardingScreen
+import com.example.reader.screens.onboarding.OnBoardingScreen
 import com.example.reader.screens.SignUp.SignUpScreen
 import com.example.reader.screens.home.Home
 import com.example.reader.screens.login.ReaderLoginScreen
