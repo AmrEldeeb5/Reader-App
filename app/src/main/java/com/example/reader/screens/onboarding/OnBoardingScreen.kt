@@ -184,7 +184,7 @@ fun OnBoardingScreen(navController: NavController) {
 
                 val signInTag = "SIGN_IN_TAG"
                 val annotated = buildAnnotatedString {
-                    append("Already a reader? ")
+                    append("New reader? ")
                     pushStringAnnotation(tag = signInTag, annotation = "signin")
                     withStyle(SpanStyle(color = Color.White, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)) {
                         append("Sign in")
