@@ -23,10 +23,10 @@ fun ReaderNavigation() {
              OnBoardingScreen(navController = navController)
         }
         composable(ReaderScreens.LoginScreen.name) {
-            ReaderLoginScreen(navController = navController, onLoginClick = { username, password -> })
+            ReaderLoginScreen(navController = navController, onLoginClick = { email, password -> })
         }
         composable(ReaderScreens.CreateAccountScreen.name) {
-            SignUpScreen(navController = navController)
+            SignUpScreen(navController = navController, onSignUpClick = { name, email, password -> })
         }
         composable(ReaderScreens.ReaderHomeScreen.name) {
             Home(navController = navController)

@@ -1,23 +1,18 @@
 package com.example.reader.screens.login
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -32,10 +27,9 @@ import com.example.reader.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, String) -> Unit) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
-    var rememberMe by remember { mutableStateOf(false) }
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp
@@ -47,9 +41,7 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
     // Dynamic sizing
     val imageHeight = remember(screenHeight) {
         val target = (screenHeight * if (isCompactHeight) 0.28f else 0.34f).dp
-        target.coerceIn(140.dp, 260.dp)
-    }
-    val titleTextStyle = if (isVeryNarrow) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displayLarge
+        target.coerceIn(140.dp, 260.dp)} // Ensures the height stays within a reasonable range
     val verticalSpacingAfterFields = if (isCompactHeight) 16.dp else 24.dp
 
     Scaffold(
@@ -69,6 +61,7 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
+        val verticalSectionSpacing = 24.dp // fixed spacing used above and below header image
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -77,9 +70,10 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(verticalSectionSpacing))
             // Illustration / header area
             Box(
-                modifier = Modifier.padding(top = if (isCompactHeight) 16.dp else 32.dp)
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(imageHeight),
                 contentAlignment = Alignment.Center
@@ -91,22 +85,22 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                     contentScale = ContentScale.Fit
                 )
             }
-
+            Spacer(modifier = Modifier.height(verticalSectionSpacing))
 
             // App title
             Text(
                 text = "Reader",
                 color = MaterialTheme.colorScheme.onBackground,
-                style = titleTextStyle,
+                style = if (isVeryNarrow) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displayLarge,
                 fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.padding(bottom = if (isCompactHeight) 16.dp else 32.dp)
             )
 
             // Username input
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Username") },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -124,6 +118,7 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 label = { Text("Password") },
                 singleLine = true,
                 visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+                // Displays an icon button to toggle password visibility in the input field. The icon changes based on the current visibility state.
                 trailingIcon = {
                     val image = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
@@ -139,42 +134,21 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Remember me row
+
+                // uses shared state by default
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Clickable square
-                Surface(
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clickable { rememberMe = !rememberMe },
-                    shape = RoundedCornerShape(4.dp),
-                    color = if (rememberMe) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                    border = BorderStroke(
-                        1.dp,
-                        if (rememberMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        if (rememberMe) {
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = "Checked",
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                }
+                RememberMeBox()
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Remember me",
                     style = if (isVeryNarrow) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.clickable { rememberMe = !rememberMe }
+                    modifier = Modifier.clickable { RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe }
                 )
             }
 
@@ -183,8 +157,8 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
             // Login button
             Button(
                 onClick = {
-                    if (username == "admin" && password == "1234") {
-                        onLoginClick(username, password)
+                    if (email == "already@used.com" && password == "1234") {
+                        onLoginClick(email, password)
                         navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
                             popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
                         }
@@ -224,7 +198,12 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 }
             }
 
-            Spacer(modifier = Modifier.height( if (isCompactHeight) 8.dp else 24.dp ))
+            Spacer(modifier = Modifier.height(if (isCompactHeight) 8.dp else 16.dp))
+
+            // Account creation prompt (annotated clickable text like in SignUp screen)
+            CreateAccountPrompt(navController = navController, isCompact = isCompactHeight)
+
+            Spacer(modifier = Modifier.height(if (isCompactHeight) 8.dp else 24.dp ))
         }
     }
 }

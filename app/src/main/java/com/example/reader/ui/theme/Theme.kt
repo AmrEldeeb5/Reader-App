@@ -54,9 +54,9 @@ private val LightColorScheme = lightColorScheme(
     tertiaryContainer = GreenExtraLight,
     onTertiaryContainer = Color(0xFF00201B),
 
-    background = Color(0xFFF4FBFA),
+    background = Color(0xFFD3E1DF), // Slightly darker than previous to separate from white
     onBackground = Color(0xFF0D1F1D),
-    surface = Color(0xFFF6FBFA),
+    surface = Color(0xFFBFD1CF), // Slightly darker than previous to separate from white
     onSurface = Color(0xFF102725),
 
     error = BrandErrorRed,
