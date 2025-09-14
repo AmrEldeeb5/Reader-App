@@ -38,10 +38,17 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
     val isVeryNarrow = screenWidth < 360
     val scrollState = rememberScrollState()
 
-    // Dynamic sizing
+    // Reused image sizing logic from SignUpScreen (fractions + clamp 120..240dp)
     val imageHeight = remember(screenHeight) {
-        val target = (screenHeight * if (isCompactHeight) 0.28f else 0.34f).dp
-        target.coerceIn(140.dp, 260.dp)} // Ensures the height stays within a reasonable range
+        val fraction = when {
+            screenHeight < 520 -> 0.20f
+            screenHeight < 560 -> 0.22f
+            screenHeight < 600 -> 0.24f
+            else -> 0.30f
+        }
+        val target = (screenHeight * fraction).dp
+        target.coerceIn(120.dp, 240.dp)
+    }
     val verticalSpacingAfterFields = if (isCompactHeight) 16.dp else 24.dp
 
     Scaffold(
@@ -61,17 +68,15 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        val verticalSectionSpacing = 24.dp // fixed spacing used above and below header image
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 20.dp, vertical = if (isCompactHeight) 12.dp else 24.dp)
+                .padding(top = 1.dp, start = 20.dp, end = 20.dp, bottom = if (isCompactHeight) 12.dp else 24.dp)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(verticalSectionSpacing))
-            // Illustration / header area
+            // Header image (no extra large spacer before to match SignUp layout)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -81,11 +86,12 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 Image(
                     painter = painterResource(id = R.drawable.reader_logo),
                     contentDescription = "Illustration of books and a mug",
-                    modifier = Modifier.fillMaxSize(0.9f),
+                    // Removed .fillMaxSize(0.9f) so scaling matches SignUpScreen
                     contentScale = ContentScale.Fit
                 )
             }
-            Spacer(modifier = Modifier.height(verticalSectionSpacing))
+            // Minimal spacer after image like SignUpScreen
+            Spacer(modifier = Modifier.height(1.dp))
 
             // App title
             Text(
@@ -118,7 +124,6 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 label = { Text("Password") },
                 singleLine = true,
                 visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                // Displays an icon button to toggle password visibility in the input field. The icon changes based on the current visibility state.
                 trailingIcon = {
                     val image = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
@@ -134,8 +139,7 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
 
             Spacer(modifier = Modifier.height(12.dp))
 
-
-                // uses shared state by default
+            // uses shared state by default
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -180,28 +184,12 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
 
             Spacer(modifier = Modifier.height(if (isCompactHeight) 12.dp else 16.dp))
 
-            // Forgot password
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                TextButton(onClick = {
-                    navController.navigate(ReaderScreens.CreateAccountScreen.name)
-                }) {
-                    Text(
-                        "Forgot Password?",
-                        style = if (isVeryNarrow) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(if (isCompactHeight) 8.dp else 16.dp))
-
-            // Account creation prompt (annotated clickable text like in SignUp screen)
-            CreateAccountPrompt(navController = navController, isCompact = isCompactHeight)
+            // Footer links row (Forgot Password left, Create Account right)
+            AuthFooterLinks(
+                navController = navController,
+                isCompact = isCompactHeight,
+                isVeryNarrow = isVeryNarrow
+            )
 
             Spacer(modifier = Modifier.height(if (isCompactHeight) 8.dp else 24.dp ))
         }

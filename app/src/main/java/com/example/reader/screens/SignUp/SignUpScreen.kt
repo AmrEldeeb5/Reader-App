@@ -65,7 +65,6 @@ fun SignUpScreen(navController: NavController, onSignUpClick: (String, String, S
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
     var confirmPasswordVisibility by remember { mutableStateOf(false) }
-    val rememberMe by remember { mutableStateOf(false) }
 
     // Error states
     var nameError by remember { mutableStateOf<String?>(null) }
@@ -98,7 +97,7 @@ fun SignUpScreen(navController: NavController, onSignUpClick: (String, String, S
         val target = (screenHeight * fraction).dp
         target.coerceIn(120.dp, 240.dp)
     }
-
+    // Title style consistent with Login screen
     Scaffold(
         topBar = {
             SignUpTopAppBar(navController)
@@ -111,9 +110,7 @@ fun SignUpScreen(navController: NavController, onSignUpClick: (String, String, S
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(
-                    1.dp
-                )
+                .padding(top=1.dp, start = 20.dp, end = 20.dp, bottom = if (isCompactHeight) 12.dp else 24.dp)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

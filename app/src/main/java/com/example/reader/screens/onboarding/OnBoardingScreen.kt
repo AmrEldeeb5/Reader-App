@@ -156,8 +156,29 @@ fun OnBoardingScreen(navController: NavController) {
                     }
                 }
 
+                // Replace standalone spacers + Text("OR") with centered OR flanked by horizontal lines
                 Spacer(modifier = Modifier.height(if (isShort) 20.dp else 24.dp))
-                Text("OR", color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.bodySmall)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = Color.White.copy(alpha = 0.3f),
+                        thickness = 1.dp
+                    )
+                    Text(
+                        "OR",
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = Color.White.copy(alpha = 0.3f),
+                        thickness = 1.dp
+                    )
+                }
                 Spacer(modifier = Modifier.height(if (isShort) 12.dp else 16.dp))
 
                 Button(
