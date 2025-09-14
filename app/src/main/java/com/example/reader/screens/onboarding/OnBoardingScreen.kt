@@ -174,7 +174,7 @@ fun OnBoardingScreen(navController: NavController) {
                 ) {
                     Text(
                         "Continue with email",
-                        style = if (isNarrow) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+                        style = if (isNarrow) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Bold
                     )
