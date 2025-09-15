@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,21 +60,21 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(navController: NavController, onSignUpClick: (String, String, String) -> Unit) {
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var passwordVisibility by remember { mutableStateOf(false) }
-    var confirmPasswordVisibility by remember { mutableStateOf(false) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
+    var passwordVisibility by rememberSaveable { mutableStateOf(false) }
+    var confirmPasswordVisibility by rememberSaveable { mutableStateOf(false) }
 
     // Error states
-    var nameError by remember { mutableStateOf<String?>(null) }
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
-    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
-    var generalError by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
-    val snackbarHostState = remember { SnackbarHostState() }
+    var nameError by rememberSaveable { mutableStateOf<String?>(null) }
+    var emailError by rememberSaveable { mutableStateOf<String?>(null) }
+    var passwordError by rememberSaveable { mutableStateOf<String?>(null) }
+    var confirmPasswordError by rememberSaveable { mutableStateOf<String?>(null) }
+    var generalError by rememberSaveable { mutableStateOf<String?>(null) }
+    var isLoading by rememberSaveable { mutableStateOf(false) }
+    val snackbarHostState = rememberSaveable { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
     val configuration = LocalConfiguration.current
