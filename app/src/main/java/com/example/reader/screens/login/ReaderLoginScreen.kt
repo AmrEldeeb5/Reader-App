@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -25,6 +26,11 @@ import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.R
 import kotlinx.coroutines.launch
+// Added for keyboard actions & focus
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.text.input.ImeAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,10 +39,13 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisibility by rememberSaveable { mutableStateOf(false) }
 
-    // Added login error + snackbar state
+    // Added login error + snackbar state (SnackbarHostState not saveable -> use remember)
     var loginError by rememberSaveable { mutableStateOf<String?>(null) }
-    val snackbarHostState = rememberSaveable { SnackbarHostState() }
+    val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+
+    // Loading state for login action
+    var isLoading by rememberSaveable { mutableStateOf(false) }
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp
@@ -44,6 +53,7 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
     val isCompactHeight = screenHeight < 600
     val isVeryNarrow = screenWidth < 360
     val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
 
     // Reused image sizing logic from SignUpScreen (fractions + clamp 120..240dp)
     val imageHeight = remember(screenHeight) {
@@ -57,6 +67,36 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
         target.coerceIn(120.dp, 240.dp)
     }
     val verticalSpacingAfterFields = if (isCompactHeight) 16.dp else 24.dp
+
+    // Centralized login trigger to reuse for button & IME Done action
+    fun triggerLogin() {
+        if (isLoading) return
+        // Basic validation example (extend as needed)
+        if (email.isBlank() || password.isBlank()) {
+            loginError = "Email and password required"
+            coroutineScope.launch { snackbarHostState.showSnackbar(loginError!!) }
+            return
+        }
+        isLoading = true
+        loginError = null // clear previous error
+        focusManager.clearFocus()
+        coroutineScope.launch {
+            // Simulate network delay
+            kotlinx.coroutines.delay(1200)
+            // Success condition placeholder (keep existing demo logic)
+            if (email == "already@used.com" && password == "1234") {
+                onLoginClick(email, password)
+                isLoading = false
+                navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
+                    popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
+                }
+            } else {
+                loginError = "Invalid email or password"
+                isLoading = false
+                snackbarHostState.showSnackbar(loginError!!)
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -74,7 +114,6 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
-        // Added snackbarHost to show login errors in addition to inline text
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
@@ -85,7 +124,7 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header image (no extra large spacer before to match SignUp layout)
+            // Header image
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -95,14 +134,11 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 Image(
                     painter = painterResource(id = R.drawable.reader_logo),
                     contentDescription = "Illustration of books and a mug",
-                    // Removed .fillMaxSize(0.9f) so scaling matches SignUpScreen
                     contentScale = ContentScale.Fit
                 )
             }
-            // Minimal spacer after image like SignUpScreen
             Spacer(modifier = Modifier.height(1.dp))
 
-            // App title
             Text(
                 text = "Reader",
                 color = MaterialTheme.colorScheme.onBackground,
@@ -111,25 +147,31 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 modifier = Modifier.padding(bottom = if (isCompactHeight) 16.dp else 32.dp)
             )
 
-            // Username input
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                    if (loginError != null) loginError = null // clear error on input change
+                },
                 label = { Text("Email") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     focusedLabelColor = MaterialTheme.colorScheme.primary
-                )
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Password input
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                    if (loginError != null) loginError = null // clear error on input change
+                },
                 label = { Text("Password") },
                 singleLine = true,
                 visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
@@ -144,10 +186,11 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     focusedLabelColor = MaterialTheme.colorScheme.primary
-                )
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { triggerLogin() })
             )
 
-            // Inline error text directly under password field (shows when loginError isn't null)
             if (loginError != null) {
                 Text(
                     text = loginError!!,
@@ -161,7 +204,6 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // uses shared state by default
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -180,41 +222,33 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
 
             Spacer(modifier = Modifier.height(verticalSpacingAfterFields))
 
-            // Login button
             Button(
-                onClick = {
-                    if (email == "already@used.com" && password == "1234") {
-                        // Successful login path clears error and proceeds
-                        loginError = null
-                        onLoginClick(email, password)
-                        navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
-                            popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
-                        }
-                    } else {
-                        // Failed login: set inline error + snackbar
-                        loginError = "Invalid email or password"
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar(loginError!!)
-                        }
-                    }
-                },
+                onClick = { triggerLogin() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                enabled = !isLoading
             ) {
-                Text(
-                    "Login",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontWeight = FontWeight.ExtraBold
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        "Login",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(if (isCompactHeight) 12.dp else 16.dp))
 
-            // Footer links row (Forgot Password left, Create Account right)
             AuthFooterLinks(
                 navController = navController,
                 isCompact = isCompactHeight,
