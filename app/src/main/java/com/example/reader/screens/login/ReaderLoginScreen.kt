@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.R
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +31,11 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
+
+    // Added login error + snackbar state
+    var loginError by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp
@@ -66,7 +72,9 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 }
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        // Added snackbarHost to show login errors in addition to inline text
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -125,6 +133,7 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                 singleLine = true,
                 visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
+                    // Trailing icon toggles password visibility
                     val image = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
                         Icon(image, contentDescription = "Toggle password visibility")
@@ -136,6 +145,18 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
                     focusedLabelColor = MaterialTheme.colorScheme.primary
                 )
             )
+
+            // Inline error text directly under password field (shows when loginError isn't null)
+            if (loginError != null) {
+                Text(
+                    text = loginError!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(top = 4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -162,9 +183,17 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
             Button(
                 onClick = {
                     if (email == "already@used.com" && password == "1234") {
+                        // Successful login path clears error and proceeds
+                        loginError = null
                         onLoginClick(email, password)
                         navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
                             popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
+                        }
+                    } else {
+                        // Failed login: set inline error + snackbar
+                        loginError = "Invalid email or password"
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(loginError!!)
                         }
                     }
                 },
