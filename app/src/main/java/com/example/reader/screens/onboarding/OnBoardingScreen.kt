@@ -230,42 +230,4 @@ fun OnBoardingScreen(navController: NavController) {
     }
 }
 
-@Composable
-private fun SocialButton(
-    modifier: Modifier = Modifier,
-    iconRes: Int,
-    label: String,
-    onClick: () -> Unit,
-    height: Dp = 56.dp
-) {
-    Surface(
-        modifier = modifier
-            .height(height)
-            .clip(RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        color = Color.White.copy(alpha = 0.4f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f))
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Image(
-                painter = painterResource(id = iconRes),
-                contentDescription = label,
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.Medium
-                )
-            )
-        }
-    }
-}
+

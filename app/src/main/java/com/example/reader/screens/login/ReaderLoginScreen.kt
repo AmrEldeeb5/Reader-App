@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -31,21 +32,31 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.runtime.collectAsState
+import com.example.reader.components.LoadingState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, String) -> Unit) {
+fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, String) -> Unit, viewModel: LoginScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisibility by rememberSaveable { mutableStateOf(false) }
 
-    // Added login error + snackbar state (SnackbarHostState not saveable -> use remember)
+    // Replace local error/loading with ViewModel-driven state
     var loginError by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // Loading state for login action
-    var isLoading by rememberSaveable { mutableStateOf(false) }
+    val loginState = viewModel.loginState.collectAsState().value
+    val isLoading = loginState.status == LoadingState.Status.LOADING
+
+    // If ViewModel reports an error, update local error (one-way sync)
+    LaunchedEffect(loginState) {
+        if (loginState.status == LoadingState.Status.ERROR) {
+            loginError = loginState.message
+            loginState.message?.let { msg -> snackbarHostState.showSnackbar(msg) }
+        }
+    }
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp
@@ -54,6 +65,7 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
     val isVeryNarrow = screenWidth < 360
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     // Reused image sizing logic from SignUpScreen (fractions + clamp 120..240dp)
     val imageHeight = remember(screenHeight) {
@@ -77,23 +89,18 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
             coroutineScope.launch { snackbarHostState.showSnackbar(loginError!!) }
             return
         }
-        isLoading = true
-        loginError = null // clear previous error
+        loginError = null
         focusManager.clearFocus()
-        coroutineScope.launch {
-            // Simulate network delay
-            kotlinx.coroutines.delay(1200)
-            // Success condition placeholder (keep existing demo logic)
-            if (email == "already@used.com" && password == "1234") {
+        keyboardController?.hide()
+        viewModel.login(email, password) { success, message ->
+            if (success) {
                 onLoginClick(email, password)
-                isLoading = false
                 navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
                     popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
                 }
             } else {
-                loginError = "Invalid email or password"
-                isLoading = false
-                snackbarHostState.showSnackbar(loginError!!)
+                loginError = message ?: "Login failed"
+                coroutineScope.launch { snackbarHostState.showSnackbar(loginError!!) }
             }
         }
     }
