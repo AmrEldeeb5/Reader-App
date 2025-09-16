@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 
 @Composable
@@ -29,10 +30,16 @@ fun SplashScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         delay(2000L)
-        navController.navigate(ReaderScreens.OnBoardingScreen.name) {
-            popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
+        if (FirebaseAuth.getInstance().currentUser?.email.isNullOrEmpty()) {
+            navController.navigate(ReaderScreens.OnBoardingScreen.name) {
+                popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
+            }
+        } else {
+            navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
+                popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
+            }
         }
-    }
+    } // LaunchedEffect properly closed here
 
     // Responsive design - get screen dimensions
     val configuration = LocalConfiguration.current

@@ -128,23 +128,22 @@ fun AuthFooterLinks(
 }
 
 @Composable
-fun RememberMeBox(
-    checked: Boolean = RememberMeBoxState.rememberMe,
-    onToggle: () -> Unit = { RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe }
-) {
+fun RememberMeBox() {
     Surface(
         modifier = Modifier
             .size(22.dp)
-            .clickable { onToggle() },
+            .clickable {
+                RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe
+            },
         shape = RoundedCornerShape(4.dp),
-        color = if (checked) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+        color = if (RememberMeBoxState.rememberMe) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
         border = BorderStroke(
             1.dp,
-            if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            if (RememberMeBoxState.rememberMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
         )
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-            if (checked) {
+            if (RememberMeBoxState.rememberMe) {
                 Icon(
                     imageVector = Icons.Filled.Check,
                     contentDescription = "Checked",
@@ -155,4 +154,3 @@ fun RememberMeBox(
         }
     }
 }
-
