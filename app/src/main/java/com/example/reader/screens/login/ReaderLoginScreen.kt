@@ -80,7 +80,7 @@ fun ReaderLoginScreen(navController: NavController, onLoginClick: (String, Strin
     }
     val verticalSpacingAfterFields = if (isCompactHeight) 16.dp else 24.dp
 
-    // Centralized login trigger to reuse for button & IME Done action
+    // Centralized login trigger to reuse for button & IME Done actions
     fun triggerLogin() {
         if (isLoading) return
         // Basic validation example (extend as needed)
