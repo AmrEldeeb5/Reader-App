@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -11,30 +13,220 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.reader.R
+import com.example.reader.components.LoadingState
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.login.RememberMeBox
 import com.example.reader.screens.login.RememberMeBoxState
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.text.input.ImeAction
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.reader.components.LoadingState
+
+// Constants for better maintainability
+private object SignUpConstants {
+    const val MIN_PASSWORD_LENGTH = 6
+    const val COMPACT_HEIGHT_THRESHOLD = 600
+    const val NARROW_WIDTH_THRESHOLD = 360
+    const val DEFAULT_SPACING = 12
+    const val SMALL_SPACING = 4
+    const val LARGE_SPACING = 16
+    const val EXTRA_LARGE_SPACING = 48
+    const val PROGRESS_INDICATOR_SIZE = 22
+    const val PROGRESS_STROKE_WIDTH = 2
+}
+
+// Data classes for better state management
+data class SignUpFormState(
+    val name: String = "",
+    val email: String = "",
+    val password: String = "",
+    val confirmPassword: String = "",
+    val passwordVisible: Boolean = false,
+    val confirmPasswordVisible: Boolean = false
+)
+
+data class FormErrors(
+    val nameError: String? = null,
+    val emailError: String? = null,
+    val passwordError: String? = null,
+    val confirmPasswordError: String? = null,
+    val generalError: String? = null
+) {
+    val hasErrors: Boolean
+        get() = nameError != null || emailError != null || passwordError != null ||
+                confirmPasswordError != null || generalError != null
+}
+
+// Helper data class for screen dimensions
+data class ScreenDimensions(
+    val screenHeight: Int,
+    val screenWidth: Int,
+    val isCompactHeight: Boolean,
+    val isVeryNarrow: Boolean,
+    val imageHeight: androidx.compose.ui.unit.Dp
+)
+
+@Composable
+private fun rememberScreenDimensions(): ScreenDimensions {
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp
+    val screenWidth = configuration.screenWidthDp
+
+    return remember(screenHeight, screenWidth) {
+        val isCompactHeight = screenHeight < SignUpConstants.COMPACT_HEIGHT_THRESHOLD
+        val isVeryNarrow = screenWidth < SignUpConstants.NARROW_WIDTH_THRESHOLD
+
+        val imageHeight = run {
+            val fraction = when {
+                screenHeight < 520 -> 0.20f
+                screenHeight < 560 -> 0.22f
+                screenHeight < 600 -> 0.24f
+                else -> 0.30f
+            }
+            (screenHeight * fraction).dp.coerceIn(120.dp, 240.dp)
+        }
+
+        ScreenDimensions(
+            screenHeight = screenHeight,
+            screenWidth = screenWidth,
+            isCompactHeight = isCompactHeight,
+            isVeryNarrow = isVeryNarrow,
+            imageHeight = imageHeight
+        )
+    }
+}
+
+// Validation functions
+private fun validateForm(formState: SignUpFormState): FormErrors {
+    return FormErrors(
+        nameError = when {
+            formState.name.isBlank() -> "Name is required"
+            else -> null
+        },
+        emailError = when {
+            formState.email.isBlank() -> "Email is required"
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(formState.email).matches() -> "Invalid email format"
+            else -> null
+        },
+        passwordError = when {
+            formState.password.isBlank() -> "Password is required"
+            formState.password.length < SignUpConstants.MIN_PASSWORD_LENGTH ->
+                "Password must be at least ${SignUpConstants.MIN_PASSWORD_LENGTH} characters"
+            else -> null
+        },
+        confirmPasswordError = when {
+            formState.confirmPassword.isBlank() -> "Please confirm your password"
+            formState.confirmPassword != formState.password -> "Passwords do not match"
+            else -> null
+        }
+    )
+}
+
+// Reusable UI Components
+@Composable
+private fun SignUpTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    error: String? = null,
+    isPassword: Boolean = false,
+    passwordVisible: Boolean = false,
+    onPasswordVisibilityToggle: (() -> Unit)? = null,
+    imeAction: ImeAction = ImeAction.Next,
+    onImeAction: () -> Unit = {}
+) {
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            isError = error != null,
+            visualTransformation = if (isPassword && !passwordVisible)
+                PasswordVisualTransformation() else VisualTransformation.None,
+            trailingIcon = if (isPassword && onPasswordVisibilityToggle != null) {
+                {
+                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    IconButton(onClick = onPasswordVisibilityToggle) {
+                        Icon(
+                            imageVector = image,
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                        )
+                    }
+                }
+            } else null,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = imeAction),
+            keyboardActions = KeyboardActions(
+                onNext = { onImeAction() },
+                onDone = { onImeAction() }
+            )
+        )
+
+        if (error != null) {
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SignUpButton(
+    onClick: () -> Unit,
+    isEnabled: Boolean,
+    isLoading: Boolean,
+    screenDimensions: ScreenDimensions
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        enabled = isEnabled && !isLoading,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isEnabled) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = if (isEnabled) MaterialTheme.colorScheme.onPrimary
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(SignUpConstants.PROGRESS_INDICATOR_SIZE.dp),
+                color = if (isEnabled) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+                strokeWidth = SignUpConstants.PROGRESS_STROKE_WIDTH.dp
+            )
+        } else {
+            Text(
+                text = "Create Account",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.ExtraBold
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,27 +235,16 @@ fun SignUpScreen(
     onSignUpClick: (String, String, String) -> Unit,
     viewModel: SignUpScreenViewModel = viewModel()
 ) {
-    // Local input state
-    var name by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var confirmPassword by rememberSaveable { mutableStateOf("") }
-    var passwordVisibility by rememberSaveable { mutableStateOf(false) }
-    var confirmPasswordVisibility by rememberSaveable { mutableStateOf(false) }
-
-    // Field error state
-    var nameError by rememberSaveable { mutableStateOf<String?>(null) }
-    var emailError by rememberSaveable { mutableStateOf<String?>(null) }
-    var passwordError by rememberSaveable { mutableStateOf<String?>(null) }
-    var confirmPasswordError by rememberSaveable { mutableStateOf<String?>(null) }
-    var generalError by rememberSaveable { mutableStateOf<String?>(null) }
+    // Form state management
+    var formState by rememberSaveable { mutableStateOf(SignUpFormState()) }
+    var formErrors by rememberSaveable { mutableStateOf(FormErrors()) }
 
     // Check if all required fields are filled
-    val isFormValid = remember(name, email, password, confirmPassword) {
-        name.isNotBlank() &&
-        email.isNotBlank() &&
-        password.isNotBlank() &&
-        confirmPassword.isNotBlank()
+    val isFormValid = remember(formState) {
+        formState.name.isNotBlank() &&
+                formState.email.isNotBlank() &&
+                formState.password.isNotBlank() &&
+                formState.confirmPassword.isNotBlank()
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -75,67 +256,33 @@ fun SignUpScreen(
     val loading by viewModel.loading.collectAsState() // StateFlow
     val signUpState by viewModel.signUpState.collectAsState() // StateFlow
 
-    val configuration = LocalConfiguration.current
-    val screenHeight = configuration.screenHeightDp
-    val screenWidth = configuration.screenWidthDp
-    val isCompactHeight = screenHeight < 600
-    val isVeryNarrow = screenWidth < 360
-    val isShort = isCompactHeight
-
+    // Screen dimensions and responsive settings
+    val screenDimensions = rememberScreenDimensions()
     val scrollState = rememberScrollState()
 
-    val imageHeight = remember(screenHeight) {
-        val fraction = when {
-            screenHeight < 520 -> 0.20f
-            screenHeight < 560 -> 0.22f
-            screenHeight < 600 -> 0.24f
-            else -> 0.30f
-        }
-        (screenHeight * fraction).dp.coerceIn(120.dp, 240.dp)
-    }
 
-
-    fun triggerSignUp() {
+    // Validation logic
+    fun validateAndSignUp() {
         if (loading || signUpState.status == LoadingState.Status.LOADING) return
-        // Reset errors
-        nameError = null; emailError = null; passwordError = null; confirmPasswordError = null; generalError = null
-        var valid = true
 
-        when {
-            name.isBlank() -> {
-                nameError = "Name is required"; valid = false
-            }
+        val validationErrors = validateForm(formState)
+        formErrors = validationErrors
 
-            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                emailError = "Invalid email format";
-                valid = false
-            }
+        if (validationErrors.hasErrors) return
 
-            password.length < 6 -> {
-                passwordError = "Password must be at least 6 characters";
-                valid = false
-            }
-
-            confirmPassword != password -> {
-                confirmPasswordError = "Passwords do not match";
-                valid = false
-            }
-
-        }
-
-
-        if (!valid) return
         focusManager.clearFocus()
         keyboardController?.hide()
-        viewModel.signUp(name, email, password) { success, errorMsg ->
+
+        viewModel.signUp(formState.name, formState.email, formState.password) { success, errorMsg ->
             if (success) {
-                onSignUpClick(name, email, password) // external hook if caller needs it
+                onSignUpClick(formState.name, formState.email, formState.password)
                 navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
                     popUpTo(ReaderScreens.CreateAccountScreen.name) { inclusive = true }
                 }
             } else {
-                generalError = errorMsg ?: "Sign up failed"
-                coroutineScope.launch { snackbarHostState.showSnackbar(generalError!!) }
+                val error = errorMsg ?: "Sign up failed"
+                formErrors = formErrors.copy(generalError = error)
+                coroutineScope.launch { snackbarHostState.showSnackbar(error) }
             }
         }
     }
@@ -143,10 +290,11 @@ fun SignUpScreen(
 
 
     val content = @Composable {
+        // App Logo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(imageHeight),
+                .height(screenDimensions.imageHeight),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -155,157 +303,140 @@ fun SignUpScreen(
                 contentScale = ContentScale.Fit
             )
         }
+
         Spacer(modifier = Modifier.height(1.dp))
 
+        // App Title
         Text(
             text = "Reader",
             color = MaterialTheme.colorScheme.onBackground,
-            style = if (isVeryNarrow) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displayLarge,
+            style = if (screenDimensions.isVeryNarrow)
+                MaterialTheme.typography.headlineLarge
+            else
+                MaterialTheme.typography.displayLarge,
             fontWeight = FontWeight.ExtraBold,
-            modifier = Modifier.padding(bottom = if (isCompactHeight) 4.dp else 8.dp)
+            modifier = Modifier.padding(
+                bottom = if (screenDimensions.isCompactHeight)
+                    SignUpConstants.SMALL_SPACING.dp
+                else
+                    SignUpConstants.SMALL_SPACING.dp * 2
+            )
         )
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it; nameError = null },
-            label = { Text("Name") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            isError = nameError != null,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.primary
-            ),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
-        )
-        if (nameError != null) {
-            Text(nameError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-        }
-        Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it; emailError = null },
-            label = { Text("Email") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            isError = emailError != null,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.primary
-            ),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
-        )
-        if (emailError != null) {
-            Text(emailError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it; passwordError = null },
-            label = { Text("Password") },
-            singleLine = true,
-            visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                val image = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                    Icon(imageVector = image, contentDescription = if (passwordVisibility) "Hide password" else "Show password")
-                }
+        // Form Fields
+        SignUpTextField(
+            value = formState.name,
+            onValueChange = {
+                formState = formState.copy(name = it)
+                formErrors = formErrors.copy(nameError = null)
             },
-            modifier = Modifier.fillMaxWidth(),
-            isError = passwordError != null,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.primary
-            ),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+            label = "Name",
+            error = formErrors.nameError,
+            onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
         )
-        if (passwordError != null) {
-            Text(passwordError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-        }
-        Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it; confirmPasswordError = null },
-            label = { Text("Confirm Password") },
-            singleLine = true,
-            visualTransformation = if (confirmPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                val image = if (confirmPasswordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                IconButton(onClick = { confirmPasswordVisibility = !confirmPasswordVisibility }) {
-                    Icon(imageVector = image, contentDescription = if (confirmPasswordVisibility) "Hide password" else "Show password")
-                }
+        Spacer(modifier = Modifier.height(SignUpConstants.DEFAULT_SPACING.dp))
+
+        SignUpTextField(
+            value = formState.email,
+            onValueChange = {
+                formState = formState.copy(email = it)
+                formErrors = formErrors.copy(emailError = null)
             },
-            modifier = Modifier.fillMaxWidth(),
-            isError = confirmPasswordError != null,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.primary
-            ),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { triggerSignUp() })
+            label = "Email",
+            error = formErrors.emailError,
+            onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
         )
-        if (confirmPasswordError != null) {
-            Text(confirmPasswordError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-        }
-        Spacer(modifier = Modifier.height(12.dp))
 
+        Spacer(modifier = Modifier.height(SignUpConstants.DEFAULT_SPACING.dp))
+
+        SignUpTextField(
+            value = formState.password,
+            onValueChange = {
+                formState = formState.copy(password = it)
+                formErrors = formErrors.copy(passwordError = null)
+            },
+            label = "Password",
+            error = formErrors.passwordError,
+            isPassword = true,
+            passwordVisible = formState.passwordVisible,
+            onPasswordVisibilityToggle = {
+                formState = formState.copy(passwordVisible = !formState.passwordVisible)
+            },
+            onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
+        )
+
+        Spacer(modifier = Modifier.height(SignUpConstants.DEFAULT_SPACING.dp))
+
+        SignUpTextField(
+            value = formState.confirmPassword,
+            onValueChange = {
+                formState = formState.copy(confirmPassword = it)
+                formErrors = formErrors.copy(confirmPasswordError = null)
+            },
+            label = "Confirm Password",
+            error = formErrors.confirmPasswordError,
+            isPassword = true,
+            passwordVisible = formState.confirmPasswordVisible,
+            onPasswordVisibilityToggle = {
+                formState = formState.copy(confirmPasswordVisible = !formState.confirmPasswordVisible)
+            },
+            imeAction = ImeAction.Done,
+            onImeAction = { validateAndSignUp() }
+        )
+
+        Spacer(modifier = Modifier.height(SignUpConstants.DEFAULT_SPACING.dp))
+
+        // Remember Me Section
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp),
+                .padding(vertical = SignUpConstants.SMALL_SPACING.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             RememberMeBox()
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Remember me",
-                style = if (isVeryNarrow) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+                style = if (screenDimensions.isVeryNarrow)
+                    MaterialTheme.typography.bodySmall
+                else
+                    MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.clickable { RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe }
+                modifier = Modifier.clickable {
+                    RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe
+                }
             )
         }
 
-        Button(
-            onClick = { triggerSignUp() },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = isFormValid && !loading && signUpState.status != LoadingState.Status.LOADING,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isFormValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = if (isFormValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        ) {
-            if (loading || signUpState.status == LoadingState.Status.LOADING) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(22.dp),
-                    color = if (isFormValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    text = "Create Account",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            }
-        }
+        // Sign Up Button
+        SignUpButton(
+            onClick = { validateAndSignUp() },
+            isEnabled = isFormValid,
+            isLoading = loading || signUpState.status == LoadingState.Status.LOADING,
+            screenDimensions = screenDimensions
+        )
 
-        if (generalError != null) {
+        // General Error Display
+        if (formErrors.generalError != null) {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(generalError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = formErrors.generalError!!,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
 
-        Spacer(modifier = Modifier.height(if (isShort) 8.dp else 16.dp))
+        Spacer(modifier = Modifier.height(
+            if (screenDimensions.isCompactHeight)
+                8.dp
+            else
+                SignUpConstants.LARGE_SPACING.dp
+        ))
 
         LogInPrompt(navController)
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(SignUpConstants.EXTRA_LARGE_SPACING.dp))
     }
 
 
@@ -319,7 +450,15 @@ fun SignUpScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(top = 1.dp, start = 20.dp, end = 20.dp, bottom = if (isCompactHeight) 12.dp else 24.dp)
+                .padding(
+                    top = 1.dp,
+                    start = 20.dp,
+                    end = 20.dp,
+                    bottom = if (screenDimensions.isCompactHeight)
+                        SignUpConstants.DEFAULT_SPACING.dp
+                    else
+                        24.dp
+                )
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
