@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -195,8 +194,7 @@ private fun SignUpTextField(
 private fun SignUpButton(
     onClick: () -> Unit,
     isEnabled: Boolean,
-    isLoading: Boolean,
-    screenDimensions: ScreenDimensions
+    isLoading: Boolean
 ) {
     Button(
         onClick = onClick,
@@ -413,8 +411,7 @@ fun SignUpScreen(
         SignUpButton(
             onClick = { validateAndSignUp() },
             isEnabled = isFormValid,
-            isLoading = loading || signUpState.status == LoadingState.Status.LOADING,
-            screenDimensions = screenDimensions
+            isLoading = loading || signUpState.status == LoadingState.Status.LOADING
         )
 
         // General Error Display

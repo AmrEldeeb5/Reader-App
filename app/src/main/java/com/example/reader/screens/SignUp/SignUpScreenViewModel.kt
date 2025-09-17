@@ -8,6 +8,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.ktx.Firebase as KtxFirebase
@@ -24,7 +27,6 @@ class SignUpScreenViewModel: ViewModel() {
         private const val USERS_COLLECTION = "users"
 
         // Error messages
-        private const val ERROR_CREATE_ACCOUNT = "Failed to create user account"
         private const val ERROR_NO_USER = "No authenticated user found"
         private const val ERROR_MISSING_ID = "Missing user ID"
         private const val ERROR_SIGN_UP_FAILED = "Sign up failed"
@@ -43,40 +45,36 @@ class SignUpScreenViewModel: ViewModel() {
         password: String,
         onResult: (Boolean, String?) -> Unit
     ) = viewModelScope.launch {
-        // Prevent multiple simultaneous sign-up attempts
         if (_signUpState.value == LoadingState.LOADING) return@launch
 
-        try {
-            setLoadingState(true)
+        setLoadingState(true, LoadingState.LOADING)
 
-            // Step 1: Create user account with email and password (authoritative)
-            createUserAccount(email, password)
-
-            // Step 2 & 3 (best-effort): profile update and Firestore save shouldn't block success
-            try {
-                updateUserProfile(user)
-            } catch (_: Exception) { /* non-fatal */ }
-
-            try {
-                saveUserToFirestore(user)
-            } catch (_: Exception) { /* non-fatal */ }
-
-            // Success regardless of best-effort operations
-            setLoadingState(false, LoadingState.SUCCESS)
-            onResult(true, null)
-
-        } catch (e: Exception) {
-            val errorMessage = e.message ?: ERROR_SIGN_UP_FAILED
-            setLoadingState(false, LoadingState.error(errorMessage))
-            onResult(false, errorMessage)
+        // Authoritative step: create account. Fail fast with friendly message
+        val createError = runCatching { createUserAccount(email, password) }.exceptionOrNull()
+        if (createError != null) {
+            val msg = toUserMessage(createError)
+            setLoadingState(false, LoadingState.error(msg))
+            onResult(false, msg)
+            return@launch
         }
+
+        // Best-effort: don’t block success
+        runCatching { updateUserProfile(user) }
+        runCatching { saveUserToFirestore(user) }
+
+        setLoadingState(false, LoadingState.SUCCESS)
+        onResult(true, null)
+    }
+
+    private fun toUserMessage(e: Throwable): String = when (e) {
+        is FirebaseAuthUserCollisionException -> "Account already exists. Please log in."
+        is FirebaseAuthWeakPasswordException -> "Weak password. Use at least 6 characters."
+        is FirebaseAuthInvalidCredentialsException -> "Invalid email format."
+        else -> e.message ?: ERROR_SIGN_UP_FAILED
     }
 
     private suspend fun createUserAccount(email: String, password: String) {
-        val task = auth.createUserWithEmailAndPassword(email, password).await()
-        if (task.user == null) {
-            throw Exception(ERROR_CREATE_ACCOUNT)
-        }
+        auth.createUserWithEmailAndPassword(email, password).await()
     }
 
     private suspend fun updateUserProfile(displayName: String) {
