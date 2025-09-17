@@ -203,12 +203,13 @@ fun OnBoardingScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(if (isShort) 24.dp else 32.dp))
 
-                val signInTag = "SIGN_IN_TAG"
+                // Sign up link (navigates to Create Account)
+                val signUpTag = "SIGN_UP_TAG"
                 val annotated = buildAnnotatedString {
                     append("New reader? ")
-                    pushStringAnnotation(tag = signInTag, annotation = "signin")
+                    pushStringAnnotation(tag = signUpTag, annotation = "signup")
                     withStyle(SpanStyle(color = Color.White, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)) {
-                        append("Sign in")
+                        append("Sign up")
                     }
                     pop()
                 }
@@ -216,7 +217,7 @@ fun OnBoardingScreen(navController: NavController) {
                     text = annotated,
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray),
                     onClick = { offset ->
-                        annotated.getStringAnnotations(signInTag, offset, offset).firstOrNull()?.let {
+                        annotated.getStringAnnotations(signUpTag, offset, offset).firstOrNull()?.let {
                             navController.navigate(ReaderScreens.CreateAccountScreen.name) {
                                 popUpTo(ReaderScreens.OnBoardingScreen.name) { inclusive = true }
                             }
@@ -229,5 +230,3 @@ fun OnBoardingScreen(navController: NavController) {
         }
     }
 }
-
-

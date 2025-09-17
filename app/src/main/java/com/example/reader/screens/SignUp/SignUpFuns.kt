@@ -39,7 +39,7 @@ fun SignUpTopAppBar(navController : NavController) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
         },
-        title = { Text("Sign up", style = MaterialTheme.typography.titleLarge) },
+        title = { Text("Create Account", style = MaterialTheme.typography.titleLarge) },
     )
 }
 
@@ -98,5 +98,3 @@ fun LogInPrompt(navController: NavController) {
         }
     )
 }
-
-

@@ -236,8 +236,8 @@ fun SignUpScreen(
     viewModel: SignUpScreenViewModel = viewModel()
 ) {
     // Form state management
-    var formState by rememberSaveable { mutableStateOf(SignUpFormState()) }
-    var formErrors by rememberSaveable { mutableStateOf(FormErrors()) }
+    var formState by remember { mutableStateOf(SignUpFormState()) }
+    var formErrors by remember { mutableStateOf(FormErrors()) }
 
     // Check if all required fields are filled
     val isFormValid = remember(formState) {
