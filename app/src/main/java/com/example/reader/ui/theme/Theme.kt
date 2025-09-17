@@ -12,30 +12,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = GreenLight,
-    onPrimary = Color(0xFF003731),
-    primaryContainer = GreenDark,
-    onPrimaryContainer = GreenExtraLight,
+    primary = DarkTeal,
+    onPrimary = DarkOnPrimary,
+    primaryContainer = DarkTealDark,
+    onPrimaryContainer = DarkTealLight,
 
-    secondary = GreenMid,
-    onSecondary = Color(0xFF003731),
-    secondaryContainer = GreenDark,
-    onSecondaryContainer = GreenExtraLight,
+    secondary = DarkTealLight,
+    onSecondary = Color.White,
+    secondaryContainer = DarkTealDark,
+    onSecondaryContainer = DarkTealLight,
 
-    tertiary = GreenPrimary,
+    tertiary = Color(0xFF4CAF50), // Complementary green
     onTertiary = Color.White,
-    tertiaryContainer = GreenMid,
-    onTertiaryContainer = Color.White,
+    tertiaryContainer = Color(0xFF2E7D32),
+    onTertiaryContainer = Color(0xFFC8E6C9),
 
-    background = Color(0xFF09201D),
-    onBackground = Color(0xFFDBF2EE),
-    surface = Color(0xFF0E2724),
-    onSurface = Color(0xFFCFE7E3),
+    background = DarkBackground,
+    onBackground = DarkOnBackground,
+    surface = DarkSurface,
+    onSurface = DarkOnBackground,
 
     error = BrandErrorRed,
     onError = Color.White,
-    errorContainer = Color(0xFFFFDAD6),
-    onErrorContainer = Color(0xFF410002)
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6)
 )
 
 private val LightColorScheme = lightColorScheme(

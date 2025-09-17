@@ -24,3 +24,12 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 @Deprecated("Use brand green palette instead (GreenPrimary, etc.)")
 val Pink40 = Color(0xFF7D5260)
+
+// New dark theme colors based on user preferences
+val DarkTeal = Color(0xFF00695C)        // User's primary color
+val DarkTealLight = Color(0xFF26A69A)   // Lighter variation for containers
+val DarkTealDark = Color(0xFF004D40)    // Darker variation
+val DarkBackground = Color(0xFF161522)   // User's dark background color
+val DarkSurface = Color(0xFF1E1B2E)     // Slightly lighter surface
+val DarkOnPrimary = Color(0xFFE0F2F1)   // Light text on dark teal
+val DarkOnBackground = Color(0xFFE8E6F0) // Light text on dark background
