@@ -49,16 +49,19 @@ class SignUpScreenViewModel: ViewModel() {
         try {
             setLoadingState(true)
 
-            // Step 1: Create user account with email and password
+            // Step 1: Create user account with email and password (authoritative)
             createUserAccount(email, password)
 
-            // Step 2: Update user profile with display name
-            updateUserProfile(user)
+            // Step 2 & 3 (best-effort): profile update and Firestore save shouldn't block success
+            try {
+                updateUserProfile(user)
+            } catch (_: Exception) { /* non-fatal */ }
 
-            // Step 3: Save user data to Firestore
-            saveUserToFirestore(user)
+            try {
+                saveUserToFirestore(user)
+            } catch (_: Exception) { /* non-fatal */ }
 
-            // Success
+            // Success regardless of best-effort operations
             setLoadingState(false, LoadingState.SUCCESS)
             onResult(true, null)
 

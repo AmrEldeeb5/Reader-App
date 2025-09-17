@@ -2,25 +2,13 @@ package com.example.reader.screens.login
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,32 +21,73 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
 
-// Shared state holder for login-related simple flags.
+/**
+ * Global state holder for the "Remember Me" checkbox functionality.
+ * This persists across login and signup screens.
+ */
 object RememberMeBoxState {
     var rememberMe by mutableStateOf(false)
 }
 
+/**
+ * Constants for the login screen components
+ */
+private object LoginComponentConstants {
+    const val CREATE_ACCOUNT_TAG = "CREATE_ACCOUNT_TAG"
+    const val CREATE_ACCOUNT_ANNOTATION = "create_account"
+    const val CHECKBOX_SIZE = 22
+    const val CHECKBOX_ICON_SIZE = 16
+    const val CHECKBOX_CORNER_RADIUS = 4
+    const val CHECKBOX_BORDER_WIDTH = 1
+}
+
+/**
+ * Clickable text that prompts users to create a new account
+ *
+ * @param navController Navigation controller for screen transitions
+ * @param isCompact Whether the screen is in compact mode (affects text size)
+ */
 @Composable
-fun CreateAccountPrompt(navController: NavController, isCompact: Boolean) {
-    val tag = "CREATE_ACCOUNT_TAG"
-    val annotated = buildAnnotatedString {
+fun CreateAccountPrompt(
+    navController: NavController,
+    isCompact: Boolean
+) {
+    val annotatedString = buildAnnotatedString {
+        // Regular text
         append("New reader? ")
-        pushStringAnnotation(tag = tag, annotation = "create_account")
+
+        // Clickable "Create account" text
+        pushStringAnnotation(
+            tag = LoginComponentConstants.CREATE_ACCOUNT_TAG,
+            annotation = LoginComponentConstants.CREATE_ACCOUNT_ANNOTATION
+        )
         withStyle(
             SpanStyle(
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 textDecoration = TextDecoration.Underline
             )
-        ) { append("Create account") }
+        ) {
+            append("Create account")
+        }
         pop()
     }
+
     ClickableText(
-        text = annotated,
-        style = (if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium)
-            .copy(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)),
+        text = annotatedString,
+        style = (if (isCompact)
+            MaterialTheme.typography.bodySmall
+        else
+            MaterialTheme.typography.bodyMedium
+                ).copy(
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
+            ),
         onClick = { offset ->
-            annotated.getStringAnnotations(tag, offset, offset).firstOrNull()?.let {
+            annotatedString.getStringAnnotations(
+                LoginComponentConstants.CREATE_ACCOUNT_TAG,
+                offset,
+                offset
+            ).firstOrNull()?.let {
                 navController.navigate(ReaderScreens.CreateAccountScreen.name) {
                     popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
                 }
@@ -67,7 +96,14 @@ fun CreateAccountPrompt(navController: NavController, isCompact: Boolean) {
     )
 }
 
-
+/**
+ * Forgot password link that navigates to password recovery
+ *
+ * @param navController Navigation controller for screen transitions
+ * @param isCompact Whether the screen is in compact height mode
+ * @param isVeryNarrow Whether the screen is very narrow
+ * @param inRow Whether this component is being used inside a Row layout
+ */
 @Composable
 fun ForgotPasswordLink(
     navController: NavController,
@@ -75,13 +111,16 @@ fun ForgotPasswordLink(
     isVeryNarrow: Boolean,
     inRow: Boolean = false
 ) {
-    val content: @Composable () -> Unit = {
-        TextButton(onClick = {
-            // Placeholder navigation; replace with actual password recovery when available.
-            navController.navigate(ReaderScreens.CreateAccountScreen.name)
-        }) {
+    val linkContent: @Composable () -> Unit = {
+        TextButton(
+            onClick = {
+                // Navigate to create account screen as placeholder
+                // TODO: Replace with actual password recovery screen when available
+                navController.navigate(ReaderScreens.CreateAccountScreen.name)
+            }
+        ) {
             Text(
-                "Forgot Password?",
+                text = "Forgot Password?",
                 style = when {
                     isVeryNarrow -> MaterialTheme.typography.bodySmall
                     isCompact -> MaterialTheme.typography.bodySmall
@@ -92,17 +131,28 @@ fun ForgotPasswordLink(
             )
         }
     }
+
     if (inRow) {
-        content()
+        linkContent()
     } else {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
-        ) { content() }
+        ) {
+            linkContent()
+        }
     }
 }
 
+/**
+ * Footer section containing forgot password and create account links
+ * Arranged horizontally with space between them
+ *
+ * @param navController Navigation controller for screen transitions
+ * @param isCompact Whether the screen is in compact height mode
+ * @param isVeryNarrow Whether the screen is very narrow
+ */
 @Composable
 fun AuthFooterLinks(
     navController: NavController,
@@ -120,6 +170,7 @@ fun AuthFooterLinks(
             isVeryNarrow = isVeryNarrow,
             inRow = true
         )
+
         CreateAccountPrompt(
             navController = navController,
             isCompact = isCompact
@@ -127,28 +178,41 @@ fun AuthFooterLinks(
     }
 }
 
+/**
+ * Custom checkbox component for "Remember Me" functionality
+ * Uses Material 3 design system colors and shows a check icon when selected
+ */
 @Composable
 fun RememberMeBox() {
     Surface(
         modifier = Modifier
-            .size(22.dp)
+            .size(LoginComponentConstants.CHECKBOX_SIZE.dp)
             .clickable {
                 RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe
             },
-        shape = RoundedCornerShape(4.dp),
-        color = if (RememberMeBoxState.rememberMe) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+        shape = RoundedCornerShape(LoginComponentConstants.CHECKBOX_CORNER_RADIUS.dp),
+        color = if (RememberMeBoxState.rememberMe)
+            MaterialTheme.colorScheme.primaryContainer
+        else
+            Color.Transparent,
         border = BorderStroke(
-            1.dp,
-            if (RememberMeBoxState.rememberMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            width = LoginComponentConstants.CHECKBOX_BORDER_WIDTH.dp,
+            color = if (RememberMeBoxState.rememberMe)
+                MaterialTheme.colorScheme.primary
+            else
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
         )
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
             if (RememberMeBoxState.rememberMe) {
                 Icon(
                     imageVector = Icons.Filled.Check,
                     contentDescription = "Checked",
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(LoginComponentConstants.CHECKBOX_ICON_SIZE.dp)
                 )
             }
         }
