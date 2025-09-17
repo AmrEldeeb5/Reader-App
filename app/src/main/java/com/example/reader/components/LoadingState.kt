@@ -1,6 +1,10 @@
 package com.example.reader.components
 
-data class LoadingState(val status: Status, val message: String? = null)  {
+data class LoadingState
+    (
+    val status: Status,
+    val message: String? = null
+            )  {
     enum class Status {
         IDLE,
         LOADING,

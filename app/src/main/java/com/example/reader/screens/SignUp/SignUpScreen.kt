@@ -33,6 +33,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.text.input.ImeAction
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reader.components.LoadingState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +41,7 @@ import com.example.reader.components.LoadingState
 fun SignUpScreen(
     navController: NavController,
     onSignUpClick: (String, String, String) -> Unit,
-    viewModel: SignUpScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: SignUpScreenViewModel = viewModel()
 ) {
     // Local input state
     var name by rememberSaveable { mutableStateOf("") }
@@ -93,15 +94,36 @@ fun SignUpScreen(
         (screenHeight * fraction).dp.coerceIn(120.dp, 240.dp)
     }
 
+
     fun triggerSignUp() {
         if (loading || signUpState.status == LoadingState.Status.LOADING) return
         // Reset errors
         nameError = null; emailError = null; passwordError = null; confirmPasswordError = null; generalError = null
         var valid = true
-        if (name.isBlank()) { nameError = "Name is required"; valid = false }
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) { emailError = "Invalid email format"; valid = false }
-        if (password.length < 6) { passwordError = "Password must be at least 6 characters"; valid = false }
-        if (confirmPassword != password) { confirmPasswordError = "Passwords do not match"; valid = false }
+
+        when {
+            name.isBlank() -> {
+                nameError = "Name is required"; valid = false
+            }
+
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                emailError = "Invalid email format";
+                valid = false
+            }
+
+            password.length < 6 -> {
+                passwordError = "Password must be at least 6 characters";
+                valid = false
+            }
+
+            confirmPassword != password -> {
+                confirmPasswordError = "Passwords do not match";
+                valid = false
+            }
+
+        }
+
+
         if (!valid) return
         focusManager.clearFocus()
         keyboardController?.hide()
@@ -118,6 +140,176 @@ fun SignUpScreen(
         }
     }
 
+
+
+    val content = @Composable {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(imageHeight),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.reader_logo),
+                contentDescription = "Illustration of books and a mug",
+                contentScale = ContentScale.Fit
+            )
+        }
+        Spacer(modifier = Modifier.height(1.dp))
+
+        Text(
+            text = "Reader",
+            color = MaterialTheme.colorScheme.onBackground,
+            style = if (isVeryNarrow) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displayLarge,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.padding(bottom = if (isCompactHeight) 4.dp else 8.dp)
+        )
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it; nameError = null },
+            label = { Text("Name") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            isError = nameError != null,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+        )
+        if (nameError != null) {
+            Text(nameError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it; emailError = null },
+            label = { Text("Email") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            isError = emailError != null,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+        )
+        if (emailError != null) {
+            Text(emailError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it; passwordError = null },
+            label = { Text("Password") },
+            singleLine = true,
+            visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val image = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
+                    Icon(imageVector = image, contentDescription = if (passwordVisibility) "Hide password" else "Show password")
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            isError = passwordError != null,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+        )
+        if (passwordError != null) {
+            Text(passwordError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it; confirmPasswordError = null },
+            label = { Text("Confirm Password") },
+            singleLine = true,
+            visualTransformation = if (confirmPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val image = if (confirmPasswordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                IconButton(onClick = { confirmPasswordVisibility = !confirmPasswordVisibility }) {
+                    Icon(imageVector = image, contentDescription = if (confirmPasswordVisibility) "Hide password" else "Show password")
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            isError = confirmPasswordError != null,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { triggerSignUp() })
+        )
+        if (confirmPasswordError != null) {
+            Text(confirmPasswordError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RememberMeBox()
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Remember me",
+                style = if (isVeryNarrow) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.clickable { RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe }
+            )
+        }
+
+        Button(
+            onClick = { triggerSignUp() },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = isFormValid && !loading && signUpState.status != LoadingState.Status.LOADING,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isFormValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = if (isFormValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        ) {
+            if (loading || signUpState.status == LoadingState.Status.LOADING) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(22.dp),
+                    color = if (isFormValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = "Create Account",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
+        }
+
+        if (generalError != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(generalError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        }
+
+        Spacer(modifier = Modifier.height(if (isShort) 8.dp else 16.dp))
+
+        LogInPrompt(navController)
+
+        Spacer(modifier = Modifier.height(48.dp))
+    }
+
+
+
     Scaffold(
         topBar = { SignUpTopAppBar(navController) },
         containerColor = MaterialTheme.colorScheme.background,
@@ -131,169 +323,7 @@ fun SignUpScreen(
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(imageHeight),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.reader_logo),
-                    contentDescription = "Illustration of books and a mug",
-                    contentScale = ContentScale.Fit
-                )
-            }
-            Spacer(modifier = Modifier.height(1.dp))
-
-            Text(
-                text = "Reader",
-                color = MaterialTheme.colorScheme.onBackground,
-                style = if (isVeryNarrow) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displayLarge,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(bottom = if (isCompactHeight) 4.dp else 8.dp)
-            )
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it; nameError = null },
-                label = { Text("Name") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                isError = nameError != null,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
-            )
-            if (nameError != null) {
-                Text(nameError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it; emailError = null },
-                label = { Text("Email") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                isError = emailError != null,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
-            )
-            if (emailError != null) {
-                Text(emailError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it; passwordError = null },
-                label = { Text("Password") },
-                singleLine = true,
-                visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val image = if (passwordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                        Icon(imageVector = image, contentDescription = if (passwordVisibility) "Hide password" else "Show password")
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                isError = passwordError != null,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
-            )
-            if (passwordError != null) {
-                Text(passwordError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it; confirmPasswordError = null },
-                label = { Text("Confirm Password") },
-                singleLine = true,
-                visualTransformation = if (confirmPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val image = if (confirmPasswordVisibility) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { confirmPasswordVisibility = !confirmPasswordVisibility }) {
-                        Icon(imageVector = image, contentDescription = if (confirmPasswordVisibility) "Hide password" else "Show password")
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                isError = confirmPasswordError != null,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { triggerSignUp() })
-            )
-            if (confirmPasswordError != null) {
-                Text(confirmPasswordError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RememberMeBox()
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Remember me",
-                    style = if (isVeryNarrow) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.clickable { RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe }
-                )
-            }
-
-            Button(
-                onClick = { triggerSignUp() },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = isFormValid && !loading && signUpState.status != LoadingState.Status.LOADING,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isFormValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (isFormValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            ) {
-                if (loading || signUpState.status == LoadingState.Status.LOADING) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(22.dp),
-                        color = if (isFormValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = "Create Account",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                }
-            }
-
-            if (generalError != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(generalError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-
-            Spacer(modifier = Modifier.height(if (isShort) 8.dp else 16.dp))
-
-            LogInPrompt(navController)
-
-            Spacer(modifier = Modifier.height(48.dp))
+            content()
         }
     }
 }
