@@ -57,6 +57,14 @@ fun SignUpScreen(
     var confirmPasswordError by rememberSaveable { mutableStateOf<String?>(null) }
     var generalError by rememberSaveable { mutableStateOf<String?>(null) }
 
+    // Check if all required fields are filled
+    val isFormValid = remember(name, email, password, confirmPassword) {
+        name.isNotBlank() &&
+        email.isNotBlank() &&
+        password.isNotBlank() &&
+        confirmPassword.isNotBlank()
+    }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -253,19 +261,24 @@ fun SignUpScreen(
             Button(
                 onClick = { triggerSignUp() },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !loading && signUpState.status != LoadingState.Status.LOADING
+                enabled = isFormValid && !loading && signUpState.status != LoadingState.Status.LOADING,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isFormValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (isFormValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             ) {
                 if (loading || signUpState.status == LoadingState.Status.LOADING) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(22.dp),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = if (isFormValid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         strokeWidth = 2.dp
                     )
                 } else {
                     Text(
-                        text = "Sign Up",
+                        text = "Create Account",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.ExtraBold
                     )
                 }

@@ -30,15 +30,18 @@ fun SplashScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         delay(2000L)
-        if (FirebaseAuth.getInstance().currentUser?.email.isNullOrEmpty()) {
-            navController.navigate(ReaderScreens.OnBoardingScreen.name) {
-                popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
-            }
-        } else {
-            navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
-                popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
-            }
+        navController.navigate(ReaderScreens.OnBoardingScreen.name) {
+            popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
         }
+//        if (FirebaseAuth.getInstance().currentUser?.email.isNullOrEmpty()) {
+//            navController.navigate(ReaderScreens.OnBoardingScreen.name) {
+//                popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
+//            }
+//        } else {
+//            navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
+//                popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
+//            }
+//        }
     } // LaunchedEffect properly closed here
 
     // Responsive design - get screen dimensions

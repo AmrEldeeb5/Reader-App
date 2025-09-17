@@ -3,6 +3,7 @@ package com.example.reader.screens.SignUp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reader.components.LoadingState
+import com.example.reader.data.MUser
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.Firebase
@@ -78,19 +79,21 @@ class SignUpScreenViewModel: ViewModel() {
     }
 
     private fun persistUserDoc(displayName: String?, callback: (Boolean, String?) -> Unit) {
-        val uid = auth.currentUser?.uid
-        if (uid == null) {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
             callback(false, "Missing user id")
             return
         }
-        val userMap = mapOf(
-            "userId" to uid,
-            "name" to (displayName ?: ""),
-            "email" to (auth.currentUser?.email ?: "")
-        )
+        val userMap = MUser(
+            userId = userId,
+            displayName = displayName ?: "",
+            avatarUrl = "",
+            quote = "Live and let live",
+            profession = "Reader",
+            id = null).toMap()
         KtxFirebase.firestore
             .collection("users")
-            .document(uid)
+            .document(userId)
             .set(userMap, SetOptions.merge())
             .addOnSuccessListener { callback(true, null) }
             .addOnFailureListener { e -> callback(false, e.message) }
