@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,7 +55,7 @@ fun BookFinderSection() {
                 .fillMaxWidth()
                 .height(260.dp)
                 .padding(horizontal = 16.dp, vertical = 16.dp)
-                .clip(RoundedCornerShape(22.dp))
+                .clip(RoundedCornerShape(20.dp))
         ) {
             // --- Background with richer gradient ---
             drawRect(
@@ -148,10 +149,10 @@ fun BookFinderSection() {
         ) {
             // Main title - text updated to match reference
             Text(
-                text = "Find interesting books from\nall over the world",
+                text = "Find interesting books from all over the world",
                 color = WhiteText,
-                fontSize = 24.sp, // Adjusted font size
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineMedium, // Adjusted font size
+                fontWeight = FontWeight.Medium,
                 lineHeight = 30.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -173,14 +174,14 @@ fun BookFinderSection() {
                     Text(
                         text = "On conviction to imprisonment for a period\nnot exceeding four years...",
                         color = CardTextColor,
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyMedium, // Adjusted font size
                         lineHeight = 22.sp
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Continue Reading",
                         color = AccentStrokeGreen, // Use the same accent color
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyMedium, // Adjusted font size
                         fontWeight = FontWeight.SemiBold
                     )
                 }

@@ -5,18 +5,31 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.reader.ui.theme.GreenPrimary
+import com.example.reader.ui.theme.SubtleTextColor
+import com.example.reader.ui.theme.TextColor
 import java.util.Calendar
 
 @Composable
@@ -85,5 +98,39 @@ fun GreetingSection(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
         )
+    }
+}
+
+@Composable
+fun CategoryTabs() {
+    val categories = listOf("Novels", "Self Love", "Science", "Romance")
+    var selectedCategory by remember { mutableStateOf("Novels") }
+
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(categories) { category ->
+            val isSelected = category == selectedCategory
+            // KEY CHANGE: Use a Box to create the background for the selected item
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (isSelected) GreenPrimary else MaterialTheme.colorScheme.surface)
+                    .clickable { selectedCategory = category }
+                    .padding(vertical = 8.dp, horizontal = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = category,
+                    color = if (isSelected) TextColor else SubtleTextColor,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
+                )
+            }
+        }
     }
 }

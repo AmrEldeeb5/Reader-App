@@ -38,30 +38,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.reader.R
+import com.example.reader.data.Book
 import com.example.reader.ui.theme.CardBackground
 import com.example.reader.ui.theme.DarkBackground
 import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.SubtleTextColor
 import com.example.reader.ui.theme.TextColor
 
-// Sample data for books
-data class Book(
-    val id: Int,
-    val title: String,
-    val author: String,
-    val genre: String,
-    val price: String,
-    val salePrice: String? = null,
-    val rating: Float,
-    val coverImageRes: Int,
-    val isFavorite: Boolean = false,
-    val salePercentage: String? = null
-)
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Home(navController: NavController) { // prefix param with _ to silence unused warning
+fun Home(navController: NavController) {
     Scaffold(
         topBar = {
             HomeTopBar()
@@ -69,7 +56,7 @@ fun Home(navController: NavController) { // prefix param with _ to silence unuse
         bottomBar = {
             BottomNavigationBar()
         },
-        containerColor = DarkBackground // Set the main background color here
+        containerColor = MaterialTheme.colorScheme.background// Set the main background color here
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -117,17 +104,7 @@ fun HomeTopBar(
 
             // Greeting text styled to match reference
             Column {
-                Text(
-                    text = "Hi, $userName",
-                    color = TextColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                Text(
-                    getTimeBasedGreeting(),
-                    color = SubtleTextColor,
-                    fontSize = 14.sp
-                )
+                GreetingSection(userName)
             }
         }
 
@@ -151,55 +128,8 @@ fun HomeTopBar(
     }
 }
 
-@Composable
-fun BookFinderContent() {
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Replaced custom header with the Canvas-based section
-        BookFinderSection()
-
-        Spacer(modifier = Modifier.height(8.dp))
-        CategoryTabs()
-        Spacer(modifier = Modifier.height(8.dp))
-        BookGridSection()
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
 
 
-
-@Composable
-fun CategoryTabs() {
-    val categories = listOf("Novels", "Self Love", "Science", "Romance")
-    var selectedCategory by remember { mutableStateOf("Novels") }
-
-    LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(categories) { category ->
-            val isSelected = category == selectedCategory
-            // KEY CHANGE: Use a Box to create the background for the selected item
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(if (isSelected) GreenPrimary else Color.Transparent)
-                    .clickable { selectedCategory = category }
-                    .padding(vertical = 8.dp, horizontal = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = category,
-                    color = if (isSelected) TextColor else SubtleTextColor,
-                    fontSize = 16.sp,
-                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun BookGridSection() {
@@ -395,7 +325,7 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
 @Composable
 fun BottomNavigationBar() {
     NavigationBar(
-        containerColor = DarkBackground, // Match top bar/background color
+        containerColor = MaterialTheme.colorScheme.background, // Match top bar/background color
         tonalElevation = 0.dp,
         modifier = Modifier.navigationBarsPadding()
     ) {

@@ -1,6 +1,6 @@
 package com.example.reader.data
 
-data class MBook(
+data class Book(
     val id: Int,
     val title: String,
     val author: String,
@@ -10,4 +10,5 @@ data class MBook(
     val rating: Float,
     val coverImageRes: Int,
     val isFavorite: Boolean = false,
-    val salePercentage: String? = null)
+    val salePercentage: String? = null
+)
