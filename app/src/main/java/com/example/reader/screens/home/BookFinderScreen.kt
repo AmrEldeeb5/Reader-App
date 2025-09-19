@@ -4,12 +4,18 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.ContentScale
@@ -30,153 +36,194 @@ import com.example.reader.ui.theme.TextColor
 
 
 
+val GreenBackground = Color(0xFF0B5345) // Dark green background
+val GreenAccent = Color(0xFF00C896) // Bright teal for "Continue Reading"
+val DarkCardBackground = Color(0xFF1E2A3A) // Dark blue-gray for cards
+val WhiteText = Color(0xFFFFFFFF)
+val GrayText = Color(0xFFB0B8C4)
+
 @Composable
-fun BookFinderScreen() {
+fun BookFinderSection() {
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .background(DarkGreenBackground)
+            .fillMaxWidth()
+            .height(400.dp) // Total height to accommodate overlap
     ) {
-        // --- This is for the curved background shapes ---
-        CurvedBackgroundHeaderShapes()
+        // Main curved green background
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(340.dp)
+        ) {
+            val width = size.width
+            val height = size.height
 
+            // Create curved path that matches the reference
+            val path = Path().apply {
+                moveTo(0f, 0f)
+                lineTo(width, 0f)
+                lineTo(width, height * 0.85f)
+                // Create the curved bottom
+                quadraticTo(
+                    width * 0.7f, height * 1.1f,
+                    width * 0.3f, height * 0.9f
+                )
+                quadraticTo(
+                    width * 0.1f, height * 0.85f,
+                    0f, height * 0.75f
+                )
+                close()
+            }
+
+            // Fill with green gradient
+            drawPath(
+                path = path,
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        GreenBackground,
+                        GreenBackground.copy(alpha = 0.9f)
+                    )
+                )
+            )
+        }
+
+        // Content overlay
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 32.dp)
         ) {
-            // Main title text
+            // Main title - exact text from reference
             Text(
-                text = "Find interesting books from all over the world",
-                color = TextColor,
+                text = "Find interesting books from\nall over the world",
+                color = WhiteText,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                lineHeight = 36.sp,
-                modifier = Modifier.padding(top = 60.dp)
+                lineHeight = 34.sp,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.weight(1f)) // Pushes the next item to the bottom
+            Spacer(modifier = Modifier.height(40.dp))
 
-            // --- THIS IS WHERE YOUR COMPOSABLE GOES ---
-            // You can replace this placeholder Box with your own implementation
-            // for the "On conviction to imprisonment..." card.
+            // "Continue Reading" card - matches reference exactly
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp) // Example height
-                    .background(CardBackground, shape = RoundedCornerShape(16.dp))
+                    .background(
+                        DarkCardBackground,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(20.dp)
             ) {
-                // TODO: Replace this with your dark section composable
-                Text(
-                    "Your composable goes here",
-                    color = SubtleTextColor,
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                Column {
+                    Text(
+                        text = "On conviction to imprisonment for a period\nnot exceeding four years...",
+                        color = GrayText,
+                        fontSize = 16.sp,
+                        lineHeight = 22.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Continue Reading",
+                        color = GreenAccent,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
-            // --- END OF YOUR SECTION ---
-
-
-            // Bottom book card
-            BookProgressCard(
-                bookCoverResId = R.drawable.person, // Your image here
-                title = "Born a Crime, Stories from a South...",
-                progress = "Chapter 1 of 4"
-            )
-        }
-    }
-}
-
-@Composable
-fun CurvedBackgroundHeaderShapes() {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val width = size.width
-        val height = size.height
-
-        val backgroundCurve = Path().apply {
-            moveTo(width * 0.0f, height * 0.4f)
-            quadraticTo(
-                x1 = width * 0.4f,
-                y1 = height * 0.6f,
-                x2 = width * 1.1f,
-                y2 = height * 0.2f
-            )
-            lineTo(width, height)
-            lineTo(0f, height)
-            close()
         }
 
-        val foregroundCurve = Path().apply {
-            moveTo(width * -0.2f, height * 0.5f)
-            quadraticTo(
-                x1 = width * 0.3f,
-                y1 = height * 0.8f,
-                x2 = width * 1.1f,
-                y2 = height * 0.3f
-            )
-            lineTo(width, height)
-            lineTo(0f, height)
-            close()
-        }
-
-        drawPath(
-            path = backgroundCurve,
-            color = Color(0xFF2E7D32).copy(alpha = 0.5f)
-        )
-
-        drawPath(
-            path = foregroundCurve,
-            color = Color(0xFF2E7D32)
-        )
-    }
-}
-
-@Composable
-fun BookProgressCard(
-    modifier: Modifier = Modifier,
-    bookCoverResId: Int,
-    title: String,
-    progress: String
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(CardBackground) // Use the consistent card color
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            painter = painterResource(id = bookCoverResId),
-            contentDescription = title,
-            contentScale = ContentScale.Crop,
+        // Overlapping "Born a Crime" card at the bottom
+        Card(
             modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(8.dp))
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                color = TextColor,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = DarkCardBackground
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 8.dp
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = progress,
-                color = SubtleTextColor,
-                fontSize = 14.sp
-            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Book cover placeholder - replace with actual book cover
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF4A5568)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Replace this Icon with your actual book cover image:
+                    // Image(
+                    //     painter = painterResource(id = R.drawable.born_a_crime_cover),
+                    //     contentDescription = "Born a Crime cover",
+                    //     contentScale = ContentScale.Crop,
+                    //     modifier = Modifier.fillMaxSize()
+                    // )
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Book cover",
+                        tint = WhiteText,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Book info
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Born a Crime, Stories from a South...",
+                        color = WhiteText,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Chapter 1 of 4",
+                        color = GrayText,
+                        fontSize = 14.sp
+                    )
+                }
+            }
         }
     }
 }
 
+// If you want to use this in your existing screen, replace the BookFinderContent()
+// function call with BookFinderSection()
+@Composable
+fun BookFinderScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF1A1A2E)) // Your app's background color
+    ) {
+        BookFinderSection()
+
+        // Add your other content below
+        // CategoryTabs()
+        // BookGridSection()
+        // etc.
+    }
+}
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable

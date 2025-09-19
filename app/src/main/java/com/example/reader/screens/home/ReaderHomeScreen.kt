@@ -78,14 +78,20 @@ fun Home(navController: NavController) {
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            BookFinderContent()
+            // Use the Canvas-backed header section so the curves render
+            BookFinderSection()
+            Spacer(modifier = Modifier.height(8.dp))
+            CategoryTabs()
+            Spacer(modifier = Modifier.height(8.dp))
+            BookGridSection()
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
 fun HomeTopBar(
-    userName: String = "Andy",
+    userName: String = "Nightwing",
     onNotificationsClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {}
 ) {
@@ -149,78 +155,10 @@ fun HomeTopBar(
 @Composable
 fun BookFinderContent() {
     Column(modifier = Modifier.fillMaxSize()) {
-        // --- KEY CHANGE: Use a Box to allow the bottom card to overlap ---
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 40.dp) // Space for the overlapping card
-        ) {
-            // --- Green curved header section ---
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(320.dp) // Adjusted height
-            ) {
-                // Layered canvas waves for a softer look
-                CurvedBackgroundHeaderShapes()
+        // Replaced custom header with the Canvas-based section
+        BookFinderSection()
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Find interesting books from all over the world",
-                        color = TextColor,
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Start,
-                        lineHeight = 32.sp,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // "Continue Reading" dark quote section
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(CardBackground, shape = RoundedCornerShape(16.dp))
-                            .padding(16.dp)
-                    ) {
-                        Column {
-                            Text(
-                                text = "On conviction to imprisonment for a period not exceeding four years...",
-                                color = TextColor.copy(alpha = 0.8f),
-                                fontSize = 14.sp,
-                                lineHeight = 20.sp
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = "Continue Reading",
-                                color = GreenPrimary,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-
-            // --- Overlapping book card at the bottom ---
-            BookProgressCard(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter) // Align to the bottom of the parent Box
-                    .padding(horizontal = 24.dp),
-                bookCoverResId = R.drawable.person, // CHANGE TO YOUR BOOK COVER
-                title = "Born a Crime, Stories from a South...",
-                progress = "Chapter 1 of 4"
-            )
-        }
-
+        Spacer(modifier = Modifier.height(8.dp))
         CategoryTabs()
         Spacer(modifier = Modifier.height(8.dp))
         BookGridSection()
@@ -458,8 +396,8 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
 @Composable
 fun BottomNavigationBar() {
     NavigationBar(
-        containerColor = CardBackground, // Match card color for consistency
-        tonalElevation = 4.dp,
+        containerColor = DarkBackground, // Match top bar/background color
+        tonalElevation = 0.dp,
         modifier = Modifier.navigationBarsPadding()
     ) {
         val items = listOf(
@@ -478,7 +416,8 @@ fun BottomNavigationBar() {
                 icon = {
                     Icon(
                         imageVector = item.second,
-                        contentDescription = item.first
+                        contentDescription = item.first,
+                        modifier = Modifier.size(28.dp) // slightly larger icons
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
