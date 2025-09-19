@@ -124,7 +124,7 @@ fun HomeTopBar(
                     fontSize = 18.sp
                 )
                 Text(
-                    text = "Good morning",
+                    getTimeBasedGreeting(),
                     color = SubtleTextColor,
                     fontSize = 14.sp
                 )

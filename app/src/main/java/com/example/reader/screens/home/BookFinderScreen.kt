@@ -52,9 +52,9 @@ fun BookFinderSection() {
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
+                .height(260.dp)
                 .padding(horizontal = 16.dp, vertical = 16.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(22.dp))
         ) {
             // --- Background with richer gradient ---
             drawRect(
@@ -140,11 +140,6 @@ fun BookFinderSection() {
             )
         }
 
-
-
-
-
-
         // --- Content overlay ---
         Column(
             modifier = Modifier
@@ -164,7 +159,7 @@ fun BookFinderSection() {
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // "Continue Reading" card - text updated to match reference
+            // "Continue Reading" card
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
