@@ -93,6 +93,7 @@ dependencies {
 
     // Image Loading
     implementation(libs.coil.kt.compose)
+    implementation(libs.androidx.palette.ktx)
 
     // Testing
     testImplementation(libs.junit)
