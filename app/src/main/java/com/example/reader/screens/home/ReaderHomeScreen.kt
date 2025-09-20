@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -255,10 +257,10 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
 
                     IconButton(onClick = onFavoriteToggle) {
                         Icon(
-                            imageVector = if (book.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            imageVector = if (book.isFavorite) Icons.Outlined.Favorite else Icons.Outlined.Favorite,
                             contentDescription = "Favorite",
                             tint = if (book.isFavorite) Color.Red else Color.White,
-                            modifier = Modifier.size(20.dp) // Smaller icon
+                            modifier = Modifier.size(16.dp) // Smaller icon
                         )
                     }
                 }
