@@ -37,4 +37,4 @@ val DarkGreenBackground = Color(0xFF0A2E2B)
 val LightGreenAccent = Color(0xFF1E4944)
 val CardBackground = Color(0xFF1F2631)
 val TextColor = Color.White
-val SubtleTextColor = Color(0xFFB0B0B0)
+val SubtleTextColor = Color(0xFF8A8A8A)

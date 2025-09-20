@@ -2,7 +2,6 @@ package com.example.reader.screens.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -40,10 +39,11 @@ import androidx.navigation.NavController
 import com.example.reader.R
 import com.example.reader.data.Book
 import com.example.reader.ui.theme.CardBackground
-import com.example.reader.ui.theme.DarkBackground
 import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.SubtleTextColor
 import com.example.reader.ui.theme.TextColor
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,10 +77,46 @@ fun Home(navController: NavController) {
 
 @Composable
 fun HomeTopBar(
-    userName: String = "Nightwing",
+    userName: String? = null,
     onNotificationsClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {}
 ) {
+    // Resolve username: if provided externally, use it; otherwise fetch from Firebase
+    var resolvedName by remember { mutableStateOf(userName ?: "Loading...") }
+
+    LaunchedEffect(userName) {
+        if (userName != null) {
+            resolvedName = userName
+            return@LaunchedEffect
+        }
+        val auth = FirebaseAuth.getInstance()
+        val firestore = FirebaseFirestore.getInstance()
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            resolvedName = "Guest"
+        } else {
+            // Try Auth displayName/email first for instant UI
+            resolvedName = currentUser.displayName
+                ?: currentUser.email?.substringBefore('@')
+                ?: "User"
+
+            // Then try Firestore user profile for a dedicated username field if available
+            firestore.collection("users").document(currentUser.uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    val fromDoc = document.getString("username")
+                        ?: document.getString("name")
+                        ?: document.getString("displayName")
+                    if (!fromDoc.isNullOrBlank()) {
+                        resolvedName = fromDoc
+                    }
+                }
+                .addOnFailureListener {
+                    // Keep previously resolvedName
+                }
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -104,7 +140,7 @@ fun HomeTopBar(
 
             // Greeting text styled to match reference
             Column {
-                GreetingSection(userName)
+                GreetingSection(resolvedName)
             }
         }
 
