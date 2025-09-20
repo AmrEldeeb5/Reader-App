@@ -24,16 +24,25 @@ import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun SplashScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         delay(2000L)
-      //  navController.navigate(ReaderScreens.OnBoardingScreen.name) {
-          //  popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
-       // }
-        if (FirebaseAuth.getInstance().currentUser?.email.isNullOrEmpty()) {
+
+        // Force-refresh auth state from server to avoid stale sessions
+        val auth = FirebaseAuth.getInstance()
+        val existing = auth.currentUser
+        try {
+            existing?.reload()?.await()
+        } catch (_: Exception) {
+            // If reload fails (e.g., user deleted remotely), we'll handle by checking currentUser below
+        }
+        val user = auth.currentUser
+
+        if (user == null) {
             navController.navigate(ReaderScreens.OnBoardingScreen.name) {
                 popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
             }

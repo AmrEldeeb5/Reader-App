@@ -44,6 +44,7 @@ import com.example.reader.ui.theme.SubtleTextColor
 import com.example.reader.ui.theme.TextColor
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,77 +76,64 @@ fun Home(navController: NavController) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
     userName: String? = null,
     onNotificationsClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {}
 ) {
-    // Resolve username: if provided externally, use it; otherwise fetch from Firebase
-    var resolvedName by remember { mutableStateOf(userName ?: "Loading...") }
+    // Compute an immediate name so we never show "Loading"
+    val auth = FirebaseAuth.getInstance()
+    val initialName = remember(userName, auth.currentUser) {
+        userName ?: auth.currentUser?.displayName?.takeIf { it.isNotBlank() }
+        ?: auth.currentUser?.email?.substringBefore('@')
+        ?: "Reader"
+    }
+    var resolvedName by remember { mutableStateOf(initialName) }
 
-    LaunchedEffect(userName) {
-        if (userName != null) {
-            resolvedName = userName
-            return@LaunchedEffect
-        }
-        val auth = FirebaseAuth.getInstance()
-        val firestore = FirebaseFirestore.getInstance()
+    LaunchedEffect(initialName) {
         val currentUser = auth.currentUser
-        if (currentUser == null) {
-            resolvedName = "Guest"
-        } else {
-            // Try Auth displayName/email first for instant UI
-            resolvedName = currentUser.displayName
-                ?: currentUser.email?.substringBefore('@')
-                ?: "User"
-
-            // Then try Firestore user profile for a dedicated username field if available
-            firestore.collection("users").document(currentUser.uid)
+        if (currentUser == null) return@LaunchedEffect
+        try {
+            val snapshot = FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(currentUser.uid)
                 .get()
-                .addOnSuccessListener { document ->
-                    val fromDoc = document.getString("username")
-                        ?: document.getString("name")
-                        ?: document.getString("displayName")
-                    if (!fromDoc.isNullOrBlank()) {
-                        resolvedName = fromDoc
-                    }
+                .await()
+            if (snapshot.exists()) {
+                val fromDoc = snapshot.getString("displayName")
+                    ?: snapshot.getString("username")
+                    ?: snapshot.getString("name")
+                if (!fromDoc.isNullOrBlank() && fromDoc != resolvedName) {
+                    resolvedName = fromDoc
                 }
-                .addOnFailureListener {
-                    // Keep previously resolvedName
-                }
+            }
+        } catch (_: Exception) {
+            // Ignore failures and keep the immediate fallback
         }
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // Avatar icon
+    // Material 3 Top App Bar automatically handles status bar insets.
+    TopAppBar(
+        title = {
+            // Greeting placed next to the avatar (start-aligned title)
+            Column {
+                GreetingSection(resolvedName)
+            }
+        },
+        navigationIcon = {
+            // Avatar icon on the left
             Icon(
                 imageVector = Icons.Filled.Person,
                 contentDescription = "User avatar",
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(40.dp)
                     .clip(CircleShape),
                 tint = SubtleTextColor
             )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // Greeting text styled to match reference
-            Column {
-                GreetingSection(resolvedName)
-            }
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            // Icons are simpler, matching the reference
+        },
+        actions = {
             IconButton(onClick = onNotificationsClick) {
                 Icon(
                     imageVector = Icons.Filled.Notifications,
@@ -155,13 +143,19 @@ fun HomeTopBar(
             }
             IconButton(onClick = onMessagesClick) {
                 Icon(
-                    imageVector = Icons.Filled.Bookmark, // use a filled icon to avoid missing outlined variant
+                    imageVector = Icons.Filled.Bookmark,
                     contentDescription = "Messages",
                     tint = SubtleTextColor
                 )
             }
-        }
-    }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            titleContentColor = TextColor,
+            navigationIconContentColor = SubtleTextColor,
+            actionIconContentColor = SubtleTextColor
+        )
+    )
 }
 
 
