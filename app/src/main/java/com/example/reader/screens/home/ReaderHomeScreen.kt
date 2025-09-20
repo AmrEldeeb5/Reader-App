@@ -66,7 +66,7 @@ fun Home(navController: NavController) {
                 .verticalScroll(rememberScrollState())
         ) {
             // Use the Canvas-backed header section so the curves render
-            BookFinderSection()
+            BookDiscoveryScreen()
             Spacer(modifier = Modifier.height(8.dp))
             CategoryTabs()
             Spacer(modifier = Modifier.height(8.dp))
@@ -87,7 +87,6 @@ fun HomeTopBar(
     val auth = FirebaseAuth.getInstance()
     val initialName = remember(userName, auth.currentUser) {
         userName ?: auth.currentUser?.displayName?.takeIf { it.isNotBlank() }
-        ?: auth.currentUser?.email?.substringBefore('@')
         ?: "Reader"
     }
     var resolvedName by remember { mutableStateOf(initialName) }

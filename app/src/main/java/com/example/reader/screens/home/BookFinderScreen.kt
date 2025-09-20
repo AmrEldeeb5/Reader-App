@@ -1,62 +1,153 @@
 package com.example.reader.screens.home
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.reader.ui.theme.CardBackground
+import com.example.reader.ui.theme.ReaderTheme
 
-
-// --- Colors updated to match the new reference image ---
-val PrimaryGreen = Color(0xFF014D40)
-val AccentStrokeGreen = Color(0xFF00C896)
-val DarkCardBackground = Color(0xFF22242C)
-val CardTextColor = Color(0xFFAEB3B7)
-val WhiteText = Color.White
-val SubtleAccentFillGreen = Color(0xFF015C4E) // New color for the tonal difference
 
 
 @Composable
-fun BookFinderSection() {
-    Box(
+fun BookDiscoveryScreen() {
+    Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(400.dp) // Total height to accommodate overlap
+            .fillMaxSize()
+            .padding(vertical = 40.dp), // Pushes the content away from the very top/bottom
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        // --- Redesigned Green Background ---
-        // We now use a single Canvas to draw the rounded rectangle background
-        // and the decorative accent curve inside it.
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(260.dp)
-                .padding(horizontal = 16.dp, vertical = 16.dp)
-                .clip(RoundedCornerShape(20.dp))
+        // This Box will contain all the stacked elements
+        Box(contentAlignment = Alignment.TopCenter) {
+            BookFinderBackground(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .height(250.dp)
+                    .clip(RoundedCornerShape(9.dp))
+            )
+            // Column for the cards that overlap
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                // This pushes the cards down to start from the middle of the banner
+                modifier = Modifier.padding(top = 100.dp)
+            ) {
+                QuoteCard()
+                // The negative offset is the key to the overlap effect
+                BookPlayerCard(modifier = Modifier.offset(y = (-40).dp))
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun QuoteCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(0.8f),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = CardBackground
+        )
+    ) {Card(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp, top = 16.dp, start = 16.dp, end = 16.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        )){
+        Column(
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp)
         ) {
+            Text(
+                text = "On conviction to imprisonment for a period not exceeding four years...",
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 16.sp,
+                lineHeight = 24.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Continue Reading",
+                color = MaterialTheme.colorScheme.tertiary,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                modifier = Modifier.clickable { /* Handle click */ }
+            )
+        }
+    }}
+}
+
+@Composable
+fun BookPlayerCard(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.padding(top = 1.dp).fillMaxWidth(0.8f),
+        shape = RoundedCornerShape(bottomEnd = 20.dp, bottomStart = 20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = CardBackground
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                contentDescription = "Book cover icon",
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                tint = Color.White
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(1f) // Takes up remaining space
+            ) {
+                Text(
+                    text = "Born a Crime, Stories from a South...",
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Chapter 1 of 4",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 13.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BookFinderBackground(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+    ) {
+        // Draw background waves
+        Canvas(modifier = Modifier.matchParentSize()) {
             // --- Background with richer gradient ---
             drawRect(
                 brush = Brush.linearGradient(
@@ -74,7 +165,7 @@ fun BookFinderSection() {
             // --- Top main wave (bright highlight) ---
             val wave1 = Path().apply {
                 moveTo(size.width, 0f)
-                quadraticBezierTo(
+                quadraticTo(
                     size.width * 0.5f, size.height * 0.6f,
                     0f, size.height * 0.3f
                 )
@@ -97,7 +188,7 @@ fun BookFinderSection() {
             // --- Middle wave (soft dark shade) ---
             val wave2 = Path().apply {
                 moveTo(size.width, size.height * 0.25f)
-                quadraticBezierTo(
+                quadraticTo(
                     size.width * 0.55f, size.height * 0.75f,
                     0f, size.height * 0.55f
                 )
@@ -120,7 +211,7 @@ fun BookFinderSection() {
             // --- Bottom wave (deep subtle accent) ---
             val wave3 = Path().apply {
                 moveTo(size.width, size.height * 0.5f)
-                quadraticBezierTo(
+                quadraticTo(
                     size.width * 0.5f, size.height * 1.0f,
                     0f, size.height * 0.85f
                 )
@@ -132,7 +223,7 @@ fun BookFinderSection() {
                 path = wave3,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF002F27).copy(alpha = 0.3f), // deep green accent
+                        Color(0xFF002F27).copy(alpha = 0.3f),
                         Color.Transparent
                     ),
                     start = Offset(size.width, size.height * 0.5f),
@@ -141,99 +232,22 @@ fun BookFinderSection() {
             )
         }
 
-        // --- Content overlay ---
+        // Text overlay centered over the canvas
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 40.dp, vertical = 32.dp) // Adjusted padding for content
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 40.dp, vertical = 32.dp)
         ) {
-            // Main title - text updated to match reference
             Text(
                 text = "Find interesting books from all over the world",
-                color = WhiteText,
-                style = MaterialTheme.typography.headlineMedium, // Adjusted font size
+                color = Color.White,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Medium,
                 lineHeight = 30.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // "Continue Reading" card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        DarkCardBackground,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(20.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "On conviction to imprisonment for a period\nnot exceeding four years...",
-                        color = CardTextColor,
-                        style = MaterialTheme.typography.bodyMedium, // Adjusted font size
-                        lineHeight = 22.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Continue Reading",
-                        color = AccentStrokeGreen, // Use the same accent color
-                        style = MaterialTheme.typography.bodyMedium, // Adjusted font size
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-        }
-
-        // Overlapping card at the bottom
-        Card(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = DarkCardBackground),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF4A5568)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                        contentDescription = "Book cover",
-                        tint = WhiteText,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Born a Crime, Stories from a South...",
-                        color = WhiteText,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Chapter 1 of 4",
-                        color = CardTextColor,
-                        fontSize = 14.sp
-                    )
-                }
-            }
         }
     }
 }
@@ -242,7 +256,7 @@ fun BookFinderSection() {
 @Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
 fun DefaultPreview() {
-    Surface(color = Color(0xFF1A1A2E)) { // Example background for preview
-        BookFinderSection()
+    ReaderTheme(darkTheme = true) {
+        BookDiscoveryScreen()
     }
 }
