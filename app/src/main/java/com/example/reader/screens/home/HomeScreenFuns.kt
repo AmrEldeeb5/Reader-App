@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.SubtleTextColor
 import com.example.reader.ui.theme.TextColor
@@ -40,26 +41,27 @@ fun BadgedIcon(
 ) {
     Box(
         modifier = Modifier
-            .size(28.dp)
+            .size(24.dp) // Smaller size
             .clickable { onClick() },
         contentAlignment = Alignment.TopEnd
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(20.dp), // Smaller icon
             tint = MaterialTheme.colorScheme.onBackground
         )
 
         // Small green dot badge
         Box(
             modifier = Modifier
-                .size(8.dp)
+                .size(6.dp) // Smaller badge
                 .background(MaterialTheme.colorScheme.primary, CircleShape)
                 .align(Alignment.TopEnd)
         )
     }
 }
+
 /**
  * Gets appropriate greeting based on current time
  */
@@ -74,7 +76,8 @@ fun getTimeBasedGreeting(): String {
         }
     }
 }
-//Greeting section with user name and time-based greeting
+
+// Greeting section with user name and time-based greeting
 @Composable
 fun GreetingSection(
     userName: String,
@@ -84,32 +87,33 @@ fun GreetingSection(
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        verticalArrangement = Arrangement.spacedBy(1.dp) // Tighter spacing
     ) {
         Text(
             text = "Hi, $userName",
             style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp // Slightly smaller
             ),
             color = MaterialTheme.colorScheme.onBackground
         )
         Text(
             text = greeting,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = 13.sp // Smaller subtitle
+            ),
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
         )
     }
 }
 
 @Composable
-fun CategoryTabs() {
+fun CategoryTabs(modifier: Modifier = Modifier) {
     val categories = listOf("Novels", "Self Love", "Science", "Romance")
     var selectedCategory by remember { mutableStateOf("Novels") }
 
     LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {

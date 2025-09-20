@@ -46,7 +46,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(navController: NavController) {
@@ -57,7 +56,7 @@ fun Home(navController: NavController) {
         bottomBar = {
             BottomNavigationBar()
         },
-        containerColor = MaterialTheme.colorScheme.background// Set the main background color here
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -65,13 +64,12 @@ fun Home(navController: NavController) {
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Use the Canvas-backed header section so the curves render
+            // Reduced spacing throughout
             BookDiscoveryScreen()
-            Spacer(modifier = Modifier.height(8.dp))
-            CategoryTabs()
-            Spacer(modifier = Modifier.height(8.dp))
-            BookGridSection()
+            CategoryTabs(modifier = Modifier.padding(top = 1.dp))
             Spacer(modifier = Modifier.height(16.dp))
+            BookGridSection()
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -83,11 +81,10 @@ fun HomeTopBar(
     onNotificationsClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {}
 ) {
-    // Compute an immediate name so we never show "Loading"
     val auth = FirebaseAuth.getInstance()
     val initialName = remember(userName, auth.currentUser) {
         userName ?: auth.currentUser?.displayName?.takeIf { it.isNotBlank() }
-        ?: "Reader"
+        ?: "Andy" // Changed to match reference
     }
     var resolvedName by remember { mutableStateOf(initialName) }
 
@@ -113,21 +110,18 @@ fun HomeTopBar(
         }
     }
 
-    // Material 3 Top App Bar automatically handles status bar insets.
     TopAppBar(
         title = {
-            // Greeting placed next to the avatar (start-aligned title)
             Column {
                 GreetingSection(resolvedName)
             }
         },
         navigationIcon = {
-            // Avatar icon on the left
             Icon(
                 imageVector = Icons.Filled.Person,
                 contentDescription = "User avatar",
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(36.dp) // Slightly smaller
                     .clip(CircleShape),
                 tint = SubtleTextColor
             )
@@ -137,14 +131,16 @@ fun HomeTopBar(
                 Icon(
                     imageVector = Icons.Filled.Notifications,
                     contentDescription = "Notifications",
-                    tint = SubtleTextColor
+                    tint = SubtleTextColor,
+                    modifier = Modifier.size(24.dp)
                 )
             }
             IconButton(onClick = onMessagesClick) {
                 Icon(
                     imageVector = Icons.Filled.Bookmark,
                     contentDescription = "Messages",
-                    tint = SubtleTextColor
+                    tint = SubtleTextColor,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         },
@@ -157,43 +153,40 @@ fun HomeTopBar(
     )
 }
 
-
-
-
 @Composable
 fun BookGridSection() {
     val books = remember {
         mutableStateListOf(
             Book(
                 id = 1,
-                title = "The trials of Apollo",
-                author = "Rick Riordan",
+                title = "The trials of apollo th...", // Match reference text
+                author = "Greek Mythology, Fantasy",
                 genre = "Greek Mythology, Fantasy",
                 price = "$69",
                 salePrice = "$138",
                 rating = 4.4f,
-                coverImageRes = R.drawable.person, // placeholder cover
+                coverImageRes = R.drawable.person,
                 salePercentage = "50% Off",
                 isFavorite = true
             ),
             Book(
                 id = 2,
                 title = "Sun Tzu - The Art of...",
-                author = "Sun Tzu",
+                author = "Strategic, Fantasy",
                 genre = "Strategic, Fantasy",
                 price = "$72",
                 rating = 4.4f,
-                coverImageRes = R.drawable.person, // placeholder cover
+                coverImageRes = R.drawable.person,
                 isFavorite = false
             ),
             Book(
                 id = 3,
                 title = "The Art of War",
-                author = "Sun Tzu",
+                author = "Strategic",
                 genre = "Strategic",
                 price = "$72",
                 rating = 4.4f,
-                coverImageRes = R.drawable.person, // placeholder cover
+                coverImageRes = R.drawable.person,
                 isFavorite = false
             )
         )
@@ -202,11 +195,10 @@ fun BookGridSection() {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp) // Reduced spacing
     ) {
         items(books) { book ->
             BookCard(book = book, onFavoriteToggle = {
-                // This logic allows the favorite state to update visually
                 val index = books.indexOf(book)
                 if (index != -1) {
                     books[index] = book.copy(isFavorite = !book.isFavorite)
@@ -216,21 +208,20 @@ fun BookGridSection() {
     }
 }
 
-
 @Composable
 fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
     Card(
         modifier = Modifier
-            .width(160.dp)
-            .height(310.dp), // Adjusted dimensions
+            .width(150.dp) // Slightly narrower
+            .height(290.dp), // Slightly shorter
         colors = CardDefaults.cardColors(containerColor = CardBackground),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(12.dp) // Less rounded
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(185.dp) // Adjusted height
             ) {
                 Image(
                     painter = painterResource(id = book.coverImageRes),
@@ -242,33 +233,32 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp),
+                        .padding(6.dp), // Reduced padding
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Top
                 ) {
-                    // Sale badge with updated styling
                     book.salePercentage?.let { sale ->
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(6.dp))
                                 .background(GreenPrimary)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .padding(horizontal = 6.dp, vertical = 3.dp) // Smaller badge
                         ) {
                             Text(
                                 text = sale,
                                 color = TextColor,
-                                fontSize = 12.sp,
+                                fontSize = 10.sp, // Smaller font
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                    } ?: Spacer(modifier = Modifier.weight(1f)) // Add a spacer if no badge
+                    } ?: Spacer(modifier = Modifier.weight(1f))
 
-                    // Favorite button
                     IconButton(onClick = onFavoriteToggle) {
                         Icon(
                             imageVector = if (book.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = if (book.isFavorite) Color.Red else TextColor
+                            tint = if (book.isFavorite) Color.Red else Color.White,
+                            modifier = Modifier.size(20.dp) // Smaller icon
                         )
                     }
                 }
@@ -277,25 +267,25 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(12.dp),
+                    .padding(10.dp), // Reduced padding
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
                     Text(
                         text = book.title,
                         color = TextColor,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp, // Smaller font
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(3.dp))
 
                     Text(
                         text = book.author,
                         color = SubtleTextColor,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp, // Smaller font
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -306,16 +296,15 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Price with strikethrough for sale price
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = book.price,
                             color = TextColor,
-                            fontSize = 16.sp,
+                            fontSize = 14.sp, // Smaller font
                             fontWeight = FontWeight.Bold
                         )
                         book.salePrice?.let { sale ->
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = buildAnnotatedString {
                                     withStyle(style = SpanStyle(textDecoration = TextDecoration.LineThrough)) {
@@ -323,24 +312,23 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                                     }
                                 },
                                 color = SubtleTextColor,
-                                fontSize = 12.sp,
+                                fontSize = 10.sp, // Smaller font
                             )
                         }
                     }
 
-                    // Rating with a star icon
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Filled.Star,
                             contentDescription = "Rating",
                             tint = Color.Yellow,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(14.dp) // Smaller icon
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(2.dp))
                         Text(
                             text = book.rating.toString(),
                             color = SubtleTextColor,
-                            fontSize = 14.sp,
+                            fontSize = 12.sp, // Smaller font
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -350,11 +338,10 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
     }
 }
 
-
 @Composable
 fun BottomNavigationBar() {
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.background, // Match top bar/background color
+        containerColor = MaterialTheme.colorScheme.background,
         tonalElevation = 0.dp,
         modifier = Modifier.navigationBarsPadding()
     ) {
@@ -375,7 +362,7 @@ fun BottomNavigationBar() {
                     Icon(
                         imageVector = item.second,
                         contentDescription = item.first,
-                        modifier = Modifier.size(28.dp) // slightly larger icons
+                        modifier = Modifier.size(24.dp) // Smaller icons
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(

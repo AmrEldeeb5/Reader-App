@@ -24,117 +24,120 @@ import androidx.compose.ui.unit.sp
 import com.example.reader.ui.theme.CardBackground
 import com.example.reader.ui.theme.ReaderTheme
 
-
-
 @Composable
 fun BookDiscoveryScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 40.dp), // Pushes the content away from the very top/bottom
+            .padding(top = 16.dp, bottom = 24.dp), // Reduced top padding significantly
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top // Changed to Top alignment
     ) {
         // This Box will contain all the stacked elements
         Box(contentAlignment = Alignment.TopCenter) {
             BookFinderBackground(
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .height(250.dp)
-                    .clip(RoundedCornerShape(9.dp))
+                    .fillMaxWidth(0.95f) // Slightly wider
+                    .height(270.dp) // Reduced height to match reference
+                    .clip(RoundedCornerShape(16.dp)) // Slightly more rounded
             )
             // Column for the cards that overlap
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                // This pushes the cards down to start from the middle of the banner
-                modifier = Modifier.padding(top = 100.dp)
+                // Reduced top padding to position cards higher
+                modifier = Modifier.padding(top = 130.dp)
             ) {
                 QuoteCard()
-                // The negative offset is the key to the overlap effect
-                BookPlayerCard(modifier = Modifier.offset(y = (-40).dp))
+                // Reduced negative offset for tighter overlap
+                BookPlayerCard(modifier = Modifier.offset(y = (-15).dp))
             }
         }
     }
 }
 
-
-
 @Composable
 fun QuoteCard() {
     Card(
-        modifier = Modifier.fillMaxWidth(0.8f),
-        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth(0.88f), // Slightly wider
+        shape = RoundedCornerShape(12.dp), // Less rounded
         colors = CardDefaults.cardColors(
             containerColor = CardBackground
         )
-    ) {Card(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp, top = 16.dp, start = 16.dp, end = 16.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background
-        )){
-        Column(
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp)
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 20.dp, top = 12.dp, start = 12.dp, end = 12.dp), // Reduced padding
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.background
+            )
         ) {
-            Text(
-                text = "On conviction to imprisonment for a period not exceeding four years...",
-                color = Color.White.copy(alpha = 0.9f),
-                fontSize = 16.sp,
-                lineHeight = 24.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Continue Reading",
-                color = MaterialTheme.colorScheme.tertiary,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-                modifier = Modifier.clickable { /* Handle click */ }
-            )
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp) // Reduced padding
+            ) {
+                Text(
+                    text = "On conviction to imprisonment for a period not exceeding four years...",
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 14.sp, // Slightly smaller font
+                    lineHeight = 20.sp, // Reduced line height
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(12.dp)) // Reduced spacer
+                Text(
+                    text = "Continue Reading",
+                    color = MaterialTheme.colorScheme.tertiary,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp, // Slightly smaller
+                    modifier = Modifier.clickable { /* Handle click */ }
+                )
+            }
         }
-    }}
+    }
 }
 
 @Composable
 fun BookPlayerCard(modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier.padding(top = 1.dp).fillMaxWidth(0.8f),
-        shape = RoundedCornerShape(bottomEnd = 20.dp, bottomStart = 20.dp),
+        modifier = modifier
+            .padding(top = 1.dp)
+            .fillMaxWidth(0.88f), // Match quote card width
+        shape = RoundedCornerShape(bottomEnd = 12.dp, bottomStart = 12.dp),
         colors = CardDefaults.cardColors(
             containerColor = CardBackground
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Reduced elevation
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(16.dp), // Slightly reduced padding
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.MenuBook,
                 contentDescription = "Book cover icon",
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(48.dp) // Smaller icon
                     .clip(RoundedCornerShape(8.dp)),
                 tint = Color.White
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp)) // Reduced spacer
             Column(
-                modifier = Modifier.weight(1f) // Takes up remaining space
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = "Born a Crime, Stories from a South...",
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 15.sp,
+                    fontSize = 14.sp, // Slightly smaller
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(3.dp)) // Reduced spacer
                 Text(
                     text = "Chapter 1 of 4",
                     color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 13.sp
+                    fontSize = 12.sp
                 )
             }
         }
@@ -237,21 +240,18 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .padding(horizontal = 40.dp, vertical = 32.dp)
+                .padding(horizontal = 32.dp, vertical = 30.dp) // Reduced padding
         ) {
             Text(
                 text = "Find interesting books from all over the world",
                 color = Color.White,
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Medium,
-                lineHeight = 30.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
-
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable

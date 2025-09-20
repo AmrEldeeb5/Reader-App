@@ -22,7 +22,6 @@ import com.example.reader.ui.theme.ReaderTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import com.example.reader.screens.home.BookFinderBackground
-import androidx.compose.material3.Icon as M3Icon
 
 
 
