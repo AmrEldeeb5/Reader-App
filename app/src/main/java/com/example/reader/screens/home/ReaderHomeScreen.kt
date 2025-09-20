@@ -1,4 +1,4 @@
-package com.example.reader.screens.home
+ package com.example.reader.screens.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,6 +25,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -237,7 +239,7 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                         .fillMaxWidth()
                         .padding(6.dp), // Reduced padding
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     book.salePercentage?.let { sale ->
                         Box(
@@ -254,15 +256,24 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                             )
                         }
                     } ?: Spacer(modifier = Modifier.weight(1f))
+                    Surface(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color.Gray)
+                            .size(24.dp),
 
-                    IconButton(onClick = onFavoriteToggle) {
-                        Icon(
-                            imageVector = if (book.isFavorite) Icons.Outlined.Favorite else Icons.Outlined.Favorite,
-                            contentDescription = "Favorite",
-                            tint = if (book.isFavorite) Color.Red else Color.White,
-                            modifier = Modifier.size(16.dp) // Smaller icon
-                        )
+                    ) {
+                        IconButton(modifier = Modifier.size(16.dp),
+                            onClick = onFavoriteToggle) {
+                            Icon(
+                                imageVector = if (book.isFavorite) Icons.Outlined.Favorite else Icons.Outlined.Favorite,
+                                contentDescription = "Favorite",
+                                tint = if (book.isFavorite) Color.Red else Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
+
                 }
             }
 
@@ -376,3 +387,44 @@ fun BottomNavigationBar() {
         }
     }
 }
+
+
+
+
+ @Preview(showBackground = true)
+ @Composable
+ fun BookCardPreview() {
+     MaterialTheme {
+         BookCard(
+             book = Book(
+                 id = 1,
+                 title = "The trials of apollo th...",
+                 author = "Greek Mythology, Fantasy",
+                 genre = "Greek Mythology, Fantasy",
+                 price = "$69",
+                 salePrice = "$138",
+                 rating = 4.4f,
+                 coverImageRes = R.drawable.person,
+                 salePercentage = "50% Off",
+                 isFavorite = true
+             ),
+             onFavoriteToggle = {}
+         )
+     }
+ }
+
+ @Preview(showBackground = true)
+ @Composable
+ fun BottomNavigationBarPreview() {
+     MaterialTheme {
+         BottomNavigationBar()
+     }
+ }
+
+ @Preview(showBackground = true)
+ @Composable
+ fun BookGridSectionPreview() {
+
+         BookGridSection()
+
+ }
