@@ -2,6 +2,7 @@ package com.example.reader.screens.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.reader.R
 import com.example.reader.data.Book
+import com.example.reader.navigation.ReaderScreens
 import com.example.reader.ui.theme.CardBackground
 import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.SubtleTextColor
@@ -53,7 +55,7 @@ import kotlinx.coroutines.tasks.await
 fun Home(navController: NavController) {
     Scaffold(
         topBar = {
-            HomeTopBar()
+            HomeTopBar(navController)
         },
         bottomBar = {
             BottomNavigationBar()
@@ -78,7 +80,7 @@ fun Home(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(
+fun HomeTopBar(navController: NavController,
     userName: String? = null,
     onNotificationsClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {}
@@ -122,8 +124,10 @@ fun HomeTopBar(
             Icon(
                 imageVector = Icons.Filled.Person,
                 contentDescription = "User avatar",
-                modifier = Modifier
-                    .size(36.dp) // Slightly smaller
+                modifier = Modifier.clickable(onClick = {
+                    navController.navigate(ReaderScreens.ReaderStatsScreen.name)
+                })
+                    .size(48.dp)
                     .clip(CircleShape),
                 tint = SubtleTextColor
             )
@@ -260,7 +264,7 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                             imageVector = if (book.isFavorite) Icons.Outlined.Favorite else Icons.Outlined.Favorite,
                             contentDescription = "Favorite",
                             tint = if (book.isFavorite) Color.Red else Color.White,
-                            modifier = Modifier.size(16.dp) // Smaller icon
+                            modifier = Modifier.size(20.dp) // Smaller icon
                         )
                     }
                 }

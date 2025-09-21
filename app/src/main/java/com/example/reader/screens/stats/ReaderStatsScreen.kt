@@ -21,7 +21,12 @@ import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.ReaderTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.navigation.NavController
 import com.example.reader.screens.home.BookFinderBackground
+@Composable
+fun StatsScreen(navController: NavController){
+    Text(text = "Stats Screen")
+}
 
 
 
