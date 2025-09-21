@@ -131,7 +131,7 @@ fun HomeTopBar(navController: NavController,
                     .clip(CircleShape),
                 tint = SubtleTextColor
             )
-        },
+        },//
         actions = {
             IconButton(onClick = onNotificationsClick) {
                 Icon(
