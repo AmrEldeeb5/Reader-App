@@ -64,8 +64,7 @@ squareup-retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "c
 squareup-okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 
 # Dependency Injection
-google-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
-google-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+
 
 # Other
 jetbrains-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -84,6 +83,5 @@ firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-hilt-gradle = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

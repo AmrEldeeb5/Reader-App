@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.hilt.gradle)
     alias(libs.plugins.ksp)
     id("com.google.gms.google-services")
     alias(libs.plugins.kotlin.compose)
@@ -70,9 +69,9 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
 
     // Hilt
-    implementation(libs.google.hilt.android)
-    ksp(libs.google.hilt.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
+//    implementation(libs.google.hilt.android)
+//    ksp(libs.google.hilt.compiler)
+//    implementation(libs.androidx.hilt.navigation.compose)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -102,5 +101,4 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.google.hilt.android.testing)
-    kspAndroidTest(libs.google.hilt.compiler)
 }
