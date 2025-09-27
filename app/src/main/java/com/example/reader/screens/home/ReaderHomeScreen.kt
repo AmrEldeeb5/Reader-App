@@ -58,7 +58,7 @@ fun Home(navController: NavController) {
             HomeTopBar(navController)
         },
         bottomBar = {
-            BottomNavigationBar()
+            BottomNavigationBar(navController)
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
@@ -345,29 +345,19 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
 }
 
 @Composable
-fun BottomNavigationBar() {
+fun BottomNavigationBar(navController: NavController) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.background,
         tonalElevation = 0.dp,
         modifier = Modifier.navigationBarsPadding()
     ) {
-        val items = listOf(
-            "Home" to Icons.Filled.Home,
-            "Explore" to Icons.Filled.Search,
-            "Download" to Icons.Filled.Download,
-            "Saved" to Icons.Filled.Bookmark,
-            "Profile" to Icons.Filled.Person
-        )
-        var selectedItem by remember { mutableStateOf(0) }
-
-        items.forEachIndexed { index, item ->
-            NavigationBarItem(
-                selected = selectedItem == index,
-                onClick = { selectedItem = index },
+         NavigationBarItem(
+                selected = true,
+                onClick = { navController.navigate(ReaderScreens.ReaderHomeScreen.name) },
                 icon = {
                     Icon(
-                        imageVector = item.second,
-                        contentDescription = item.first,
+                        imageVector = Icons.Filled.Home,
+                        contentDescription = "home" ,
                         modifier = Modifier.size(24.dp) // Smaller icons
                     )
                 },
@@ -378,5 +368,4 @@ fun BottomNavigationBar() {
                 )
             )
         }
-    }
 }
