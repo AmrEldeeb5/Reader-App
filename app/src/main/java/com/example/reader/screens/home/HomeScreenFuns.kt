@@ -177,17 +177,9 @@ fun BottomNavigationBar(
             NavigationBarItem(
                 selected = resolvedCurrentRoute == item.route,
                 onClick = {
-                    if (resolvedCurrentRoute != item.route) {
-                        navController.navigate(item.route) {
-                            // Pop up to the start destination to avoid building up a large stack
-                            popUpTo(ReaderScreens.ReaderHomeScreen.name) {
-                                saveState = true
-                            }
-                            // Avoid multiple copies of the same destination
-                            launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
-                            restoreState = true
-                        }
+                    navController.navigate(item.route) {
+                        launchSingleTop = true
+                        restoreState = true
                     }
                 },
                 icon = {
