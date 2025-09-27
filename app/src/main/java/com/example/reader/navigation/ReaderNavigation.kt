@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.reader.screens.ExploreScreen
+import com.example.reader.screens.SavedScreen
 import com.example.reader.screens.onboarding.OnBoardingScreen
 import com.example.reader.screens.SignUp.SignUpScreen
 import com.example.reader.screens.home.Home
@@ -14,14 +16,15 @@ import com.example.reader.screens.stats.StatsScreen
 @Composable
 fun ReaderNavigation() {
     val navController = rememberNavController()
-    NavHost(navController = navController,
-        startDestination = ReaderScreens.SplashScreen.name) {
-
+    NavHost(
+        navController = navController,
+        startDestination = ReaderScreens.SplashScreen.name
+    ) {
         composable(ReaderScreens.SplashScreen.name) {
             SplashScreen(navController = navController)
         }
         composable(ReaderScreens.OnBoardingScreen.name) {
-             OnBoardingScreen(navController = navController)
+            OnBoardingScreen(navController = navController)
         }
         composable(ReaderScreens.LoginScreen.name) {
             ReaderLoginScreen(navController = navController, onLoginClick = { email, password -> })
@@ -35,6 +38,13 @@ fun ReaderNavigation() {
         composable(ReaderScreens.ReaderStatsScreen.name) {
             StatsScreen(navController = navController)
         }
+
+        // Add new bottom navigation screens
+        composable(ReaderScreens.ExploreScreen.name) {
+            ExploreScreen(navController = navController)
+        }
+        composable(ReaderScreens.SavedScreen.name) {
+            SavedScreen(navController = navController)
+        }
     }
 }
-

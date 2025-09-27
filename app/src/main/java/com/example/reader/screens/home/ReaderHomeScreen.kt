@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -49,16 +51,24 @@ import com.example.reader.ui.theme.TextColor
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(navController: NavController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
     Scaffold(
         topBar = {
             HomeTopBar(navController)
         },
         bottomBar = {
-            BottomNavigationBar(navController)
+            BottomNavigationBar(
+                navController = navController,
+                currentRoute = currentRoute
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
@@ -68,7 +78,6 @@ fun Home(navController: NavController) {
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Reduced spacing throughout
             BookDiscoveryScreen()
             CategoryTabs(modifier = Modifier.padding(top = 1.dp))
             Spacer(modifier = Modifier.height(16.dp))
@@ -141,14 +150,6 @@ fun HomeTopBar(navController: NavController,
                     modifier = Modifier.size(24.dp)
                 )
             }
-            IconButton(onClick = onMessagesClick) {
-                Icon(
-                    imageVector = Icons.Filled.Bookmark,
-                    contentDescription = "Messages",
-                    tint = SubtleTextColor,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
@@ -168,8 +169,6 @@ fun BookGridSection() {
                 title = "The trials of apollo th...", // Match reference text
                 author = "Greek Mythology, Fantasy",
                 genre = "Greek Mythology, Fantasy",
-                price = "$69",
-                salePrice = "$138",
                 rating = 4.4f,
                 coverImageRes = R.drawable.person,
                 salePercentage = "50% Off",
@@ -180,7 +179,6 @@ fun BookGridSection() {
                 title = "Sun Tzu - The Art of...",
                 author = "Strategic, Fantasy",
                 genre = "Strategic, Fantasy",
-                price = "$72",
                 rating = 4.4f,
                 coverImageRes = R.drawable.person,
                 isFavorite = false
@@ -190,7 +188,6 @@ fun BookGridSection() {
                 title = "The Art of War",
                 author = "Strategic",
                 genre = "Strategic",
-                price = "$72",
                 rating = 4.4f,
                 coverImageRes = R.drawable.person,
                 isFavorite = false
@@ -240,31 +237,15 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(6.dp), // Reduced padding
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.Top
                 ) {
-                    book.salePercentage?.let { sale ->
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(GreenPrimary)
-                                .padding(horizontal = 6.dp, vertical = 3.dp) // Smaller badge
-                        ) {
-                            Text(
-                                text = sale,
-                                color = TextColor,
-                                fontSize = 10.sp, // Smaller font
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    } ?: Spacer(modifier = Modifier.weight(1f))
-
                     IconButton(onClick = onFavoriteToggle) {
                         Icon(
                             imageVector = if (book.isFavorite) Icons.Outlined.Favorite else Icons.Outlined.Favorite,
                             contentDescription = "Favorite",
                             tint = if (book.isFavorite) Color.Red else Color.White,
-                            modifier = Modifier.size(20.dp) // Smaller icon
+                            modifier = Modifier.size(24.dp) // Smaller icon
                         )
                     }
                 }
@@ -297,75 +278,29 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                     )
                 }
 
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = book.price,
-                            color = TextColor,
-                            fontSize = 14.sp, // Smaller font
-                            fontWeight = FontWeight.Bold
-                        )
-                        book.salePrice?.let { sale ->
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = buildAnnotatedString {
-                                    withStyle(style = SpanStyle(textDecoration = TextDecoration.LineThrough)) {
-                                        append(sale)
-                                    }
-                                },
-                                color = SubtleTextColor,
-                                fontSize = 10.sp, // Smaller font
-                            )
-                        }
-                    }
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                )  {
                         Icon(
                             imageVector = Icons.Filled.Star,
                             contentDescription = "Rating",
                             tint = Color.Yellow,
-                            modifier = Modifier.size(14.dp) // Smaller icon
+                            modifier = Modifier.size(24.dp) // Smaller icon
                         )
                         Spacer(modifier = Modifier.width(2.dp))
                         Text(
                             text = book.rating.toString(),
                             color = SubtleTextColor,
-                            fontSize = 12.sp, // Smaller font
+                            fontSize = 16.sp, // Smaller font
                             fontWeight = FontWeight.Medium
                         )
                     }
-                }
+
             }
         }
     }
 }
 
-@Composable
-fun BottomNavigationBar(navController: NavController) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.background,
-        tonalElevation = 0.dp,
-        modifier = Modifier.navigationBarsPadding()
-    ) {
-         NavigationBarItem(
-                selected = true,
-                onClick = { navController.navigate(ReaderScreens.ReaderHomeScreen.name) },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Home,
-                        contentDescription = "home" ,
-                        modifier = Modifier.size(24.dp) // Smaller icons
-                    )
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = GreenPrimary,
-                    unselectedIconColor = SubtleTextColor,
-                    indicatorColor = Color.Transparent
-                )
-            )
-        }
-}

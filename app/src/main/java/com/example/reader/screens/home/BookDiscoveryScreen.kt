@@ -247,6 +247,7 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 color = Color.White,
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
+                maxLines = 2,
                 modifier = Modifier.fillMaxWidth()
             )
         }
