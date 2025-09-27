@@ -2,6 +2,7 @@ package com.example.reader.screens.home
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,6 +23,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.reader.ui.theme.CardBackground
+import com.example.reader.ui.theme.GreenDark
+import com.example.reader.ui.theme.GreenLight
+import com.example.reader.ui.theme.GreenMid
+import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.ReaderTheme
 
 @Composable
@@ -58,38 +63,42 @@ fun BookDiscoveryScreen() {
 @Composable
 fun QuoteCard() {
     Card(
-        modifier = Modifier.fillMaxWidth(0.88f), // Slightly wider
-        shape = RoundedCornerShape(12.dp), // Less rounded
+        modifier = Modifier.fillMaxWidth(0.88f),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = CardBackground
+            containerColor = if (isSystemInDarkTheme()) {
+                CardBackground
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            }
         )
     ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 20.dp, top = 12.dp, start = 12.dp, end = 12.dp), // Reduced padding
+                .padding(bottom = 20.dp, top = 12.dp, start = 12.dp, end = 12.dp),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.background
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp) // Reduced padding
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
                 Text(
                     text = "On conviction to imprisonment for a period not exceeding four years...",
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontSize = 14.sp, // Slightly smaller font
-                    lineHeight = 20.sp, // Reduced line height
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(12.dp)) // Reduced spacer
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Continue Reading",
-                    color = MaterialTheme.colorScheme.tertiary,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp, // Slightly smaller
+                    fontSize = 13.sp,
                     modifier = Modifier.clickable { /* Handle click */ }
                 )
             }
@@ -102,41 +111,45 @@ fun BookPlayerCard(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .padding(top = 1.dp)
-            .fillMaxWidth(0.88f), // Match quote card width
+            .fillMaxWidth(0.88f),
         shape = RoundedCornerShape(bottomEnd = 12.dp, bottomStart = 12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = CardBackground
+            containerColor = if (isSystemInDarkTheme()) {
+                CardBackground
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            }
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Reduced elevation
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp), // Slightly reduced padding
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.MenuBook,
                 contentDescription = "Book cover icon",
                 modifier = Modifier
-                    .size(48.dp) // Smaller icon
+                    .size(48.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.width(12.dp)) // Reduced spacer
+            Spacer(modifier = Modifier.width(12.dp))
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = "Born a Crime, Stories from a South...",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp, // Slightly smaller
+                    fontSize = 14.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(3.dp)) // Reduced spacer
+                Spacer(modifier = Modifier.height(3.dp))
                 Text(
                     text = "Chapter 1 of 4",
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     fontSize = 12.sp
                 )
             }
@@ -146,26 +159,41 @@ fun BookPlayerCard(modifier: Modifier = Modifier) {
 
 @Composable
 fun BookFinderBackground(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-    ) {
-        // Draw background waves
-        Canvas(modifier = Modifier.matchParentSize()) {
-            // --- Background with richer gradient ---
-            drawRect(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFF00796B), // light teal
-                        Color(0xFF00695C), // medium green
-                        Color(0xFF004D40), // dark green
-                        Color(0xFF00332C)  // deepest shade
-                    ),
-                    start = Offset(0f, 0f),
-                    end = Offset(size.width, size.height)
-                )
-            )
+    val isDark = isSystemInDarkTheme()
 
-            // --- Top main wave (bright highlight) ---
+    Box(modifier = modifier) {
+        Canvas(modifier = Modifier.matchParentSize()) {
+            if (isDark) {
+                // Dark theme gradient (existing)
+                drawRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF00796B),
+                            Color(0xFF00695C),
+                            Color(0xFF004D40),
+                            Color(0xFF00332C)
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(size.width, size.height)
+                    )
+                )
+            } else {
+                // Light theme gradient
+                drawRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            GreenLight,      // Light teal
+                            GreenMid,        // Medium green
+                            GreenPrimary,    // Primary green
+                            GreenDark        // Dark green
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(size.width, size.height)
+                    )
+                )
+            }
+
+            // Wave patterns work for both themes
             val wave1 = Path().apply {
                 moveTo(size.width, 0f)
                 quadraticTo(
@@ -180,7 +208,7 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 path = wave1,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.08f),
+                        Color.White.copy(alpha = if (isDark) 0.08f else 0.15f),
                         Color.Transparent
                     ),
                     start = Offset(size.width, 0f),
@@ -188,7 +216,6 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 )
             )
 
-            // --- Middle wave (soft dark shade) ---
             val wave2 = Path().apply {
                 moveTo(size.width, size.height * 0.25f)
                 quadraticTo(
@@ -203,44 +230,21 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 path = wave2,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color.Black.copy(alpha = 0.12f),
+                        Color.Black.copy(alpha = if (isDark) 0.12f else 0.06f),
                         Color.Transparent
                     ),
                     start = Offset(size.width, size.height * 0.25f),
                     end = Offset(0f, size.height)
                 )
             )
-
-            // --- Bottom wave (deep subtle accent) ---
-            val wave3 = Path().apply {
-                moveTo(size.width, size.height * 0.5f)
-                quadraticTo(
-                    size.width * 0.5f, size.height * 1.0f,
-                    0f, size.height * 0.85f
-                )
-                lineTo(0f, size.height)
-                lineTo(size.width, size.height)
-                close()
-            }
-            drawPath(
-                path = wave3,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFF002F27).copy(alpha = 0.3f),
-                        Color.Transparent
-                    ),
-                    start = Offset(size.width, size.height * 0.5f),
-                    end = Offset(0f, size.height)
-                )
-            )
         }
 
-        // Text overlay centered over the canvas
+        // Text remains white on both themes for good contrast
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .padding(horizontal = 32.dp, vertical = 30.dp) // Reduced padding
+                .padding(horizontal = 32.dp, vertical = 30.dp)
         ) {
             Text(
                 text = "Find interesting books from all over the world",

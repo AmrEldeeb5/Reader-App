@@ -1,8 +1,14 @@
 package com.example.reader.screens.home
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
@@ -13,10 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -53,6 +61,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.rotate
+import com.example.reader.repository.FunYellow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,6 +160,10 @@ fun HomeTopBar(navController: NavController,
                     modifier = Modifier.size(24.dp)
                 )
             }
+            FunThemeToggleCompact(
+                isDark = isDark,
+                onToggle = { isDark = it }
+            )
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
@@ -224,16 +238,22 @@ fun BookGridSection() {
 fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
     Card(
         modifier = Modifier
-            .width(150.dp) // Slightly narrower
-            .height(290.dp), // Slightly shorter
-        colors = CardDefaults.cardColors(containerColor = CardBackground),
-        shape = RoundedCornerShape(12.dp) // Less rounded
+            .width(150.dp)
+            .height(290.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSystemInDarkTheme()) {
+                CardBackground
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            }
+        ),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(185.dp) // Adjusted height
+                    .height(185.dp)
             ) {
                 Image(
                     painter = painterResource(id = book.coverImageRes),
@@ -245,16 +265,16 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(6.dp), // Reduced padding
+                        .padding(6.dp),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.Top
                 ) {
                     IconButton(onClick = onFavoriteToggle) {
                         Icon(
-                            imageVector = if (book.isFavorite) Icons.Outlined.Favorite else Icons.Outlined.Favorite,
+                            imageVector = Icons.Outlined.Favorite,
                             contentDescription = "Favorite",
                             tint = if (book.isFavorite) Color.Red else Color.White,
-                            modifier = Modifier.size(24.dp) // Smaller icon
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
@@ -263,14 +283,14 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(10.dp), // Reduced padding
+                    .padding(10.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
                     Text(
                         text = book.title,
-                        color = TextColor,
-                        fontSize = 14.sp, // Smaller font
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -280,36 +300,73 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
 
                     Text(
                         text = book.author,
-                        color = SubtleTextColor,
-                        fontSize = 11.sp, // Smaller font
+                        color = MaterialTheme.colorScheme.outline,
+                        fontSize = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
-                )  {
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = "Rating",
-                            tint = Color.Yellow,
-                            modifier = Modifier.size(24.dp) // Smaller icon
-                        )
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text(
-                            text = book.rating.toString(),
-                            color = SubtleTextColor,
-                            fontSize = 16.sp, // Smaller font
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = "Rating",
+                        tint = Color(0xFFFFB300), // Amber for both themes
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Text(
+                        text = book.rating.toString(),
+                        color = MaterialTheme.colorScheme.outline,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }
 }
 
+@Composable
+fun FunThemeToggleCompact(
+    isDark: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isDark) 180f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "icon_rotation"
+    )
+
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isDark) Color(0xFF1A1B3A) else SubtleTextColor.copy(alpha = 0.3f),
+        animationSpec = tween(300),
+        label = "background_color"
+    )
+
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .clickable { onToggle(!isDark) },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = if (isDark) Icons.Filled.DarkMode else Icons.Filled.LightMode,
+            contentDescription = if (isDark) "Switch to Light Mode" else "Switch to Dark Mode",
+            tint = if (isDark) Color.White else Color(0xFF4A4A4A),
+            modifier = Modifier
+                .size(24.dp)
+                .rotate(rotationAngle)
+        )
+    }
+}

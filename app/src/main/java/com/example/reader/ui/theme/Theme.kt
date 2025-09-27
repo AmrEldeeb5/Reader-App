@@ -12,25 +12,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = DarkTeal,
-    onPrimary = DarkOnPrimary,
-    primaryContainer = DarkTealDark,
-    onPrimaryContainer = DarkTealLight,
+    primary = GreenPrimary,
+    onPrimary = Color.White,
+    primaryContainer = GreenDark,
+    onPrimaryContainer = GreenExtraLight,
 
-    secondary = DarkTealLight,
+    secondary = GreenMid,
     onSecondary = Color.White,
-    secondaryContainer = DarkTealDark,
-    onSecondaryContainer = DarkTealLight,
+    secondaryContainer = GreenDark,
+    onSecondaryContainer = GreenLight,
 
-    tertiary = Color(0xFF4CAF50), // Complementary green
+    tertiary = GreenLight,
     onTertiary = Color.White,
-    tertiaryContainer = Color(0xFF2E7D32),
-    onTertiaryContainer = Color(0xFFC8E6C9),
+    tertiaryContainer = GreenDark,
+    onTertiaryContainer = GreenExtraLight,
 
     background = DarkBackground,
     onBackground = DarkOnBackground,
     surface = DarkSurface,
     onSurface = DarkOnBackground,
+
+    surfaceVariant = CardBackground,
+    onSurfaceVariant = TextColor,
+
+    outline = SubtleTextColor,
+    outlineVariant = Color(0xFF3A3A3A),
 
     error = BrandErrorRed,
     onError = Color.White,
@@ -41,28 +47,39 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary = GreenPrimary,
     onPrimary = Color.White,
-    primaryContainer = GreenLight,
-    onPrimaryContainer = Color(0xFF003731),
+    primaryContainer = LightPrimaryContainer,
+    onPrimaryContainer = GreenDark,
 
     secondary = GreenMid,
     onSecondary = Color.White,
-    secondaryContainer = GreenLight,
-    onSecondaryContainer = Color(0xFF003731),
+    secondaryContainer = LightSecondaryContainer,
+    onSecondaryContainer = GreenDark,
 
-    tertiary = GreenDark,
+    tertiary = GreenLight,
     onTertiary = Color.White,
-    tertiaryContainer = GreenExtraLight,
-    onTertiaryContainer = Color(0xFF00201B),
+    tertiaryContainer = Color(0xFFC8F2EC), // Light mint tertiary container
+    onTertiaryContainer = GreenDark,
 
-    background = Color(0xFFD3E1DF), // Slightly darker than previous to separate from white
-    onBackground = Color(0xFF0D1F1D),
-    surface = Color(0xFFBFD1CF), // Slightly darker than previous to separate from white
-    onSurface = Color(0xFF102725),
+    background = LightBackground,
+    onBackground = LightTextPrimary,
+    surface = LightSurface,
+    onSurface = LightTextPrimary,
+
+    surfaceVariant = LightCardBackground,
+    onSurfaceVariant = LightTextSecondary,
+
+    outline = LightTextTertiary,
+    outlineVariant = LightBorder,
 
     error = BrandErrorRed,
     onError = Color.White,
-    errorContainer = Color(0xFFFFDAD6),
-    onErrorContainer = Color(0xFF410002)
+    errorContainer = Color(0xFFFFEDEA), // Light red container
+    onErrorContainer = Color(0xFF410002),
+
+    // Additional surface colors for better hierarchy
+    surfaceContainer = LightCardBackground,
+    surfaceContainerHigh = Color(0xFFEBF7F4), // Light green tint
+    surfaceContainerHighest = Color(0xFFD9F0EA) // Slightly more green
 )
 
 @Composable
