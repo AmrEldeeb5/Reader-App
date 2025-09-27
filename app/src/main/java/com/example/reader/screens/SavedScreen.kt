@@ -14,7 +14,9 @@ import com.example.reader.screens.home.BottomNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SavedScreen(navController: NavController) {
+fun SavedScreen( navController: NavController,
+                 isDarkTheme: Boolean,
+                 onThemeToggle: (Boolean) -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(

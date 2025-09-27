@@ -14,7 +14,10 @@ import com.example.reader.screens.screen.SplashScreen
 import com.example.reader.screens.stats.StatsScreen
 
 @Composable
-fun ReaderNavigation() {
+fun ReaderNavigation(
+    isDarkTheme: Boolean = false,
+    onThemeToggle: (Boolean) -> Unit = {}
+) {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
@@ -33,18 +36,26 @@ fun ReaderNavigation() {
             SignUpScreen(navController = navController, onSignUpClick = { name, email, password -> })
         }
         composable(ReaderScreens.ReaderHomeScreen.name) {
-            Home(navController = navController)
+            Home(navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle)
         }
         composable(ReaderScreens.ReaderStatsScreen.name) {
-            StatsScreen(navController = navController)
+            StatsScreen(navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle)
         }
 
         // Add new bottom navigation screens
         composable(ReaderScreens.ExploreScreen.name) {
-            ExploreScreen(navController = navController)
+            ExploreScreen(navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle)
         }
         composable(ReaderScreens.SavedScreen.name) {
-            SavedScreen(navController = navController)
+            SavedScreen(navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle)
         }
     }
 }

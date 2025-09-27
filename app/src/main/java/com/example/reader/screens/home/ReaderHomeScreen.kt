@@ -62,17 +62,23 @@ import kotlinx.coroutines.tasks.await
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.rotate
-import com.example.reader.repository.FunYellow
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Home(navController: NavController) {
+fun Home(
+    navController: NavController,
+    isDarkTheme: Boolean = false,
+    onThemeToggle: (Boolean) -> Unit = {}
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
         topBar = {
-            HomeTopBar(navController)
+            HomeTopBar(
+                navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle
+            )
         },
         bottomBar = {
             BottomNavigationBar(
@@ -96,18 +102,19 @@ fun Home(navController: NavController) {
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(navController: NavController,
+fun HomeTopBar(
+    navController: NavController,
+    isDarkTheme: Boolean,
+    onThemeToggle: (Boolean) -> Unit,
     userName: String? = null,
-    onNotificationsClick: () -> Unit = {},
-    onMessagesClick: () -> Unit = {}
+    onNotificationsClick: () -> Unit = {}
 ) {
     val auth = FirebaseAuth.getInstance()
     val initialName = remember(userName, auth.currentUser) {
         userName ?: auth.currentUser?.displayName?.takeIf { it.isNotBlank() }
-        ?: "Andy" // Changed to match reference
+        ?: "Andy"
     }
     var resolvedName by remember { mutableStateOf(initialName) }
 
@@ -148,7 +155,7 @@ fun HomeTopBar(navController: NavController,
                 })
                     .size(48.dp)
                     .clip(CircleShape),
-                tint = SubtleTextColor
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         actions = {
@@ -156,20 +163,20 @@ fun HomeTopBar(navController: NavController,
                 Icon(
                     imageVector = Icons.Filled.Notifications,
                     contentDescription = "Notifications",
-                    tint = SubtleTextColor,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp)
                 )
             }
             FunThemeToggleCompact(
-                isDark = isDark,
-                onToggle = { isDark = it }
+                isDark = isDarkTheme,
+                onToggle = onThemeToggle
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
-            titleContentColor = TextColor,
-            navigationIconContentColor = SubtleTextColor,
-            actionIconContentColor = SubtleTextColor
+            titleContentColor = MaterialTheme.colorScheme.onBackground,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     )
 }
@@ -347,7 +354,7 @@ fun FunThemeToggleCompact(
     )
 
     val backgroundColor by animateColorAsState(
-        targetValue = if (isDark) Color(0xFF1A1B3A) else SubtleTextColor.copy(alpha = 0.3f),
+        targetValue = if (isDark) Color(0xFF1A1B3A) else Color(0xFFFFD93D).copy(alpha = 0.3f),
         animationSpec = tween(300),
         label = "background_color"
     )
