@@ -5,8 +5,7 @@ data class Book(
     val title: String,
     val author: String,
     val genre: String,
-    val rating: Float,
+    val rating: Double,
     val coverImageRes: Int,
     val isFavorite: Boolean = false,
-    val salePercentage: String? = null
 )

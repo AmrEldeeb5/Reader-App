@@ -169,9 +169,8 @@ fun BookGridSection() {
                 title = "The trials of apollo th...", // Match reference text
                 author = "Greek Mythology, Fantasy",
                 genre = "Greek Mythology, Fantasy",
-                rating = 4.4f,
+                rating = 4.4,
                 coverImageRes = R.drawable.person,
-                salePercentage = "50% Off",
                 isFavorite = true
             ),
             Book(
@@ -179,7 +178,7 @@ fun BookGridSection() {
                 title = "Sun Tzu - The Art of...",
                 author = "Strategic, Fantasy",
                 genre = "Strategic, Fantasy",
-                rating = 4.4f,
+                rating = 4.5,
                 coverImageRes = R.drawable.person,
                 isFavorite = false
             ),
@@ -188,11 +187,21 @@ fun BookGridSection() {
                 title = "The Art of War",
                 author = "Strategic",
                 genre = "Strategic",
-                rating = 4.4f,
+                rating = 4.0,
                 coverImageRes = R.drawable.person,
                 isFavorite = false
+            ),
+            Book(
+                id = 3,
+                title = "Nigga of War",
+                author = "Strategic",
+                genre = "Strategic",
+                rating = 4.0,
+                coverImageRes = R.drawable.person,
+                isFavorite = true
             )
         )
+
     }
 
     LazyRow(
