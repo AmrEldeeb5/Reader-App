@@ -217,7 +217,7 @@ fun BookGridSection(isDarkTheme: Boolean) {
             ),
             Book(
                 id = 4,
-                title = "Book of War",
+                title = "Nigga of War",
                 author = "Strategic",
                 genre = "Strategic",
                 rating = 4.0,
