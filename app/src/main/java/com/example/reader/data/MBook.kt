@@ -4,8 +4,8 @@ data class Book(
     val id: Int,
     val title: String,
     val author: String,
-    val genre: String,
+    val subtitle: String,
     val rating: Double,
-    val coverImageRes: Int,
+    val coverImageUrl: String?,
     val isFavorite: Boolean = false,
 )

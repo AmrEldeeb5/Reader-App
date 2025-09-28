@@ -5,10 +5,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,50 +16,36 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.reader.R
 import com.example.reader.data.Book
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.ui.theme.CardBackground
-import com.example.reader.ui.theme.GreenPrimary
-import com.example.reader.ui.theme.SubtleTextColor
-import com.example.reader.ui.theme.TextColor
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.rotate
+import coil.compose.AsyncImage
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(
@@ -190,38 +174,38 @@ fun BookGridSection(isDarkTheme: Boolean) {
         mutableStateListOf(
             Book(
                 id = 1,
-                title = "The trials of apollo th...",
-                author = "Greek Mythology, Fantasy",
-                genre = "Greek Mythology, Fantasy",
+                title = "The Moor and the Novel",
+                author = "Mary B. Quinn",
+                subtitle = "Narrating Absence in early modern Spain",
                 rating = 4.4,
-                coverImageRes = R.drawable.person,
+                coverImageUrl = "http://books.google.com/books/content?id=cn5lEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
                 isFavorite = true
             ),
             Book(
                 id = 2,
-                title = "Sun Tzu - The Art of...",
-                author = "Strategic, Fantasy",
-                genre = "Strategic, Fantasy",
+                title = "The Radical Art of SelfLove",
+                author = "Deepak Singh",
+                subtitle = "The Radical Art of SelfLove",
                 rating = 4.5,
-                coverImageRes = R.drawable.person,
+                coverImageUrl = "http://books.google.com/books/content?id=NnnLEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
                 isFavorite = false
             ),
             Book(
                 id = 3,
-                title = "The Art of War",
-                author = "Strategic",
-                genre = "Strategic",
+                title = "Computer Applications in the Social Sciences",
+                author = "Edward E. Brent,"+"Ronald E. Anderson",
+                subtitle = "Presenting an introduction to computing and advice on computer applications",
                 rating = 4.0,
-                coverImageRes = R.drawable.person,
+                coverImageUrl = "http://books.google.com/books/content?id=5KtoPaM6r9EC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
                 isFavorite = false
             ),
             Book(
                 id = 4,
-                title = "Nigga of War",
-                author = "Strategic",
-                genre = "Strategic",
+                title = "Romantic Love",
+                author = "Yolanda van Ede",
+                subtitle = "important aspects of these relationships",
                 rating = 4.0,
-                coverImageRes = R.drawable.person,
+                coverImageUrl = "http://books.google.com/books/content?id=b1yOJtOwvWIC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
                 isFavorite = true
             )
         )
@@ -251,13 +235,13 @@ fun BookGridSection(isDarkTheme: Boolean) {
 fun BookCard(
     book: Book,
     onFavoriteToggle: () -> Unit,
-    isDarkTheme: Boolean // Add this parameter
+    isDarkTheme: Boolean
 ) {
     Card(
         modifier = Modifier
             .width(150.dp)
             .height(290.dp)
-            .clickable { /* Handle book click safely, e.g., show a toast or navigate */ },
+            .clickable { /* Handle book click safely */ },
         colors = CardDefaults.cardColors(
             containerColor = if (isDarkTheme) {
                 CardBackground
@@ -276,12 +260,16 @@ fun BookCard(
                     .fillMaxWidth()
                     .height(185.dp)
             ) {
-                Image(
-                    painter = painterResource(id = book.coverImageRes),
+                AsyncImage(
+                    model = book.coverImageUrl,
                     contentDescription = book.title,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                 )
+
+
 
                 Row(
                     modifier = Modifier
@@ -290,19 +278,18 @@ fun BookCard(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.Top
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(Color.Transparent)
-                    ) {
-                        IconButton(onClick = onFavoriteToggle) {
-                            Icon(
-                                imageVector = if (book.isFavorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
-                                contentDescription = "Favorite",
-                                tint = if (book.isFavorite) Color.Red else Color.White,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
+                    IconButton(onClick = onFavoriteToggle) {
+                        val tint by animateColorAsState(
+                            targetValue = if (book.isFavorite) Color.Red else Color.White,
+                            animationSpec = tween(300),
+                            label = "favorite_color"
+                        )
+                        Icon(
+                            imageVector = if (book.isFavorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                            contentDescription = "Favorite",
+                            tint = tint,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 }
             }
