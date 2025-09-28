@@ -30,47 +30,42 @@ import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.ReaderTheme
 
 @Composable
-fun BookDiscoveryScreen() {
+fun BookDiscoveryScreen(isDarkTheme: Boolean) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 16.dp, bottom = 24.dp), // Reduced top padding significantly
+            .padding(top = 16.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top // Changed to Top alignment
+        verticalArrangement = Arrangement.Top
     ) {
-        // This Box will contain all the stacked elements
         Box(contentAlignment = Alignment.TopCenter) {
             BookFinderBackground(
                 modifier = Modifier
-                    .fillMaxWidth(0.95f) // Slightly wider
-                    .height(270.dp) // Reduced height to match reference
-                    .clip(RoundedCornerShape(16.dp)) // Slightly more rounded
+                    .fillMaxWidth(0.95f)
+                    .height(270.dp)
+                    .clip(RoundedCornerShape(16.dp))
             )
-            // Column for the cards that overlap
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                // Reduced top padding to position cards higher
                 modifier = Modifier.padding(top = 130.dp)
             ) {
-                QuoteCard()
-                // Reduced negative offset for tighter overlap
-                BookPlayerCard(modifier = Modifier.offset(y = (-15).dp))
+                QuoteCard(isDarkTheme = isDarkTheme)
+                BookPlayerCard(
+                    modifier = Modifier.offset(y = (-15).dp),
+                    isDarkTheme = isDarkTheme
+                )
             }
         }
     }
 }
 
 @Composable
-fun QuoteCard() {
+fun QuoteCard(isDarkTheme: Boolean) {
     Card(
         modifier = Modifier.fillMaxWidth(0.88f),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSystemInDarkTheme()) {
-                CardBackground
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            }
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Card(
@@ -107,18 +102,14 @@ fun QuoteCard() {
 }
 
 @Composable
-fun BookPlayerCard(modifier: Modifier = Modifier) {
+fun BookPlayerCard(modifier: Modifier = Modifier, isDarkTheme: Boolean) {
     Card(
         modifier = modifier
             .padding(top = 1.dp)
             .fillMaxWidth(0.88f),
         shape = RoundedCornerShape(bottomEnd = 12.dp, bottomStart = 12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSystemInDarkTheme()) {
-                CardBackground
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            }
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -262,6 +253,6 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
 @Composable
 fun DefaultPreview() {
     ReaderTheme(darkTheme = true) {
-        BookDiscoveryScreen()
+        BookDiscoveryScreen(isDarkTheme = true)
     }
 }

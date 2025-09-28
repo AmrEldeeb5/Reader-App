@@ -121,7 +121,7 @@ fun GreetingSection(
 }
 
 @Composable
-fun CategoryTabs(modifier: Modifier = Modifier) {
+fun CategoryTabs(modifier: Modifier = Modifier, isDarkTheme: Boolean) {
     val categories = listOf("Novels", "Self Love", "Science", "Romance")
     var selectedCategory by remember { mutableStateOf("Novels") }
 
@@ -132,18 +132,28 @@ fun CategoryTabs(modifier: Modifier = Modifier) {
     ) {
         items(categories) { category ->
             val isSelected = category == selectedCategory
-            // KEY CHANGE: Use a Box to create the background for the selected item
+
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (isSelected) GreenPrimary else MaterialTheme.colorScheme.surface)
+                    .background(
+                        if (isSelected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        }
+                    )
                     .clickable { selectedCategory = category }
                     .padding(vertical = 8.dp, horizontal = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = category,
-                    color = if (isSelected) TextColor else SubtleTextColor,
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
                 )
@@ -151,7 +161,6 @@ fun CategoryTabs(modifier: Modifier = Modifier) {
         }
     }
 }
-
 @Composable
 fun BottomNavigationBar(
     navController: NavController,

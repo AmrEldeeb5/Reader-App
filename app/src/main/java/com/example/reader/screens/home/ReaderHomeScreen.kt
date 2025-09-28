@@ -86,7 +86,7 @@ fun Home(
                 currentRoute = currentRoute
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background // Use Material 3 background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -94,10 +94,13 @@ fun Home(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            BookDiscoveryScreen()
-            CategoryTabs(modifier = Modifier.padding(top = 1.dp))
+            BookDiscoveryScreen(isDarkTheme = isDarkTheme)
+            CategoryTabs(
+                modifier = Modifier.padding(top = 1.dp),
+                isDarkTheme = isDarkTheme
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            BookGridSection()
+            BookGridSection(isDarkTheme = isDarkTheme)
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -182,12 +185,12 @@ fun HomeTopBar(
 }
 
 @Composable
-fun BookGridSection() {
+fun BookGridSection(isDarkTheme: Boolean) {
     val books = remember {
         mutableStateListOf(
             Book(
                 id = 1,
-                title = "The trials of apollo th...", // Match reference text
+                title = "The trials of apollo th...",
                 author = "Greek Mythology, Fantasy",
                 genre = "Greek Mythology, Fantasy",
                 rating = 4.4,
@@ -213,8 +216,8 @@ fun BookGridSection() {
                 isFavorite = false
             ),
             Book(
-                id = 3,
-                title = "Nigga of War",
+                id = 4,
+                title = "Book of War",
                 author = "Strategic",
                 genre = "Strategic",
                 rating = 4.0,
@@ -222,39 +225,49 @@ fun BookGridSection() {
                 isFavorite = true
             )
         )
-
     }
 
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp) // Reduced spacing
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(books) { book ->
-            BookCard(book = book, onFavoriteToggle = {
-                val index = books.indexOf(book)
-                if (index != -1) {
-                    books[index] = book.copy(isFavorite = !book.isFavorite)
+            BookCard(
+                book = book,
+                isDarkTheme = isDarkTheme, // Pass the theme parameter
+                onFavoriteToggle = {
+                    val index = books.indexOf(book)
+                    if (index != -1) {
+                        books[index] = book.copy(isFavorite = !book.isFavorite)
+                    }
                 }
-            })
+            )
         }
     }
 }
 
 @Composable
-fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
+fun BookCard(
+    book: Book,
+    onFavoriteToggle: () -> Unit,
+    isDarkTheme: Boolean // Add this parameter
+) {
     Card(
         modifier = Modifier
             .width(150.dp)
             .height(290.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSystemInDarkTheme()) {
+            containerColor = if (isDarkTheme) {
                 CardBackground
             } else {
-                MaterialTheme.colorScheme.surfaceVariant
+                MaterialTheme.colorScheme.surface // Use Material 3 surface color
             }
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isDarkTheme) 4.dp else 1.dp
+        )
     ) {
         Column {
             Box(
@@ -276,13 +289,19 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.Top
                 ) {
-                    IconButton(onClick = onFavoriteToggle) {
-                        Icon(
-                            imageVector = Icons.Outlined.Favorite,
-                            contentDescription = "Favorite",
-                            tint = if (book.isFavorite) Color.Red else Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color.Transparent)
+                    ) {
+                        IconButton(onClick = onFavoriteToggle) {
+                            Icon(
+                                imageVector = if (book.isFavorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                                contentDescription = "Favorite",
+                                tint = if (book.isFavorite) Color.Red else Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -290,24 +309,24 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(10.dp),
+                    .padding(12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
                     Text(
                         text = book.title,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurface, // Use Material 3 colors
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    Spacer(modifier = Modifier.height(3.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
                         text = book.author,
-                        color = MaterialTheme.colorScheme.outline,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, // Use Material 3 colors
                         fontSize = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -322,14 +341,14 @@ fun BookCard(book: Book, onFavoriteToggle: () -> Unit) {
                     Icon(
                         imageVector = Icons.Filled.Star,
                         contentDescription = "Rating",
-                        tint = Color(0xFFFFB300), // Amber for both themes
-                        modifier = Modifier.size(24.dp)
+                        tint = Color(0xFFFFB300),
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(2.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = book.rating.toString(),
-                        color = MaterialTheme.colorScheme.outline,
-                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -354,7 +373,7 @@ fun FunThemeToggleCompact(
     )
 
     val backgroundColor by animateColorAsState(
-        targetValue = if (isDark) Color(0xFF1A1B3A) else Color(0xFFFFD93D).copy(alpha = 0.3f),
+        targetValue = if (isDark) Color(0xFF1A1B3A) else Color(0xFF3FAF9E).copy(alpha = 0.3f),
         animationSpec = tween(300),
         label = "background_color"
     )
