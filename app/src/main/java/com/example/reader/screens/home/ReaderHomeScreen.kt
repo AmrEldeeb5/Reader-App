@@ -256,7 +256,8 @@ fun BookCard(
     Card(
         modifier = Modifier
             .width(150.dp)
-            .height(290.dp),
+            .height(290.dp)
+            .clickable { /* Handle book click safely, e.g., show a toast or navigate */ },
         colors = CardDefaults.cardColors(
             containerColor = if (isDarkTheme) {
                 CardBackground
