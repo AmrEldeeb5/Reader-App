@@ -20,7 +20,7 @@ class BookViewModel: ViewModel() {
     private fun fetchBooks() {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.api.getBooks("novels")
+                val response = RetrofitInstance.api.getBooks("none")
                 _books.value = response.items?.map { it.toBook() } ?: emptyList()
             } catch (e: Exception) {
                 // Handle the error

@@ -47,13 +47,14 @@ import androidx.compose.ui.draw.rotate
 import coil.compose.AsyncImage
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reader.data.api.BookViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun Home(
     navController: NavController,
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
-    viewModel: BookViewModel = viewModel()
+    viewModel: BookViewModel = koinViewModel()
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -261,7 +262,7 @@ fun BookCard(
                             label = "favorite_color"
                         )
                         Icon(
-                            imageVector = if (book.isFavorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                            imageVector = Icons.Filled.Favorite,
                             contentDescription = "Favorite",
                             tint = tint,
                             modifier = Modifier.size(24.dp)

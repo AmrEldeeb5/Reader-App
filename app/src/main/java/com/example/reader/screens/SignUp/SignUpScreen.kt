@@ -33,6 +33,7 @@ import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.login.RememberMeBox
 import com.example.reader.screens.login.RememberMeBoxState
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 // Constants for better maintainability
 private object SignUpConstants {
@@ -231,7 +232,7 @@ private fun SignUpButton(
 fun SignUpScreen(
     navController: NavController,
     onSignUpClick: (String, String, String) -> Unit,
-    viewModel: SignUpScreenViewModel = viewModel()
+    viewModel: SignUpScreenViewModel = koinViewModel()
 ) {
     // Form state management
     var formState by remember { mutableStateOf(SignUpFormState()) }
