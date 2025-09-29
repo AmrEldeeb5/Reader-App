@@ -1,4 +1,4 @@
-package com.example.reader.data
+package com.example.reader.data.model
 
 data class Book(
     val id: Int,

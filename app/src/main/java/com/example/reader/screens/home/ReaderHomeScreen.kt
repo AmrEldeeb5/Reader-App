@@ -35,7 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.reader.data.Book
+import com.example.reader.data.model.Book
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.ui.theme.CardBackground
 import com.google.firebase.auth.FirebaseAuth

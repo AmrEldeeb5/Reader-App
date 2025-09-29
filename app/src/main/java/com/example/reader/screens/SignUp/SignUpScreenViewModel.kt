@@ -3,7 +3,7 @@ package com.example.reader.screens.SignUp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reader.components.LoadingState
-import com.example.reader.data.MUser
+import com.example.reader.data.model.MUser
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.Firebase
