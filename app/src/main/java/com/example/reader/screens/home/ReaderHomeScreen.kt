@@ -45,7 +45,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.rotate
 import coil.compose.AsyncImage
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reader.data.api.BookViewModel
 
@@ -54,7 +53,7 @@ fun Home(
     navController: NavController,
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
-    viewModel: BookViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: BookViewModel = viewModel()
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -173,7 +172,7 @@ fun HomeTopBar(
 
 @Composable
 fun BookGridSection(isDarkTheme: Boolean, viewModel: BookViewModel) {
-    val books by viewModel.books.observeAsState(emptyList())
+    val books by viewModel.books.collectAsState()
 
     if (books.isEmpty()) {
         // Show loading or empty state
@@ -197,6 +196,9 @@ fun BookGridSection(isDarkTheme: Boolean, viewModel: BookViewModel) {
                     isDarkTheme = isDarkTheme,
                     onFavoriteToggle = {
                         viewModel.toggleFavorite(book.id)
+                    },
+                    onRatingChange = { rating ->
+                        viewModel.updateUserRating(book.id, rating)
                     }
                 )
             }
@@ -208,8 +210,11 @@ fun BookGridSection(isDarkTheme: Boolean, viewModel: BookViewModel) {
 fun BookCard(
     book: Book,
     onFavoriteToggle: () -> Unit,
+    onRatingChange: (Double) -> Unit = {},
     isDarkTheme: Boolean
 ) {
+    var showRatingDialog by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .width(150.dp)
@@ -219,7 +224,7 @@ fun BookCard(
             containerColor = if (isDarkTheme) {
                 CardBackground
             } else {
-                MaterialTheme.colorScheme.surface // Use Material 3 surface color
+                MaterialTheme.colorScheme.surface
             }
         ),
         shape = RoundedCornerShape(12.dp),
@@ -241,8 +246,6 @@ fun BookCard(
                         .fillMaxSize()
                         .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                 )
-
-
 
                 Row(
                     modifier = Modifier
@@ -276,7 +279,7 @@ fun BookCard(
                 Column {
                     Text(
                         text = book.title,
-                        color = MaterialTheme.colorScheme.onSurface, // Use Material 3 colors
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -287,7 +290,7 @@ fun BookCard(
 
                     Text(
                         text = book.author,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, // Use Material 3 colors
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -295,19 +298,21 @@ fun BookCard(
                 }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showRatingDialog = true },
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Star,
                         contentDescription = "Rating",
-                        tint = Color(0xFFFFB300),
+                        tint = if (book.userRating != null) Color(0xFFFFB300) else Color.Gray,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = book.rating.toString(),
+                        text = book.userRating?.toString() ?: "Rate",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
@@ -315,6 +320,18 @@ fun BookCard(
                 }
             }
         }
+    }
+
+    // Rating Dialog
+    if (showRatingDialog) {
+        RatingDialog(
+            currentRating = book.userRating ?: 0.0,
+            onDismiss = { showRatingDialog = false },
+            onRatingSelected = { rating ->
+                onRatingChange(rating)
+                showRatingDialog = false
+            }
+        )
     }
 }
 
@@ -356,4 +373,66 @@ fun FunThemeToggleCompact(
                 .rotate(rotationAngle)
         )
     }
+}
+
+@Composable
+fun RatingDialog(
+    currentRating: Double,
+    onDismiss: () -> Unit,
+    onRatingSelected: (Double) -> Unit
+) {
+    var selectedRating by remember { mutableStateOf(currentRating) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Rate this book",
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = selectedRating.toString(),
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Star rating selector
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    (1..5).forEach { star ->
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = "Star $star",
+                            tint = if (star <= selectedRating) Color(0xFFFFB300) else Color.Gray,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clickable { selectedRating = star.toDouble() }
+                                .padding(4.dp)
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onRatingSelected(selectedRating) }) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
