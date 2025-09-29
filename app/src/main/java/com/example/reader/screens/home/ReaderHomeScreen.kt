@@ -45,13 +45,16 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.rotate
 import coil.compose.AsyncImage
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.reader.data.api.BookViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(
     navController: NavController,
     isDarkTheme: Boolean = false,
-    onThemeToggle: (Boolean) -> Unit = {}
+    onThemeToggle: (Boolean) -> Unit = {},
+    viewModel: BookViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -70,7 +73,7 @@ fun Home(
                 currentRoute = currentRoute
             )
         },
-        containerColor = MaterialTheme.colorScheme.background // Use Material 3 background
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -84,7 +87,7 @@ fun Home(
                 isDarkTheme = isDarkTheme
             )
             Spacer(modifier = Modifier.height(16.dp))
-            BookGridSection(isDarkTheme = isDarkTheme)
+            BookGridSection(isDarkTheme = isDarkTheme, viewModel = viewModel) // Pass viewModel
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -169,64 +172,34 @@ fun HomeTopBar(
 }
 
 @Composable
-fun BookGridSection(isDarkTheme: Boolean) {
-    val books = remember {
-        mutableStateListOf(
-            Book(
-                id = 1,
-                title = "The Moor and the Novel",
-                author = "Mary B. Quinn",
-                subtitle = "Narrating Absence in early modern Spain",
-                rating = 4.4,
-                coverImageUrl = "http://books.google.com/books/content?id=cn5lEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-                isFavorite = true
-            ),
-            Book(
-                id = 2,
-                title = "The Radical Art of SelfLove",
-                author = "Deepak Singh",
-                subtitle = "The Radical Art of SelfLove",
-                rating = 4.5,
-                coverImageUrl = "http://books.google.com/books/content?id=NnnLEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-                isFavorite = false
-            ),
-            Book(
-                id = 3,
-                title = "Computer Applications in the Social Sciences",
-                author = "Edward E. Brent,"+"Ronald E. Anderson",
-                subtitle = "Presenting an introduction to computing and advice on computer applications",
-                rating = 4.0,
-                coverImageUrl = "http://books.google.com/books/content?id=5KtoPaM6r9EC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-                isFavorite = false
-            ),
-            Book(
-                id = 4,
-                title = "Romantic Love",
-                author = "Yolanda van Ede",
-                subtitle = "important aspects of these relationships",
-                rating = 4.0,
-                coverImageUrl = "http://books.google.com/books/content?id=b1yOJtOwvWIC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-                isFavorite = true
-            )
-        )
-    }
+fun BookGridSection(isDarkTheme: Boolean, viewModel: BookViewModel) {
+    val books by viewModel.books.observeAsState(emptyList())
 
-    LazyRow(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(books) { book ->
-            BookCard(
-                book = book,
-                isDarkTheme = isDarkTheme, // Pass the theme parameter
-                onFavoriteToggle = {
-                    val index = books.indexOf(book)
-                    if (index != -1) {
-                        books[index] = book.copy(isFavorite = !book.isFavorite)
+    if (books.isEmpty()) {
+        // Show loading or empty state
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    } else {
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(books) { book ->
+                BookCard(
+                    book = book,
+                    isDarkTheme = isDarkTheme,
+                    onFavoriteToggle = {
+                        viewModel.toggleFavorite(book.id)
                     }
-                }
-            )
+                )
+            }
         }
     }
 }

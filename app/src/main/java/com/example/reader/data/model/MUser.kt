@@ -17,3 +17,4 @@ data class MUser(val id: String?,
         )
     }
 }
+
