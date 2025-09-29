@@ -16,3 +16,4 @@ local.properties
 
 # IDE
 .idea/
+app/src/main/java/com/example/reader/data/api/ApiService.kt
