@@ -336,46 +336,6 @@ fun BookCard(
 }
 
 @Composable
-fun FunThemeToggleCompact(
-    isDark: Boolean,
-    onToggle: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val rotationAngle by animateFloatAsState(
-        targetValue = if (isDark) 180f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "icon_rotation"
-    )
-
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isDark) Color(0xFF1A1B3A) else Color(0xFF3FAF9E).copy(alpha = 0.3f),
-        animationSpec = tween(300),
-        label = "background_color"
-    )
-
-    Box(
-        modifier = modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(backgroundColor)
-            .clickable { onToggle(!isDark) },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = if (isDark) Icons.Filled.DarkMode else Icons.Filled.LightMode,
-            contentDescription = if (isDark) "Switch to Light Mode" else "Switch to Dark Mode",
-            tint = if (isDark) Color.White else Color(0xFF4A4A4A),
-            modifier = Modifier
-                .size(24.dp)
-                .rotate(rotationAngle)
-        )
-    }
-}
-
-@Composable
 fun RatingDialog(
     currentRating: Double,
     onDismiss: () -> Unit,

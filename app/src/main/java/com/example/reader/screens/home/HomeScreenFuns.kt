@@ -1,5 +1,10 @@
 package com.example.reader.screens.home
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +21,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
@@ -33,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -75,9 +83,7 @@ fun BadgedIcon(
     }
 }
 
-/**
- * Gets appropriate greeting based on current time
- */
+
 @Composable
 fun getTimeBasedGreeting(): String {
     return remember {
@@ -214,3 +220,43 @@ data class NavigationItem(
     val icon: ImageVector,
     val route: String
 )
+
+@Composable
+fun FunThemeToggleCompact(
+    isDark: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isDark) 180f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "icon_rotation"
+    )
+
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isDark) Color(0xFF1A1B3A) else Color(0xFF3FAF9E).copy(alpha = 0.3f),
+        animationSpec = tween(300),
+        label = "background_color"
+    )
+
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .clickable { onToggle(!isDark) },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = if (isDark) Icons.Filled.DarkMode else Icons.Filled.LightMode,
+            contentDescription = if (isDark) "Switch to Light Mode" else "Switch to Dark Mode",
+            tint = if (isDark) Color.White else Color(0xFF4A4A4A),
+            modifier = Modifier
+                .size(24.dp)
+                .rotate(rotationAngle)
+        )
+    }
+}
