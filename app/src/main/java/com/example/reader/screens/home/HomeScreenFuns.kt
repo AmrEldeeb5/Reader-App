@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -194,7 +195,6 @@ fun BottomNavigationBar(
                 onClick = {
                     navController.navigate(item.route) {
                         launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 icon = {
@@ -204,10 +204,21 @@ fun BottomNavigationBar(
                         modifier = Modifier.size(32.dp)
                     )
                 },
+                label = {
+                    Text(
+                        text = item.label,
+                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                        fontWeight = FontWeight.Medium,
+                    )
+                },
+                alwaysShowLabel = true,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = GreenPrimary,
                     unselectedIconColor = SubtleTextColor,
-                    indicatorColor = Color.Transparent
+                    indicatorColor = Color.Transparent,
+                    selectedTextColor = GreenPrimary,
+                    unselectedTextColor = SubtleTextColor
+
                 )
             )
         }

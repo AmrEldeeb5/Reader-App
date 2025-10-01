@@ -30,7 +30,7 @@ data class ImageLinks(
     val smallThumbnail: String? = null
 )
 
-// Your app's Book model (UI model)
+// app's Book model (UI model)
 data class Book(
     val id: Int,
     val title: String,
