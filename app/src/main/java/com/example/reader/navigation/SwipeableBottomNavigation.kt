@@ -15,16 +15,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.reader.screens.ExploreScreen
+import com.example.reader.screens.exploreScreen.ExploreScreen
 import com.example.reader.screens.SavedScreen
-import com.example.reader.screens.SignUp.SignUpScreen
 import com.example.reader.screens.home.Home
-import com.example.reader.screens.login.ReaderLoginScreen
-import com.example.reader.screens.onboarding.OnBoardingScreen
-import com.example.reader.screens.screen.SplashScreen
 import com.example.reader.screens.stats.StatsScreen
 import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.SubtleTextColor
