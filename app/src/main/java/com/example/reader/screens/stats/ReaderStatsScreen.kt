@@ -1,56 +1,37 @@
 package com.example.reader.screens.stats
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.reader.ui.theme.CardBackground
-import com.example.reader.ui.theme.GreenPrimary
-import com.example.reader.ui.theme.ReaderTheme
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.reader.screens.home.BookFinderBackground
-import com.example.reader.screens.home.BottomNavigationBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StatsScreen( navController: NavController,
-                 isDarkTheme: Boolean,
-                 onThemeToggle: (Boolean) -> Unit){
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Profile") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        },
-        bottomBar = {
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = navBackStackEntry?.destination?.route
-            BottomNavigationBar(navController = navController, currentRoute = currentRoute)
-        }
-    ) { paddingValues ->
+fun StatsScreen(
+    navController: NavController,
+    isDarkTheme: Boolean,
+    onThemeToggle: (Boolean) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        // Title
+        Text(
+            text = "Profile",
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
+
+        // Content
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -61,8 +42,3 @@ fun StatsScreen( navController: NavController,
         }
     }
 }
-
-
-
-
-

@@ -22,6 +22,7 @@ import com.example.reader.screens.stats.StatsScreen
 import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.SubtleTextColor
 import kotlinx.coroutines.launch
+
 @Composable
 fun SwipeableBottomNavigation(
     navController: NavController,
@@ -92,7 +93,7 @@ fun SwipeableBottomNavigation(
                 .fillMaxSize()
                 .padding(innerPadding),
             userScrollEnabled = true, // Enable swipe gestures
-            beyondBoundsPageCount = 1 // Preload adjacent pages for smooth transitions
+            beyondViewportPageCount = 1 // Changed from beyondBoundsPageCount
         ) { page ->
             when (page) {
                 0 -> Home(

@@ -56,40 +56,24 @@ fun Home(
     onThemeToggle: (Boolean) -> Unit = {},
     viewModel: BookViewModel = koinViewModel()
 ) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    Scaffold(
-        topBar = {
-            HomeTopBar(
-                navController = navController,
-                isDarkTheme = isDarkTheme,
-                onThemeToggle = onThemeToggle
-            )
-        },
-        bottomBar = {
-            BottomNavigationBar(
-                navController = navController,
-                currentRoute = currentRoute
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-        ) {
-            BookDiscoveryScreen(isDarkTheme = isDarkTheme)
-            CategoryTabs(
-                modifier = Modifier.padding(top = 1.dp),
-                isDarkTheme = isDarkTheme
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            BookGridSection(isDarkTheme = isDarkTheme, viewModel = viewModel) // Pass viewModel
-            Spacer(modifier = Modifier.height(24.dp))
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        HomeTopBar(
+            navController = navController,
+            isDarkTheme = isDarkTheme,
+            onThemeToggle = onThemeToggle
+        )
+        BookDiscoveryScreen(isDarkTheme = isDarkTheme)
+        CategoryTabs(
+            modifier = Modifier.padding(top = 1.dp),
+            isDarkTheme = isDarkTheme
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        BookGridSection(isDarkTheme = isDarkTheme, viewModel = viewModel)
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
