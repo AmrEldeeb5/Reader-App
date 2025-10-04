@@ -62,16 +62,13 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material.icons.extended)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.foundation)
 
     // Firebase BOM
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.auth.ktx)
 
-    // Hilt
-//    implementation(libs.google.hilt.android)
-//    ksp(libs.google.hilt.compiler)
-//    implementation(libs.androidx.hilt.navigation.compose)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

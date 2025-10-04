@@ -2,8 +2,8 @@
 # Build Tools
 agp = "8.13.0"
 firebaseBom = "33.1.2"
-kotlin = "2.2.10"
-ksp = "2.2.20-2.0.3"
+kotlin = "2.1.0"
+ksp = "2.1.0-1.0.29"
 
 # AndroidX
 coreKtx = "1.17.0"
@@ -38,6 +38,7 @@ espressoCore = "3.7.0"
 
 [libraries]
 # AndroidX
+androidx-compose-foundation = { module = "androidx.compose.foundation:foundation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }

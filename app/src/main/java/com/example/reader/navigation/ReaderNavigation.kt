@@ -57,5 +57,39 @@ fun ReaderNavigation(
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle)
         }
+        composable(ReaderScreens.ReaderHomeScreen.name) {
+            SwipeableBottomNavigation(
+                navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle,
+                initialPage = 0
+            )
+        }
+        composable(ReaderScreens.ExploreScreen.name) {
+            SwipeableBottomNavigation(
+                navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle,
+                initialPage = 1
+            )
+        }
+        composable(ReaderScreens.SavedScreen.name) {
+            SwipeableBottomNavigation(
+                navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle,
+                initialPage = 2
+            )
+        }
+        composable(ReaderScreens.ReaderStatsScreen.name) {
+            SwipeableBottomNavigation(
+                navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle,
+                initialPage = 3
+            )
+        }
     }
 }
+
+
