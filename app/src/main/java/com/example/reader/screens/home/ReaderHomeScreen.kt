@@ -56,26 +56,34 @@ fun Home(
     onThemeToggle: (Boolean) -> Unit = {},
     viewModel: BookViewModel = koinViewModel()
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-    ) {
-        HomeTopBar(
-            navController = navController,
-            isDarkTheme = isDarkTheme,
-            onThemeToggle = onThemeToggle
-        )
-        BookDiscoveryScreen(isDarkTheme = isDarkTheme)
-        CategoryTabs(
-            modifier = Modifier.padding(top = 1.dp),
-            isDarkTheme = isDarkTheme
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        BookGridSection(isDarkTheme = isDarkTheme, viewModel = viewModel)
-        Spacer(modifier = Modifier.height(24.dp))
+    Scaffold(
+        topBar = {
+            HomeTopBar(
+                navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+        ) {
+            BookDiscoveryScreen(isDarkTheme = isDarkTheme)
+            CategoryTabs(
+                modifier = Modifier.padding(top = 1.dp),
+                isDarkTheme = isDarkTheme
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            BookGridSection(isDarkTheme = isDarkTheme, viewModel = viewModel)
+            Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
@@ -151,7 +159,8 @@ fun HomeTopBar(
             titleContentColor = MaterialTheme.colorScheme.onBackground,
             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        ),
+        windowInsets = WindowInsets(0, 0, 0, 0)  // Remove default window insets
     )
 }
 

@@ -70,6 +70,8 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.auth.ktx)
 
+    // Security - Encrypted SharedPreferences
+    implementation(libs.androidx.security.crypto)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

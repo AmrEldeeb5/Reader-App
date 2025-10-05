@@ -279,16 +279,6 @@ fun ReaderLoginScreen(
     val context = LocalContext.current
     val userPrefs = remember { UserPreferences(context) }
 
-    // Check if user is already logged in via Firebase
-    LaunchedEffect(Unit) {
-        if (viewModel.isUserLoggedIn()) {
-            // User already logged in, skip login screen
-            navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
-                popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
-            }
-        }
-    }
-
     // Form state management - Load saved email if "Remember Me" was checked
     var formState by remember {
         mutableStateOf(
@@ -345,13 +335,17 @@ fun ReaderLoginScreen(
         // Attempt Firebase login
         viewModel.login(formState.email, formState.password) { success, message ->
             if (success) {
-                // Handle "Remember Me" for email auto-fill
+                // Handle "Remember Me" for auto-login
                 if (RememberMeBoxState.rememberMe) {
-                    userPrefs.setSavedEmail(formState.email)
+                    // Save credentials securely for auto-login
+                    userPrefs.saveCredentials(
+                        email = formState.email,
+                        password = formState.password
+                    )
                     userPrefs.setRememberMe(true)
                 } else {
-                    // Clear saved email if user unchecked "Remember Me"
-                    userPrefs.setSavedEmail(null)
+                    // Clear saved credentials if user unchecked "Remember Me"
+                    userPrefs.clearCredentials()
                     userPrefs.setRememberMe(false)
                 }
 

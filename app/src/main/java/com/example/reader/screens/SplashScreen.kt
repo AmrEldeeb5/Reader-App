@@ -24,7 +24,9 @@ import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.utils.UserPreferences
 import com.example.reader.utils.rememberResponsiveLayout
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun SplashScreen(navController: NavController) {
@@ -35,8 +37,34 @@ fun SplashScreen(navController: NavController) {
         delay(2000L)
 
         val userPrefs = UserPreferences(context)
+        val auth = FirebaseAuth.getInstance()
 
-        // Simple navigation logic: Only check "Remember Me" preference
+        // Check if user should be auto-logged in
+        if (userPrefs.shouldAutoLogin()) {
+            val savedEmail = userPrefs.getSavedEmail()
+            val savedPassword = userPrefs.getSavedPassword()
+
+            if (savedEmail != null && savedPassword != null) {
+                // Attempt auto-login with saved credentials
+                try {
+                    val result = auth.signInWithEmailAndPassword(savedEmail, savedPassword).await()
+                    if (result.user != null) {
+                        // Auto-login successful, go to home
+                        navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
+                            popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
+                        }
+                        return@LaunchedEffect
+                    }
+                } catch (e: Exception) {
+                    // Auto-login failed, clear invalid credentials
+                    userPrefs.clearCredentials()
+                    userPrefs.setRememberMe(false)
+                }
+            }
+        }
+
+        // No auto-login or auto-login failed
+        // Check if user wants email pre-filled
         if (userPrefs.getRememberMe()) {
             // User checked "Remember Me" -> Go to Login with pre-filled email
             navController.navigate(ReaderScreens.LoginScreen.name) {

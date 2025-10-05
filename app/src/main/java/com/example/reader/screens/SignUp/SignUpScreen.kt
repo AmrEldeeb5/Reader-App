@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -33,6 +34,7 @@ import com.example.reader.components.SignUpFormState
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.login.RememberMeBox
 import com.example.reader.screens.login.RememberMeBoxState
+import com.example.reader.utils.UserPreferences
 import com.example.reader.utils.rememberResponsiveLayout
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -163,6 +165,9 @@ fun SignUpScreen(
     onSignUpClick: (String, String, String) -> Unit,
     viewModel: SignUpScreenViewModel = koinViewModel()
 ) {
+    val context = LocalContext.current
+    val userPrefs = remember { UserPreferences(context) }
+
     // Form state management
     var formState by remember { mutableStateOf(SignUpFormState()) }
     var formErrors by remember { mutableStateOf(FormErrors()) }
@@ -181,13 +186,12 @@ fun SignUpScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     // ViewModel reactive state
-    val loading by viewModel.loading.collectAsState() // StateFlow
-    val signUpState by viewModel.signUpState.collectAsState() // StateFlow
+    val loading by viewModel.loading.collectAsState()
+    val signUpState by viewModel.signUpState.collectAsState()
 
     // Modern responsive layout
     val layout = rememberResponsiveLayout()
     val scrollState = rememberScrollState()
-
 
     // Validation logic
     fun validateAndSignUp() {
@@ -203,6 +207,21 @@ fun SignUpScreen(
 
         viewModel.signUp(formState.name, formState.email, formState.password) { success, errorMsg ->
             if (success) {
+                // Handle "Remember Me" for auto-login
+                if (RememberMeBoxState.rememberMe) {
+                    // Save credentials securely for auto-login
+                    userPrefs.saveCredentials(
+                        email = formState.email,
+                        password = formState.password,
+                        userName = formState.name
+                    )
+                    userPrefs.setRememberMe(true)
+                } else {
+                    // Clear saved credentials if user unchecked "Remember Me"
+                    userPrefs.clearCredentials()
+                    userPrefs.setRememberMe(false)
+                }
+
                 onSignUpClick(formState.name, formState.email, formState.password)
                 navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
                     popUpTo(ReaderScreens.CreateAccountScreen.name) { inclusive = true }
