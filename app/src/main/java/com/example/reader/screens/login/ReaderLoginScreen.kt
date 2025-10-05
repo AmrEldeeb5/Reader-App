@@ -8,7 +8,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -26,80 +26,18 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.reader.R
 import com.example.reader.components.LoadingState
+import com.example.reader.components.LoginConstants
+import com.example.reader.components.LoginFormState
 import com.example.reader.navigation.ReaderScreens
+import com.example.reader.utils.ResponsiveLayout
+import com.example.reader.utils.UserPreferences
+import com.example.reader.utils.rememberResponsiveLayout
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
-// Constants for better maintainability
-private object LoginConstants {
-    const val COMPACT_HEIGHT_THRESHOLD = 600
-    const val NARROW_WIDTH_THRESHOLD = 360
-    const val DEFAULT_SPACING = 12
-    const val LARGE_SPACING = 16
-    const val EXTRA_LARGE_SPACING = 24
-    const val BUTTON_HEIGHT = 50
-    const val PROGRESS_INDICATOR_SIZE = 22
-    const val PROGRESS_STROKE_WIDTH = 2
-}
-
-// Data classes for better state management
-data class LoginFormState(
-    val email: String = "",
-    val password: String = "",
-    val passwordVisible: Boolean = false,
-    val loginError: String? = null
-)
-
-data class ScreenDimensions(
-    val screenHeight: Int,
-    val screenWidth: Int,
-    val isCompactHeight: Boolean,
-    val isVeryNarrow: Boolean,
-    val imageHeight: androidx.compose.ui.unit.Dp,
-    val verticalSpacingAfterFields: androidx.compose.ui.unit.Dp
-)
-
-/**
- * Calculates screen dimensions and responsive settings
- */
-@Composable
-private fun rememberScreenDimensions(): ScreenDimensions {
-    val configuration = LocalConfiguration.current
-    val screenHeight = configuration.screenHeightDp
-    val screenWidth = configuration.screenWidthDp
-
-    return remember(screenHeight, screenWidth) {
-        val isCompactHeight = screenHeight < LoginConstants.COMPACT_HEIGHT_THRESHOLD
-        val isVeryNarrow = screenWidth < LoginConstants.NARROW_WIDTH_THRESHOLD
-
-        val imageHeight = run {
-            val fraction = when {
-                screenHeight < 520 -> 0.20f
-                screenHeight < 560 -> 0.22f
-                screenHeight < 600 -> 0.24f
-                else -> 0.30f
-            }
-            (screenHeight * fraction).dp.coerceIn(120.dp, 240.dp)
-        }
-
-        val verticalSpacingAfterFields = if (isCompactHeight)
-            LoginConstants.LARGE_SPACING.dp
-        else
-            LoginConstants.EXTRA_LARGE_SPACING.dp
-
-        ScreenDimensions(
-            screenHeight = screenHeight,
-            screenWidth = screenWidth,
-            isCompactHeight = isCompactHeight,
-            isVeryNarrow = isVeryNarrow,
-            imageHeight = imageHeight,
-            verticalSpacingAfterFields = verticalSpacingAfterFields
-        )
-    }
-}
 
 /**
  * Validates login form input
@@ -135,7 +73,7 @@ private fun LoginTopAppBar(navController: NavController) {
                 }
             ) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back"
                 )
             }
@@ -147,12 +85,12 @@ private fun LoginTopAppBar(navController: NavController) {
  * App logo and title section
  */
 @Composable
-private fun LoginHeader(screenDimensions: ScreenDimensions) {
+private fun LoginHeader(layout: ResponsiveLayout) {
     // App Logo
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(screenDimensions.imageHeight),
+            .height(layout.imageHeight),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -168,13 +106,13 @@ private fun LoginHeader(screenDimensions: ScreenDimensions) {
     Text(
         text = "Reader",
         color = MaterialTheme.colorScheme.onBackground,
-        style = if (screenDimensions.isVeryNarrow)
+        style = if (layout.isCompact)
             MaterialTheme.typography.headlineLarge
         else
             MaterialTheme.typography.displayLarge,
         fontWeight = FontWeight.ExtraBold,
         modifier = Modifier.padding(
-            bottom = if (screenDimensions.isCompactHeight) 16.dp else 32.dp
+            bottom = if (layout.isCompactHeight) 16.dp else 32.dp
         )
     )
 }
@@ -268,7 +206,7 @@ private fun ErrorMessage(errorMessage: String?) {
  * Remember me checkbox section
  */
 @Composable
-private fun RememberMeSection(screenDimensions: ScreenDimensions) {
+private fun RememberMeSection(layout: ResponsiveLayout) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -279,7 +217,7 @@ private fun RememberMeSection(screenDimensions: ScreenDimensions) {
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "Remember me",
-            style = if (screenDimensions.isVeryNarrow)
+            style = if (layout.isCompact)
                 MaterialTheme.typography.bodySmall
             else
                 MaterialTheme.typography.bodyMedium,
@@ -329,16 +267,36 @@ private fun LoginButton(
 
 /**
  * Main login screen composable
+ * Integrates with Firebase Authentication for secure login and session management
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderLoginScreen(
     navController: NavController,
     onLoginClick: (String, String) -> Unit,
-    viewModel: LoginScreenViewModel = viewModel()
+    viewModel: LoginScreenViewModel = koinViewModel()
 ) {
-    // Form state management
-    var formState by remember { mutableStateOf(LoginFormState()) }
+    val context = LocalContext.current
+    val userPrefs = remember { UserPreferences(context) }
+
+    // Check if user is already logged in via Firebase
+    LaunchedEffect(Unit) {
+        if (viewModel.isUserLoggedIn()) {
+            // User already logged in, skip login screen
+            navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
+                popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
+            }
+        }
+    }
+
+    // Form state management - Load saved email if "Remember Me" was checked
+    var formState by remember {
+        mutableStateOf(
+            LoginFormState(
+                email = if (userPrefs.getRememberMe()) userPrefs.getSavedEmail() ?: "" else ""
+            )
+        )
+    }
 
     // UI state
     val snackbarHostState = remember { SnackbarHostState() }
@@ -351,8 +309,8 @@ fun ReaderLoginScreen(
     val loginState by viewModel.loginState.collectAsState()
     val isLoading = loginState.status == LoadingState.Status.LOADING
 
-    // Screen dimensions and responsive settings
-    val screenDimensions = rememberScreenDimensions()
+    // Modern responsive layout
+    val layout = rememberResponsiveLayout()
 
     // Handle login state changes
     LaunchedEffect(loginState) {
@@ -364,7 +322,7 @@ fun ReaderLoginScreen(
     }
 
     /**
-     * Handles login form submission
+     * Handles login form submission with Firebase Auth
      */
     fun handleLogin() {
         if (isLoading) return
@@ -384,9 +342,22 @@ fun ReaderLoginScreen(
         focusManager.clearFocus()
         keyboardController?.hide()
 
-        // Attempt login
+        // Attempt Firebase login
         viewModel.login(formState.email, formState.password) { success, message ->
             if (success) {
+                // Handle "Remember Me" for email auto-fill
+                if (RememberMeBoxState.rememberMe) {
+                    userPrefs.setSavedEmail(formState.email)
+                    userPrefs.setRememberMe(true)
+                } else {
+                    // Clear saved email if user unchecked "Remember Me"
+                    userPrefs.setSavedEmail(null)
+                    userPrefs.setRememberMe(false)
+                }
+
+                // Firebase Auth automatically handles session persistence
+                // No need to manually track login state
+
                 onLoginClick(formState.email, formState.password)
                 navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
                     popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
@@ -406,97 +377,83 @@ fun ReaderLoginScreen(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(
-                    top = 1.dp,
-                    start = 20.dp,
-                    end = 20.dp,
-                    bottom = if (screenDimensions.isCompactHeight)
-                        LoginConstants.DEFAULT_SPACING.dp
-                    else
-                        LoginConstants.EXTRA_LARGE_SPACING.dp
-                )
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(innerPadding),
+            contentAlignment = if (layout.isExpanded) Alignment.Center else Alignment.TopCenter
         ) {
-            // Header Section
-            LoginHeader(screenDimensions)
-
-            // Email Input
-            EmailTextField(
-                email = formState.email,
-                onEmailChange = {
-                    formState = formState.copy(
-                        email = it,
-                        loginError = null
+            Column(
+                modifier = Modifier
+                    .widthIn(max = layout.contentMaxWidth)
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = layout.horizontalPadding,
+                        vertical = layout.verticalSpacing
                     )
-                },
-                onNext = { focusManager.moveFocus(FocusDirection.Down) }
-            )
+                    .verticalScroll(scrollState),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Header Section
+                LoginHeader(layout)
 
-            Spacer(modifier = Modifier.height(LoginConstants.DEFAULT_SPACING.dp))
-
-            // Password Input
-            PasswordTextField(
-                password = formState.password,
-                passwordVisible = formState.passwordVisible,
-                onPasswordChange = {
-                    formState = formState.copy(
-                        password = it,
-                        loginError = null
-                    )
-                },
-                onPasswordVisibilityToggle = {
-                    formState = formState.copy(
-                        passwordVisible = !formState.passwordVisible
-                    )
-                },
-                onDone = { handleLogin() }
-            )
-
-            // Error Message
-            ErrorMessage(formState.loginError)
-
-            Spacer(modifier = Modifier.height(LoginConstants.DEFAULT_SPACING.dp))
-
-            // Remember Me Section
-            RememberMeSection(screenDimensions)
-
-            Spacer(modifier = Modifier.height(screenDimensions.verticalSpacingAfterFields))
-
-            // Login Button
-            LoginButton(
-                isLoading = isLoading,
-                onLoginClick = { handleLogin() }
-            )
-
-            Spacer(
-                modifier = Modifier.height(
-                    if (screenDimensions.isCompactHeight)
-                        LoginConstants.DEFAULT_SPACING.dp
-                    else
-                        LoginConstants.LARGE_SPACING.dp
+                // Email Input
+                EmailTextField(
+                    email = formState.email,
+                    onEmailChange = {
+                        formState = formState.copy(
+                            email = it,
+                            loginError = null
+                        )
+                    },
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
                 )
-            )
 
-            // Footer Links (Forgot Password & Create Account)
-            AuthFooterLinks(
-                navController = navController,
-                isCompact = screenDimensions.isCompactHeight,
-                isVeryNarrow = screenDimensions.isVeryNarrow
-            )
+                Spacer(modifier = Modifier.height(layout.verticalSpacing))
 
-            Spacer(
-                modifier = Modifier.height(
-                    if (screenDimensions.isCompactHeight)
-                        8.dp
-                    else
-                        LoginConstants.EXTRA_LARGE_SPACING.dp
+                // Password Input
+                PasswordTextField(
+                    password = formState.password,
+                    passwordVisible = formState.passwordVisible,
+                    onPasswordChange = {
+                        formState = formState.copy(
+                            password = it,
+                            loginError = null
+                        )
+                    },
+                    onPasswordVisibilityToggle = {
+                        formState = formState.copy(
+                            passwordVisible = !formState.passwordVisible
+                        )
+                    },
+                    onDone = { handleLogin() }
                 )
-            )
+
+                // Error Message
+                ErrorMessage(formState.loginError)
+
+                Spacer(modifier = Modifier.height(layout.verticalSpacing))
+
+                // Remember Me Section
+                RememberMeSection(layout)
+
+                Spacer(modifier = Modifier.height(layout.verticalSpacing))
+
+                // Login Button
+                LoginButton(
+                    isLoading = isLoading,
+                    onLoginClick = { handleLogin() }
+                )
+
+                Spacer(modifier = Modifier.height(layout.verticalSpacing))
+
+                // Footer Links (Forgot Password & Create Account)
+                AuthFooterLinks(
+                    navController = navController,
+                    isCompact = layout.isCompactHeight,
+                    isVeryNarrow = layout.isCompact
+                )
+            }
         }
     }
 }

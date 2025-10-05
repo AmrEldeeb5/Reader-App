@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -20,13 +21,28 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
+import com.example.reader.utils.UserPreferences
 
 /**
  * Global state holder for the "Remember Me" checkbox functionality.
- * This persists across login and signup screens.
+ * This persists across login and signup screens and saves to SharedPreferences.
  */
 object RememberMeBoxState {
     var rememberMe by mutableStateOf(false)
+
+    /**
+     * Initialize state from saved preferences
+     */
+    fun loadFromPreferences(userPrefs: UserPreferences) {
+        rememberMe = userPrefs.getRememberMe()
+    }
+
+    /**
+     * Save current state to preferences
+     */
+    fun saveToPreferences(userPrefs: UserPreferences) {
+        userPrefs.setRememberMe(rememberMe)
+    }
 }
 
 /**
@@ -181,14 +197,24 @@ fun AuthFooterLinks(
 /**
  * Custom checkbox component for "Remember Me" functionality
  * Uses Material 3 design system colors and shows a check icon when selected
+ * Now with persistent storage support!
  */
 @Composable
 fun RememberMeBox() {
+    val context = LocalContext.current
+    val userPrefs = remember { UserPreferences(context) }
+
+    // Load saved state on first composition
+    LaunchedEffect(Unit) {
+        RememberMeBoxState.loadFromPreferences(userPrefs)
+    }
+
     Surface(
         modifier = Modifier
             .size(LoginComponentConstants.CHECKBOX_SIZE.dp)
             .clickable {
                 RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe
+                RememberMeBoxState.saveToPreferences(userPrefs)
             },
         shape = RoundedCornerShape(LoginComponentConstants.CHECKBOX_CORNER_RADIUS.dp),
         color = if (RememberMeBoxState.rememberMe)
