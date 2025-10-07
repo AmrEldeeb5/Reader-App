@@ -171,12 +171,40 @@ fun BookGridSection(isDarkTheme: Boolean, viewModel: BookViewModel) {
             CircularProgressIndicator()
         }
     } else {
+        // Split books into two rows
+        val midPoint = books.size / 2
+        val firstRowBooks = books.take(midPoint)
+        val secondRowBooks = books.drop(midPoint)
+
+        // First row of books
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(books) { book ->
+            items(firstRowBooks) { book ->
+                BookCard(
+                    book = book,
+                    isDarkTheme = isDarkTheme,
+                    onFavoriteToggle = {
+                        viewModel.toggleFavorite(book.id)
+                    },
+                    onRatingChange = { rating ->
+                        viewModel.updateUserRating(book.id, rating)
+                    }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Second row of books (continuation)
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(secondRowBooks) { book ->
                 BookCard(
                     book = book,
                     isDarkTheme = isDarkTheme,
