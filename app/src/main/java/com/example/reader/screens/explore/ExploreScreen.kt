@@ -91,7 +91,7 @@ fun ExploreScreen(
         label = "topbar_offset"
     )
 
-    Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets(0))) {
+    Box(modifier = Modifier.fillMaxSize()) {
         // Main content
         Column(
             modifier = Modifier

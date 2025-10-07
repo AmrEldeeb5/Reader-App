@@ -23,6 +23,10 @@ class HomeViewModel : ViewModel() {
     private val _booksState = MutableStateFlow(CategoryBooksState())
     val booksState: StateFlow<CategoryBooksState> = _booksState.asStateFlow()
 
+    // Track favorite book IDs across all categories
+    private val _favoriteBookIds = MutableStateFlow<Set<Int>>(emptySet())
+    private val favoriteBookIds: StateFlow<Set<Int>> = _favoriteBookIds.asStateFlow()
+
     init {
         loadBooksByCategory("novels")
     }
@@ -39,7 +43,6 @@ class HomeViewModel : ViewModel() {
             _booksState.value = CategoryBooksState(isLoading = true)
 
             try {
-                // Build query based on category
                 val query = when (category.lowercase()) {
                     "novels" -> "subject:fiction"
                     "self love", "self-love", "selflove" -> "subject:self-help+self-love"
@@ -60,9 +63,9 @@ class HomeViewModel : ViewModel() {
 
                 val books = response.items?.mapNotNull { bookItem ->
                     val book = bookItem.toBook()
-                    // Filter out books with "Unknown" title or author
                     if (book.title != "Unknown" && book.author != "Unknown") {
-                        book
+                        // Restore favorite status if this book was favorited before
+                        book.copy(isFavorite = _favoriteBookIds.value.contains(book.id))
                     } else {
                         null
                     }
@@ -78,6 +81,14 @@ class HomeViewModel : ViewModel() {
     }
 
     fun toggleFavorite(bookId: Int) {
+        // Update favorite IDs set
+        _favoriteBookIds.value = if (_favoriteBookIds.value.contains(bookId)) {
+            _favoriteBookIds.value - bookId
+        } else {
+            _favoriteBookIds.value + bookId
+        }
+
+        // Update current books state
         _booksState.value = _booksState.value.copy(
             books = _booksState.value.books.map { book ->
                 if (book.id == bookId) {
@@ -99,6 +110,11 @@ class HomeViewModel : ViewModel() {
                 }
             }
         )
+    }
+
+    // Get all favorite books across all categories
+    fun getFavoriteBooks(): List<Book> {
+        return _booksState.value.books.filter { it.isFavorite }
     }
 
     private fun BookItem.toBook() = Book(

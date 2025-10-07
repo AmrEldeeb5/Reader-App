@@ -32,21 +32,30 @@ import coil.compose.AsyncImage
 import com.example.reader.R
 import com.example.reader.data.model.Book
 import com.example.reader.navigation.ReaderScreens
+import com.example.reader.screens.saved.FavoritesViewModel
 import com.example.reader.ui.theme.CardBackground
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun Home(
     navController: NavController,
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
-    viewModel: HomeViewModel = koinViewModel()
+    viewModel: HomeViewModel = koinViewModel(),
+    favoritesViewModel: FavoritesViewModel = koinInject() // Inject singleton
 ) {
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val booksState by viewModel.booksState.collectAsState()
+    val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsState()
+
+    // Create a set of favorite IDs for quick lookup
+    val favoriteIds = remember(favoriteBooks) {
+        favoriteBooks.map { it.id }.toSet()
+    }
 
     Scaffold(
         topBar = {
@@ -80,11 +89,13 @@ fun Home(
             BookGridSection(
                 isDarkTheme = isDarkTheme,
                 booksState = booksState,
-                onFavoriteToggle = { bookId ->
-                    viewModel.toggleFavorite(bookId)
+                favoriteIds = favoriteIds,
+                onFavoriteToggle = { book ->
+                    favoritesViewModel.toggleFavorite(book)
                 },
                 onRatingChange = { bookId, rating ->
                     viewModel.updateUserRating(bookId, rating)
+                    favoritesViewModel.updateUserRating(bookId, rating)
                 }
             )
 
@@ -170,7 +181,6 @@ fun HomeTopBar(
             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        windowInsets = WindowInsets(0, 0, 0, 0)
     )
 }
 
@@ -178,7 +188,8 @@ fun HomeTopBar(
 fun BookGridSection(
     isDarkTheme: Boolean,
     booksState: CategoryBooksState,
-    onFavoriteToggle: (Int) -> Unit,
+    favoriteIds: Set<Int>,
+    onFavoriteToggle: (Book) -> Unit,
     onRatingChange: (Int, Double) -> Unit
 ) {
     when {
@@ -189,9 +200,7 @@ fun BookGridSection(
                     .height(300.dp),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary
-                )
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -226,12 +235,11 @@ fun BookGridSection(
         }
 
         else -> {
-            // Split books into two rows
             val midPoint = booksState.books.size / 2
             val firstRowBooks = booksState.books.take(midPoint)
             val secondRowBooks = booksState.books.drop(midPoint)
 
-            // First row of books
+            // First row
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 16.dp),
@@ -239,21 +247,17 @@ fun BookGridSection(
             ) {
                 items(firstRowBooks) { book ->
                     BookCard(
-                        book = book,
+                        book = book.copy(isFavorite = favoriteIds.contains(book.id)),
                         isDarkTheme = isDarkTheme,
-                        onFavoriteToggle = {
-                            onFavoriteToggle(book.id)
-                        },
-                        onRatingChange = { rating ->
-                            onRatingChange(book.id, rating)
-                        }
+                        onFavoriteToggle = { onFavoriteToggle(book) },
+                        onRatingChange = { rating -> onRatingChange(book.id, rating) }
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Second row of books
+            // Second row
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 16.dp),
@@ -261,21 +265,16 @@ fun BookGridSection(
             ) {
                 items(secondRowBooks) { book ->
                     BookCard(
-                        book = book,
+                        book = book.copy(isFavorite = favoriteIds.contains(book.id)),
                         isDarkTheme = isDarkTheme,
-                        onFavoriteToggle = {
-                            onFavoriteToggle(book.id)
-                        },
-                        onRatingChange = { rating ->
-                            onRatingChange(book.id, rating)
-                        }
+                        onFavoriteToggle = { onFavoriteToggle(book) },
+                        onRatingChange = { rating -> onRatingChange(book.id, rating) }
                     )
                 }
             }
         }
     }
 }
-
 @Composable
 fun BookCard(
     book: Book,

@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -14,21 +13,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.reader.data.api.BookViewModel
 import com.example.reader.screens.home.BookCard
-import org.koin.androidx.compose.koinViewModel
+import com.example.reader.screens.saved.FavoritesViewModel
+import org.koin.compose.koinInject
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedScreen(
     navController: NavController,
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
-    viewModel: BookViewModel = koinViewModel()
+    favoritesViewModel: FavoritesViewModel = koinInject() // Inject same singleton instance
 ) {
-    val books by viewModel.books.collectAsState()
-    val favoriteBooks = books.filter { it.isFavorite }
+    val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsState()
 
     Column(
         modifier = Modifier
@@ -40,7 +36,8 @@ fun SavedScreen(
             text = "Saved Books",
             fontWeight = FontWeight.Bold,
             fontSize = 24.sp,
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(vertical = 16.dp),
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         if (favoriteBooks.isEmpty()) {
@@ -80,10 +77,10 @@ fun SavedScreen(
                         book = book,
                         isDarkTheme = isDarkTheme,
                         onFavoriteToggle = {
-                            viewModel.toggleFavorite(book.id)
+                            favoritesViewModel.removeFavorite(book.id)
                         },
                         onRatingChange = { rating ->
-                            viewModel.updateUserRating(book.id, rating)
+                            favoritesViewModel.updateUserRating(book.id, rating)
                         }
                     )
                 }

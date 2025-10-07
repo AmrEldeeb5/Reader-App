@@ -13,6 +13,10 @@ class BookViewModel: ViewModel() {
     private val _books = MutableStateFlow<List<Book>>(emptyList())
     val books: StateFlow<List<Book>> = _books.asStateFlow()
 
+    // Separate flow for favorite books
+    private val _favoriteBooks = MutableStateFlow<List<Book>>(emptyList())
+    val favoriteBooks: StateFlow<List<Book>> = _favoriteBooks.asStateFlow()
+
     init {
         fetchBooks()
     }
@@ -31,13 +35,13 @@ class BookViewModel: ViewModel() {
                     }
                 } ?: emptyList()
             } catch (_: Exception) {
-                // Handle the error
                 _books.value = emptyList()
             }
         }
     }
 
     fun toggleFavorite(bookId: Int) {
+        // Update main books list
         _books.value = _books.value.map { book ->
             if (book.id == bookId) {
                 book.copy(isFavorite = !book.isFavorite)
@@ -45,6 +49,13 @@ class BookViewModel: ViewModel() {
                 book
             }
         }
+
+        // Update favorites list
+        updateFavoritesList()
+    }
+
+    private fun updateFavoritesList() {
+        _favoriteBooks.value = _books.value.filter { it.isFavorite }
     }
 
     fun updateUserRating(bookId: Int, rating: Double) {
@@ -55,6 +66,9 @@ class BookViewModel: ViewModel() {
                 book
             }
         }
+
+        // Update favorites list if the rated book is a favorite
+        updateFavoritesList()
     }
 
     private fun BookItem.toBook() = Book(
@@ -65,6 +79,5 @@ class BookViewModel: ViewModel() {
         rating = volumeInfo.averageRating ?: 0.0,
         coverImageUrl = volumeInfo.imageLinks?.thumbnail?.replace("http://", "https://"),
         isFavorite = false
-
     )
 }
