@@ -1,11 +1,8 @@
 package com.example.reader.screens.home
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -16,19 +13,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,11 +35,9 @@ import com.example.reader.ui.theme.CardBackground
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.reader.R
 import com.example.reader.data.api.BookViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -129,23 +121,23 @@ fun HomeTopBar(
             }
         },
         navigationIcon = {
-            Icon(
-                imageVector = Icons.Filled.Person,
+            Image(
+                painter = painterResource(id = R.drawable.line_md__person_twotone),
                 contentDescription = "User avatar",
                 modifier = Modifier.clickable(onClick = {
                     navController.navigate(ReaderScreens.ReaderStatsScreen.name)
                 })
                     .size(48.dp)
                     .clip(CircleShape),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
             )
         },
         actions = {
             IconButton(onClick = onNotificationsClick) {
-                Icon(
-                    imageVector = Icons.Filled.Notifications,
+                Image(
+                    painter = painterResource(id = R.drawable.line_md__bell_filled_loop),
                     contentDescription = "Notifications",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
                     modifier = Modifier.size(24.dp)
                 )
             }

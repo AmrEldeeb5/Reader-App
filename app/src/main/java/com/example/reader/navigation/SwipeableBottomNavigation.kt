@@ -2,23 +2,21 @@ package com.example.reader.navigation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.reader.R
 import com.example.reader.screens.explore.ExploreScreen
 import com.example.reader.screens.SavedScreen
 import com.example.reader.screens.home.Home
 import com.example.reader.screens.stats.StatsScreen
+import com.example.reader.ui.theme.GreenMid
 import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.SubtleTextColor
 import kotlinx.coroutines.launch
@@ -32,10 +30,10 @@ fun SwipeableBottomNavigation(
 ) {
     // Define the screens that are part of bottom navigation
     val screens = listOf(
-        BottomNavScreen("Home", Icons.Filled.Home),
-        BottomNavScreen("Explore", Icons.Filled.Search),
-        BottomNavScreen("Saved", Icons.Filled.Bookmark),
-        BottomNavScreen("Profile", Icons.Filled.Person)
+        BottomNavScreen("Home", vectorRes = R.drawable.line_md__home_md),
+        BottomNavScreen("Explore", vectorRes = R.drawable.line_md__search),
+        BottomNavScreen("Saved", vectorRes = R.drawable.icon_park_outline__bookmark),
+        BottomNavScreen("Profile", vectorRes = R.drawable.line_md__person_twotone)
     )
 
     val pagerState = rememberPagerState(
@@ -44,12 +42,11 @@ fun SwipeableBottomNavigation(
     )
     val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(
+    Scaffold(modifier = Modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.background,
-                tonalElevation = 0.dp,
-                modifier = Modifier.navigationBarsPadding()
+                containerColor = MaterialTheme.colorScheme.background
+
             ) {
                 screens.forEachIndexed { index, screen ->
                     NavigationBarItem(
@@ -60,24 +57,32 @@ fun SwipeableBottomNavigation(
                             }
                         },
                         icon = {
-                            Icon(
-                                imageVector = screen.icon,
-                                contentDescription = screen.label,
-                                modifier = Modifier.size(32.dp)
-                            )
+                            if (screen.icon != null) {
+                                Icon(
+                                    imageVector = screen.icon,
+                                    contentDescription = screen.label,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            } else if (screen.vectorRes != null) {
+                                Icon(
+                                    painter = painterResource(id = screen.vectorRes),
+                                    contentDescription = screen.label,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
                         },
                         label = {
                             Text(
                                 text = screen.label,
                                 fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                fontWeight = FontWeight.Medium,
+                                fontWeight = if (pagerState.currentPage == index) FontWeight.ExtraBold else FontWeight.Medium,
                             )
                         },
                         alwaysShowLabel = true,
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = GreenPrimary,
                             unselectedIconColor = SubtleTextColor,
-                            indicatorColor = Color.Transparent,
+                            indicatorColor = GreenMid.copy(alpha = 0.2f), // Background container color for selected icon
                             selectedTextColor = GreenPrimary,
                             unselectedTextColor = SubtleTextColor
                         )
@@ -124,5 +129,6 @@ fun SwipeableBottomNavigation(
 // Data class for bottom navigation items
 data class BottomNavScreen(
     val label: String,
-    val icon: ImageVector
+    val icon: ImageVector? = null,
+    val vectorRes: Int? = null
 )
