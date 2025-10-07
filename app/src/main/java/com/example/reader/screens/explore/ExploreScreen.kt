@@ -55,6 +55,16 @@ fun ExploreScreen(
     val searchState by viewModel.searchState.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    // Live search with debounce
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotEmpty()) {
+            kotlinx.coroutines.delay(500) // 500ms debounce
+            if (searchQuery.isNotEmpty()) { // Check again after delay
+                viewModel.searchBooks(searchQuery)
+            }
+        }
+    }
+
     // State for tracking scroll
     val listState = rememberLazyGridState()
     var isTopBarVisible by remember { mutableStateOf(true) }
