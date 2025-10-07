@@ -91,7 +91,8 @@ fun ExploreScreen(
         label = "topbar_offset"
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()
+        .systemBarsPadding()) {
         // Main content
         Column(
             modifier = Modifier
@@ -156,7 +157,7 @@ fun ExploreScreen(
                             contentPadding = PaddingValues(
                                 start = 16.dp,
                                 end = 16.dp,
-                                top = 55.dp,
+                                top = 16.dp,
                                 bottom = 16.dp
                             )
                         ) {
@@ -240,11 +241,19 @@ fun ExploreScreen(
                         )
                     },
                     leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        IconButton(
+                            onClick = {
+                                viewModel.searchBooks(searchQuery)
+                                keyboardController?.hide()
+                            },
+                            enabled = searchQuery.isNotEmpty() && !searchState.isLoading
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Search,
+                                contentDescription = "Search",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
@@ -274,35 +283,7 @@ fun ExploreScreen(
                     )
                 )
 
-                // Search Button
-                Button(
-                    onClick = {
-                        viewModel.searchBooks(searchQuery)
-                        keyboardController?.hide()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .padding(bottom = 8.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = searchQuery.isNotEmpty() && !searchState.isLoading
-                ) {
-                    if (searchState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Search",
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Search", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                    }
-                }
+
             }
         }
     }
