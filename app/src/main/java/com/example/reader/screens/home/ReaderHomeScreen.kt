@@ -5,7 +5,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -14,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,21 +22,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.example.reader.R
 import com.example.reader.data.model.Book
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.ui.theme.CardBackground
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-import androidx.compose.ui.res.painterResource
-import coil.compose.AsyncImage
-import com.example.reader.R
-import com.example.reader.data.api.BookViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -46,8 +43,11 @@ fun Home(
     navController: NavController,
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
-    viewModel: BookViewModel = koinViewModel()
+    viewModel: HomeViewModel = koinViewModel()
 ) {
+    val selectedCategory by viewModel.selectedCategory.collectAsState()
+    val booksState by viewModel.booksState.collectAsState()
+
     Scaffold(
         topBar = {
             HomeTopBar(
@@ -65,12 +65,29 @@ fun Home(
                 .verticalScroll(rememberScrollState())
         ) {
             BookDiscoveryScreen(isDarkTheme = isDarkTheme)
+
             CategoryTabs(
+                selectedCategory = selectedCategory,
+                onCategorySelected = { category ->
+                    viewModel.selectCategory(category)
+                },
                 modifier = Modifier.padding(top = 1.dp),
                 isDarkTheme = isDarkTheme
             )
+
             Spacer(modifier = Modifier.height(16.dp))
-            BookGridSection(isDarkTheme = isDarkTheme, viewModel = viewModel)
+
+            BookGridSection(
+                isDarkTheme = isDarkTheme,
+                booksState = booksState,
+                onFavoriteToggle = { bookId ->
+                    viewModel.toggleFavorite(bookId)
+                },
+                onRatingChange = { bookId, rating ->
+                    viewModel.updateUserRating(bookId, rating)
+                }
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -124,9 +141,10 @@ fun HomeTopBar(
             Image(
                 painter = painterResource(id = R.drawable.line_md__person_twotone),
                 contentDescription = "User avatar",
-                modifier = Modifier.clickable(onClick = {
-                    navController.navigate(ReaderScreens.ReaderStatsScreen.name)
-                })
+                modifier = Modifier
+                    .clickable(onClick = {
+                        navController.navigate(ReaderScreens.ReaderStatsScreen.name)
+                    })
                     .size(48.dp)
                     .clip(CircleShape),
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
@@ -152,69 +170,107 @@ fun HomeTopBar(
             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        windowInsets = WindowInsets(0, 0, 0, 0)  // Remove default window insets
+        windowInsets = WindowInsets(0, 0, 0, 0)
     )
 }
 
 @Composable
-fun BookGridSection(isDarkTheme: Boolean, viewModel: BookViewModel) {
-    val books by viewModel.books.collectAsState()
-
-    if (books.isEmpty()) {
-        // Show loading or empty state
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
-    } else {
-        // Split books into two rows
-        val midPoint = books.size / 2
-        val firstRowBooks = books.take(midPoint)
-        val secondRowBooks = books.drop(midPoint)
-
-        // First row of books
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(firstRowBooks) { book ->
-                BookCard(
-                    book = book,
-                    isDarkTheme = isDarkTheme,
-                    onFavoriteToggle = {
-                        viewModel.toggleFavorite(book.id)
-                    },
-                    onRatingChange = { rating ->
-                        viewModel.updateUserRating(book.id, rating)
-                    }
+fun BookGridSection(
+    isDarkTheme: Boolean,
+    booksState: CategoryBooksState,
+    onFavoriteToggle: (Int) -> Unit,
+    onRatingChange: (Int, Double) -> Unit
+) {
+    when {
+        booksState.isLoading -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Second row of books (continuation)
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(secondRowBooks) { book ->
-                BookCard(
-                    book = book,
-                    isDarkTheme = isDarkTheme,
-                    onFavoriteToggle = {
-                        viewModel.toggleFavorite(book.id)
-                    },
-                    onRatingChange = { rating ->
-                        viewModel.updateUserRating(book.id, rating)
-                    }
+        booksState.error != null -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = booksState.error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
                 )
+            }
+        }
+
+        booksState.books.isEmpty() -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No books found in this category",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        else -> {
+            // Split books into two rows
+            val midPoint = booksState.books.size / 2
+            val firstRowBooks = booksState.books.take(midPoint)
+            val secondRowBooks = booksState.books.drop(midPoint)
+
+            // First row of books
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(firstRowBooks) { book ->
+                    BookCard(
+                        book = book,
+                        isDarkTheme = isDarkTheme,
+                        onFavoriteToggle = {
+                            onFavoriteToggle(book.id)
+                        },
+                        onRatingChange = { rating ->
+                            onRatingChange(book.id, rating)
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Second row of books
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(secondRowBooks) { book ->
+                    BookCard(
+                        book = book,
+                        isDarkTheme = isDarkTheme,
+                        onFavoriteToggle = {
+                            onFavoriteToggle(book.id)
+                        },
+                        onRatingChange = { rating ->
+                            onRatingChange(book.id, rating)
+                        }
+                    )
+                }
             }
         }
     }

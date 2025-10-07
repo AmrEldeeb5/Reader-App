@@ -17,7 +17,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.reader.data.api.BookViewModel
 import com.example.reader.screens.home.BookCard
-import com.example.reader.screens.home.BottomNavigationBar
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

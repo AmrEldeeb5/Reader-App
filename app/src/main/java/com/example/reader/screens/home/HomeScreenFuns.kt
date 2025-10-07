@@ -126,11 +126,31 @@ fun GreetingSection(
         )
     }
 }
-
+data class BookCategory(
+    val id: String,
+    val displayName: String
+)
 @Composable
-fun CategoryTabs(modifier: Modifier = Modifier, isDarkTheme: Boolean) {
-    val categories = listOf("Novels", "Self Love", "Science", "Romance")
-    var selectedCategory by remember { mutableStateOf("Novels") }
+fun CategoryTabs(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    isDarkTheme: Boolean
+) {
+    val categories = listOf(
+        BookCategory("novels", "Novels"),
+        BookCategory("selflove", "Self Love"),
+        BookCategory("science", "Science"),
+        BookCategory("romance", "Romance"),
+        BookCategory("fantasy", "Fantasy"),
+        BookCategory("mystery", "Mystery"),
+        BookCategory("biography", "Biography"),
+        BookCategory("history", "History"),
+        BookCategory("psychology", "Psychology"),
+        BookCategory("business", "Business"),
+        BookCategory("technology", "Technology"),
+        BookCategory("philosophy", "Philosophy")
+    )
 
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -138,7 +158,7 @@ fun CategoryTabs(modifier: Modifier = Modifier, isDarkTheme: Boolean) {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(categories) { category ->
-            val isSelected = category == selectedCategory
+            val isSelected = category.id == selectedCategory
 
             Box(
                 modifier = Modifier
@@ -150,12 +170,12 @@ fun CategoryTabs(modifier: Modifier = Modifier, isDarkTheme: Boolean) {
                             MaterialTheme.colorScheme.surfaceVariant
                         }
                     )
-                    .clickable { selectedCategory = category }
+                    .clickable { onCategorySelected(category.id) }
                     .padding(vertical = 8.dp, horizontal = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = category,
+                    text = category.displayName,
                     color = if (isSelected) {
                         MaterialTheme.colorScheme.onPrimary
                     } else {
@@ -168,69 +188,6 @@ fun CategoryTabs(modifier: Modifier = Modifier, isDarkTheme: Boolean) {
         }
     }
 }
-@Composable
-fun BottomNavigationBar(
-    navController: NavController,
-    currentRoute: String? = null
-) {
-    // Get current route if not provided
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val resolvedCurrentRoute = currentRoute ?: navBackStackEntry?.destination?.route
-
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.background,
-        tonalElevation = 0.dp,
-        modifier = Modifier.navigationBarsPadding()
-    ) {
-        val items = listOf(
-            NavigationItem("Home", Icons.Filled.Home, ReaderScreens.ReaderHomeScreen.name),
-            NavigationItem("Explore", Icons.Filled.Search, ReaderScreens.ExploreScreen.name),
-            NavigationItem("Saved", Icons.Filled.Bookmark, ReaderScreens.SavedScreen.name),
-            NavigationItem("Profile", Icons.Filled.Person, ReaderScreens.ReaderStatsScreen.name)
-        )
-
-        items.forEach { item ->
-            NavigationBarItem(
-                selected = resolvedCurrentRoute == item.route,
-                onClick = {
-                    navController.navigate(item.route) {
-                        launchSingleTop = true
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label,
-                        modifier = Modifier.size(32.dp)
-                    )
-                },
-                label = {
-                    Text(
-                        text = item.label,
-                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                        fontWeight = FontWeight.Medium,
-                    )
-                },
-                alwaysShowLabel = true,
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = GreenPrimary,
-                    unselectedIconColor = SubtleTextColor,
-                    indicatorColor = Color.Transparent,
-                    selectedTextColor = GreenPrimary,
-                    unselectedTextColor = SubtleTextColor
-
-                )
-            )
-        }
-    }
-}
-
-// Navigation item data class
-data class NavigationItem(
-    val label: String,
-    val icon: ImageVector,
-    val route: String
-)
 
 @Composable
 fun FunThemeToggleCompact(
