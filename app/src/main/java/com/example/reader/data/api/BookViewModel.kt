@@ -21,8 +21,16 @@ class BookViewModel: ViewModel() {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.api.getBooks("none")
-                _books.value = response.items?.map { it.toBook() } ?: emptyList()
-            } catch (e: Exception) {
+                _books.value = response.items?.mapNotNull { bookItem ->
+                    val book = bookItem.toBook()
+                    // Filter out books with "Unknown" title or author
+                    if (book.title != "Unknown" && book.author != "Unknown") {
+                        book
+                    } else {
+                        null
+                    }
+                } ?: emptyList()
+            } catch (_: Exception) {
                 // Handle the error
                 _books.value = emptyList()
             }

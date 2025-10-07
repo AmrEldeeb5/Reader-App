@@ -1,4 +1,4 @@
-package com.example.reader.screens.exploreScreen
+package com.example.reader.screens.explore
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -8,16 +8,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.reader.data.api.BookViewModel
 import com.example.reader.screens.home.BookCard
-import com.example.reader.screens.home.BottomNavigationBar
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +29,9 @@ fun ExploreScreen(
     viewModel: BookViewModel = koinViewModel()
 ) {
     val books by viewModel.books.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val valid = remember(searchQuery) { searchQuery.trim().isNotEmpty() }
 
     Column(
         modifier = Modifier

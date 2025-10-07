@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.reader.screens.exploreScreen.ExploreScreen
+import com.example.reader.screens.explore.ExploreScreen
 import com.example.reader.screens.SavedScreen
 import com.example.reader.screens.home.Home
 import com.example.reader.screens.stats.StatsScreen
