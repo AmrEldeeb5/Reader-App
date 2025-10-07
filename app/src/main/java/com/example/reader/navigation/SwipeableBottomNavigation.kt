@@ -2,9 +2,11 @@ package com.example.reader.navigation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -42,11 +44,14 @@ fun SwipeableBottomNavigation(
     )
     val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(modifier = Modifier.fillMaxSize(),
+    Scaffold(modifier = Modifier
+        .fillMaxSize(),
         bottomBar = {
             NavigationBar(
+                modifier = Modifier
+                    .height(56.dp)
+                    .padding(vertical = 0.dp),
                 containerColor = MaterialTheme.colorScheme.background
-
             ) {
                 screens.forEachIndexed { index, screen ->
                     NavigationBarItem(
@@ -61,24 +66,24 @@ fun SwipeableBottomNavigation(
                                 Icon(
                                     imageVector = screen.icon,
                                     contentDescription = screen.label,
-                                    modifier = Modifier.size(28.dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                             } else if (screen.vectorRes != null) {
                                 Icon(
                                     painter = painterResource(id = screen.vectorRes),
                                     contentDescription = screen.label,
-                                    modifier = Modifier.size(28.dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         },
-                        label = {
-                            Text(
-                                text = screen.label,
-                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                fontWeight = if (pagerState.currentPage == index) FontWeight.ExtraBold else FontWeight.Medium,
-                            )
-                        },
-                        alwaysShowLabel = true,
+//                        label = {
+//                            Text(
+//                                text = screen.label,
+//                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
+//                                fontWeight = if (pagerState.currentPage == index) FontWeight.ExtraBold else FontWeight.Medium,
+//                            )
+//                        },
+//                        alwaysShowLabel = false,
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = GreenPrimary,
                             unselectedIconColor = SubtleTextColor,
