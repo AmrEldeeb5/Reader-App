@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.reader.screens.onboarding.OnBoardingScreen
 import com.example.reader.screens.SignUp.SignUpScreen
+import com.example.reader.screens.details.BookDetailsScreen
 import com.example.reader.screens.login.ReaderLoginScreen
 import com.example.reader.screens.screen.SplashScreen
 
@@ -30,6 +31,9 @@ fun ReaderNavigation(
         }
         composable(ReaderScreens.CreateAccountScreen.name) {
             SignUpScreen(navController = navController, onSignUpClick = { name, email, password -> })
+        }
+        composable(ReaderScreens.DetailScreen.name) {
+            BookDetailsScreen(navController = navController)
         }
 
         // Main app screens with bottom navigation
