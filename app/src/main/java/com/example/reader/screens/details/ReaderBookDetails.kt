@@ -34,8 +34,70 @@ import androidx.core.graphics.ColorUtils
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.launch
+import kotlin.math.max
+import kotlin.math.min
+
+// Helper functions for contrast-aware color adjustment
+private fun contrastRatio(a: Color, b: Color): Double {
+    val l1 = a.luminance()
+    val l2 = b.luminance()
+    val lighter = max(l1, l2)
+    val darker = min(l1, l2)
+    return (lighter + 0.05) / (darker + 0.05)
+}
+
+private fun adjustColorForContrast(base: Color, makeDarker: Boolean): Color {
+    // Work in HSL for intuitive lightness changes
+    val hsl = FloatArray(3)
+    ColorUtils.colorToHSL(base.toArgb(), hsl)
+    val step = if (makeDarker) -0.10f else 0.10f
+    hsl[2] = (hsl[2] + step).coerceIn(0.05f, 0.95f)
+    // Slightly boost saturation for better differentiation
+    hsl[1] = (hsl[1] * 1.08f).coerceIn(0f, 1f)
+    return Color(ColorUtils.HSLToColor(hsl))
+}
+
+private fun deriveContrastingButtonColor(paletteColor: Color?, primary: Color, sheetBg: Color): Color {
+    val base = paletteColor ?: primary
+    // Start from a modified variant similar to previous logic
+    val hsl = FloatArray(3)
+    ColorUtils.colorToHSL(base.toArgb(), hsl)
+    hsl[1] = (hsl[1] * 1.10f).coerceIn(0f, 1f)
+    hsl[2] = (hsl[2] * 0.85f).coerceIn(0f, 1f)
+    var candidate = Color(ColorUtils.HSLToColor(hsl))
+    var ratio = contrastRatio(candidate, sheetBg)
+
+    val targetRatio = 3.0 // Reasonable for colored surfaces (WCAG AA for large-ish text / button prominence)
+    val sheetIsLight = sheetBg.luminance() > 0.5f
+
+    var attempts = 0
+    while (ratio < targetRatio && attempts < 6) {
+        candidate = adjustColorForContrast(candidate, makeDarker = sheetIsLight)
+        ratio = contrastRatio(candidate, sheetBg)
+        attempts++
+    }
+
+    // Fallbacks if still weak contrast
+    if (ratio < 2.4) {
+        candidate = if (sheetIsLight) primary.copy(alpha = 1f).run {
+            // ensure sufficiently dark
+            val fh = FloatArray(3)
+            ColorUtils.colorToHSL(this.toArgb(), fh)
+            fh[2] = (fh[2] * 0.55f).coerceIn(0.05f, 0.65f)
+            Color(ColorUtils.HSLToColor(fh))
+        } else primary.copy(alpha = 1f).run {
+            val fh = FloatArray(3)
+            ColorUtils.colorToHSL(this.toArgb(), fh)
+            // lighten
+            fh[2] = (fh[2] * 1.35f).coerceIn(0.35f, 0.95f)
+            Color(ColorUtils.HSLToColor(fh))
+        }
+    }
+    return candidate
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,11 +142,14 @@ fun BookDetailsBottomSheet(
     onFavoriteToggle: () -> Unit,
     onNavigateBack: () -> Unit,
     onStartReading: () -> Unit = {},
-    sheetPeekHeight: Dp = 300.dp,
+    sheetPeekHeight: Dp = 350.dp,
     dynamicTheming: Boolean = true,
     translucentSheet: Boolean = true,
     detailsViewModel: BookDetailsViewModel? = null,
-    autoExpand: Boolean = false
+    autoExpand: Boolean = false,
+    sheetHorizontalMargin: Dp = 16.dp,
+    // NEW: control visibility of drag handle; hiding it removes the small pill/outline artifact
+    showDragHandle: Boolean = false
 ) {
     val sheetState = rememberBottomSheetScaffoldState()
     val context = LocalContext.current
@@ -95,22 +160,16 @@ fun BookDetailsBottomSheet(
     }
     val paletteColor by (detailsViewModel?.paletteColor?.collectAsState() ?: remember { mutableStateOf<Color?>(null) })
 
-    // Compute translucent (or solid) sheet color directly; avoid composable reads inside remember-only lambda
-    val sheetContainerColor = (paletteColor ?: MaterialTheme.colorScheme.surface).let { base ->
+    // Original sheet color reused as inner Surface background (not on full-width scaffold anymore)
+    val sheetBgColor = (paletteColor ?: MaterialTheme.colorScheme.surface).let { base ->
         if (translucentSheet) base.copy(alpha = 0.80f) else base
     }
 
     val primaryColor = MaterialTheme.colorScheme.primary
 
-    // Keep button color logic, simplified (no dependency on sheetColorTarget now)
-    val buttonColorTarget: Color = remember(paletteColor, primaryColor) {
-        val base = paletteColor ?: primaryColor
-        if (paletteColor == null) return@remember base
-        val hsl = FloatArray(3)
-        ColorUtils.colorToHSL(base.toArgb(), hsl)
-        hsl[1] = (hsl[1] * 1.10f).coerceIn(0f, 1f)
-        hsl[2] = (hsl[2] * 0.85f).coerceIn(0f, 1f)
-        Color(ColorUtils.HSLToColor(hsl))
+    // Replace previous buttonColorTarget derivation with contrast-aware version
+    val buttonColorTarget: Color = remember(paletteColor, primaryColor, sheetBgColor) {
+        deriveContrastingButtonColor(paletteColor, primaryColor, sheetBgColor)
     }
     val buttonColor by animateColorAsState(
         targetValue = buttonColorTarget,
@@ -130,10 +189,13 @@ fun BookDetailsBottomSheet(
         BottomSheetScaffold(
             scaffoldState = sheetState,
             sheetPeekHeight = sheetPeekHeight,
-            sheetContainerColor = sheetContainerColor,
-            sheetTonalElevation = 0.dp,
-            sheetShadowElevation = 8.dp,
-            sheetDragHandle = { BottomSheetDefaults.DragHandle() },
+            sheetContainerColor = Color.Transparent,
+            sheetTonalElevation = 0.dp, // remove tonal overlay
+            sheetShadowElevation = 0.dp, // remove shadow that can look like a border
+            sheetShape = RectangleShape, // flatten shape; inner Surface supplies rounded corners
+            sheetDragHandle = if (showDragHandle) {
+                { BottomSheetDefaults.DragHandle() }
+            } else { {} },
             topBar = {
                 BookDetailsHeader(
                     book = book,
@@ -143,61 +205,71 @@ fun BookDetailsBottomSheet(
                 )
             },
             sheetContent = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                // Constrain width with horizontal margin and use a Surface to host the content (rounded, elevated, translucent)
+                Box(modifier = Modifier
+                    .padding(horizontal = sheetHorizontalMargin, vertical = 8.dp)
                 ) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = sheetBgColor,
+                        tonalElevation = 0.dp,
+                        shadowElevation = 8.dp,
+                        shape = MaterialTheme.shapes.extraLarge
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState())
+                                .padding(horizontal = 20.dp, vertical = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
 
-                    Text(
-                        text = book.author,
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    if (book.subtitle.isNotBlank()) {
-                        Text(
-                            text = book.subtitle,
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                            Text(
+                                text = book.author,
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (book.subtitle.isNotBlank()) {
+                                Text(
+                                    text = book.subtitle,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            HorizontalDivider()
+                            Text(
+                                text = "Description",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            val description = book.description?.takeIf { it.isNotBlank() }
+                            Text(
+                                text = description ?: "Description not available.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Spacer(Modifier.height(120.dp)) // space for fixed button overlay
+                        }
                     }
-                    HorizontalDivider()
-                    Text(
-                        text = "Description",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    val description = book.description?.takeIf { it.isNotBlank() }
-                    Text(
-                        text = description ?: "Description not available.",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(Modifier.height(120.dp)) // space for fixed button
                 }
             }
         ) { padding ->
-            // Enhanced background with blurred cover + gradient + interactive cover card
+            // Background & interactive cover retained (unchanged logic)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                // Blurred full-bleed background
                 if (!book.coverImageUrl.isNullOrBlank()) {
                     AsyncImage(
                         model = book.coverImageUrl,
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
-                            .blur(22.dp) // API-safe blur
+                            .blur(22.dp)
                             .graphicsLayer { alpha = 0.55f }
                     )
                 }
-
-                // Gradient overlay to improve contrast (top & bottom fade)
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -212,8 +284,6 @@ fun BookDetailsBottomSheet(
                             )
                         )
                 )
-
-                // Center cover with glow, scale & tap-to-toggle sheet state
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -237,7 +307,6 @@ fun BookDetailsBottomSheet(
                                     }
                                 }
                         ) {
-
                             AsyncImage(
                                 model = book.coverImageUrl,
                                 contentDescription = book.title,
@@ -276,11 +345,12 @@ fun BookDetailsBottomSheet(
             }
         }
 
+        // Button width matches floating sheet width via same horizontal margin
         Button(
             onClick = onStartReading,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(24.dp)
+                .padding(start = sheetHorizontalMargin, end = sheetHorizontalMargin, bottom = 24.dp)
                 .clip(MaterialTheme.shapes.medium)
                 .fillMaxWidth()
                 .height(56.dp),
@@ -297,7 +367,6 @@ fun BookDetailsBottomSheet(
         }
     }
 
-    // Remove previous unconditional expand; only expand if explicitly enabled
     if (autoExpand) {
         LaunchedEffect(autoExpand) {
             sheetState.bottomSheetState.expand()
@@ -314,7 +383,14 @@ fun BookDetailsHeader(
     onNavigateBack: () -> Unit
 ) {
     TopAppBar(
-        title = {},
+        title = {
+            Text(
+                text = book.title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
         navigationIcon = {
             Icon(
                 painter = painterResource(id = R.drawable.solar__alt_arrow_left_line_duotone),
@@ -382,6 +458,7 @@ private fun BookDetailsScreenPreview() {
         dynamicTheming = false,
         translucentSheet = true,
         detailsViewModel = null,
-        autoExpand = false
+        autoExpand = false,
+        showDragHandle = false
     )
 }
