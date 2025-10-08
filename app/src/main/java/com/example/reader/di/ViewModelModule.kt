@@ -2,6 +2,7 @@ package com.example.reader.di
 
 import com.example.reader.data.api.BookViewModel
 import com.example.reader.screens.SignUp.SignUpScreenViewModel
+import com.example.reader.screens.details.BookDetailsViewModel
 import com.example.reader.screens.explore.ExploreViewModel
 import com.example.reader.screens.home.HomeViewModel
 import com.example.reader.screens.login.LoginScreenViewModel
@@ -15,6 +16,7 @@ val viewModelModule = module {
     viewModel { LoginScreenViewModel() }
     viewModel { ExploreViewModel() }
     viewModel { HomeViewModel() }
+    viewModel { BookDetailsViewModel() }
     // Singleton for favorites - shared across all screens
     single { FavoritesViewModel() }
 
