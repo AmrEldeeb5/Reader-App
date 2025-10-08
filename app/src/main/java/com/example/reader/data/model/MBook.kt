@@ -39,5 +39,6 @@ data class Book(
     val rating: Double,  // API rating
     val coverImageUrl: String?,
     val isFavorite: Boolean = false,
-    val userRating: Double? = null  // User's personal rating
+    val userRating: Double? = null,  // User's personal rating
+    val description: String? = null // Full book description if available
 )

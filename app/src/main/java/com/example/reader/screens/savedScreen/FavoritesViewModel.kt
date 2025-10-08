@@ -16,6 +16,14 @@ class FavoritesViewModel : ViewModel() {
     private val _favoriteBooks = MutableStateFlow<List<Book>>(emptyList())
     val favoriteBooks: StateFlow<List<Book>> = _favoriteBooks.asStateFlow()
 
+    // Hold currently selected book for details screen navigation
+    private val _currentBook = MutableStateFlow<Book?>(null)
+    val currentBook: StateFlow<Book?> = _currentBook.asStateFlow()
+
+    fun setCurrentBook(book: Book) {
+        _currentBook.value = book
+    }
+
     fun addFavorite(book: Book) {
         val currentFavorites = _favoriteBooks.value.toMutableList()
 

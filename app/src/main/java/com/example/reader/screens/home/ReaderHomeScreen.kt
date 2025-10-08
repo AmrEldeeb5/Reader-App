@@ -96,6 +96,11 @@ fun Home(
                 onRatingChange = { bookId, rating ->
                     viewModel.updateUserRating(bookId, rating)
                     favoritesViewModel.updateUserRating(bookId, rating)
+                },
+                navController = navController,
+                onBookOpen = { book ->
+                    favoritesViewModel.setCurrentBook(book)
+                    navController.navigate(ReaderScreens.DetailScreen.name + "/${book.id}")
                 }
             )
 
@@ -189,7 +194,9 @@ fun BookGridSection(
     booksState: CategoryBooksState,
     favoriteIds: Set<Int>,
     onFavoriteToggle: (Book) -> Unit,
-    onRatingChange: (Int, Double) -> Unit
+    onRatingChange: (Int, Double) -> Unit,
+    navController: NavController,
+    onBookOpen: (Book) -> Unit
 ) {
     when {
         booksState.isLoading -> {
@@ -249,7 +256,8 @@ fun BookGridSection(
                         book = book.copy(isFavorite = favoriteIds.contains(book.id)),
                         isDarkTheme = isDarkTheme,
                         onFavoriteToggle = { onFavoriteToggle(book) },
-                        onRatingChange = { rating -> onRatingChange(book.id, rating) }
+                        onRatingChange = { rating -> onRatingChange(book.id, rating) },
+                        onBookClick = { onBookOpen(book) }
                     )
                 }
             }
@@ -267,7 +275,8 @@ fun BookGridSection(
                         book = book.copy(isFavorite = favoriteIds.contains(book.id)),
                         isDarkTheme = isDarkTheme,
                         onFavoriteToggle = { onFavoriteToggle(book) },
-                        onRatingChange = { rating -> onRatingChange(book.id, rating) }
+                        onRatingChange = { rating -> onRatingChange(book.id, rating) },
+                        onBookClick = { onBookOpen(book) }
                     )
                 }
             }
@@ -279,7 +288,8 @@ fun BookCard(
     book: Book,
     onFavoriteToggle: () -> Unit,
     onRatingChange: (Double) -> Unit = {},
-    isDarkTheme: Boolean
+    isDarkTheme: Boolean,
+    onBookClick: () -> Unit = {}
 ) {
     var showRatingDialog by remember { mutableStateOf(false) }
 
@@ -287,7 +297,7 @@ fun BookCard(
         modifier = Modifier
             .width(150.dp)
             .height(290.dp)
-            .clickable { /* Handle book click safely */ },
+            .clickable { onBookClick() },
         colors = CardDefaults.cardColors(
             containerColor = if (isDarkTheme) {
                 CardBackground

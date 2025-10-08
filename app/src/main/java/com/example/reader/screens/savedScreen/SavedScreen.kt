@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.home.BookCard
 import com.example.reader.screens.saved.FavoritesViewModel
 import org.koin.compose.koinInject
@@ -81,6 +82,10 @@ fun SavedScreen(
                         },
                         onRatingChange = { rating ->
                             favoritesViewModel.updateUserRating(book.id, rating)
+                        },
+                        onBookClick = {
+                            favoritesViewModel.setCurrentBook(book)
+                            navController.navigate(ReaderScreens.DetailScreen.name + "/${book.id}")
                         }
                     )
                 }

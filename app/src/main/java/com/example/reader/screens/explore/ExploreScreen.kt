@@ -1,47 +1,33 @@
 package com.example.reader.screens.explore
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import com.example.reader.data.model.Book
-import com.example.reader.screens.home.RatingDialog
-import com.example.reader.ui.theme.CardBackground
 import org.koin.androidx.compose.koinViewModel
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import com.example.reader.screens.home.BookCard
-import kotlinx.coroutines.launch
+import com.example.reader.screens.saved.FavoritesViewModel
+import com.example.reader.navigation.ReaderScreens
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +35,8 @@ fun ExploreScreen(
     navController: NavController,
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
-    viewModel: ExploreViewModel = koinViewModel()
+    viewModel: ExploreViewModel = koinViewModel(),
+    favoritesViewModel: FavoritesViewModel = koinInject()
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchState by viewModel.searchState.collectAsState()
@@ -180,6 +167,10 @@ fun ExploreScreen(
                                     },
                                     onRatingChange = { rating ->
                                         viewModel.updateUserRating(book.id, rating)
+                                    },
+                                    onBookClick = {
+                                        favoritesViewModel.setCurrentBook(book)
+                                        navController.navigate(ReaderScreens.DetailScreen.name + "/${book.id}")
                                     }
                                 )
                             }

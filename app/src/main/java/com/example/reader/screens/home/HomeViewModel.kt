@@ -124,6 +124,7 @@ class HomeViewModel : ViewModel() {
         subtitle = volumeInfo.subtitle ?: "",
         rating = volumeInfo.averageRating ?: 0.0,
         coverImageUrl = volumeInfo.imageLinks?.thumbnail?.replace("http://", "https://"),
-        isFavorite = false
+        isFavorite = false,
+        description = volumeInfo.description
     )
 }

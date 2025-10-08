@@ -10,8 +10,8 @@ enum class ReaderScreens {
     SearchScreen,
     UpdateScreen,
     ReaderStatsScreen,
-    ExploreScreen,    // Add this
-    SavedScreen;      // Add this
+    ExploreScreen,
+    SavedScreen;
 
     companion object {
         fun fromRoute(route: String?): ReaderScreens

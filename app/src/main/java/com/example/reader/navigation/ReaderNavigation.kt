@@ -1,9 +1,11 @@
 package com.example.reader.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.reader.screens.onboarding.OnBoardingScreen
 import com.example.reader.screens.SignUp.SignUpScreen
 import com.example.reader.screens.details.BookDetailsScreen
@@ -32,8 +34,13 @@ fun ReaderNavigation(
         composable(ReaderScreens.CreateAccountScreen.name) {
             SignUpScreen(navController = navController, onSignUpClick = { name, email, password -> })
         }
-        composable(ReaderScreens.DetailScreen.name) {
-            BookDetailsScreen(navController = navController)
+        // Detail screen with argument
+        composable(
+            route = ReaderScreens.DetailScreen.name + "/{bookId}",
+            arguments = listOf(navArgument("bookId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getInt("bookId")
+            BookDetailsScreen(navController = navController, bookId = bookId)
         }
 
         // Main app screens with bottom navigation
