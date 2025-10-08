@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -27,11 +28,14 @@ import com.example.reader.R
 import com.example.reader.data.model.Book
 import com.example.reader.screens.saved.FavoritesViewModel
 import coil.compose.AsyncImage
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import androidx.core.graphics.ColorUtils
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,56 +84,33 @@ fun BookDetailsBottomSheet(
     dynamicTheming: Boolean = true,
     translucentSheet: Boolean = true,
     detailsViewModel: BookDetailsViewModel? = null,
-    autoExpand: Boolean = false // new flag; default false so sheet stays at peek height
+    autoExpand: Boolean = false
 ) {
     val sheetState = rememberBottomSheetScaffoldState()
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
-    // Trigger palette load once only if we have a view model (not in preview)
     LaunchedEffect(book.coverImageUrl, dynamicTheming, detailsViewModel) {
         if (dynamicTheming && detailsViewModel != null) detailsViewModel.loadPalette(context, book.id, book.coverImageUrl, translucentSheet)
     }
     val paletteColor by (detailsViewModel?.paletteColor?.collectAsState() ?: remember { mutableStateOf<Color?>(null) })
 
-    val baseSheetColor = MaterialTheme.colorScheme.surface
-    val sheetColorTarget = paletteColor ?: if (translucentSheet) baseSheetColor.copy(alpha = 0.92f) else baseSheetColor
+    // Compute translucent (or solid) sheet color directly; avoid composable reads inside remember-only lambda
+    val sheetContainerColor = (paletteColor ?: MaterialTheme.colorScheme.surface).let { base ->
+        if (translucentSheet) base.copy(alpha = 0.80f) else base
+    }
 
-    // Animated sheet color transition
-    val sheetColor by animateColorAsState(
-        targetValue = sheetColorTarget,
-        animationSpec = tween(450),
-        label = "sheet_color_anim"
-    )
-
-    // Hoist primary color (accessing MaterialTheme outside non-composable remember lambda)
     val primaryColor = MaterialTheme.colorScheme.primary
 
-    // Derive a distinct but related button color from paletteColor (if present)
-    val buttonColorTarget: Color = remember(paletteColor, sheetColorTarget, primaryColor) {
+    // Keep button color logic, simplified (no dependency on sheetColorTarget now)
+    val buttonColorTarget: Color = remember(paletteColor, primaryColor) {
         val base = paletteColor ?: primaryColor
         if (paletteColor == null) return@remember base
         val hsl = FloatArray(3)
         ColorUtils.colorToHSL(base.toArgb(), hsl)
-        val sheetLuminance = ColorUtils.calculateLuminance(sheetColorTarget.toArgb())
-        hsl[2] = if (sheetLuminance > 0.5) {
-            (hsl[2] - 0.28f).coerceAtLeast(0.12f)
-        } else {
-            (hsl[2] + 0.28f).coerceAtMost(0.90f)
-        }
-        hsl[1] = (hsl[1] * 1.15f).coerceIn(0f, 1f)
-        var candidate = Color(ColorUtils.HSLToColor(hsl))
-        val contrastLumaDiff = kotlin.math.abs(candidate.luminance() - sheetColorTarget.luminance())
-        if (contrastLumaDiff < 0.18f) {
-            ColorUtils.colorToHSL(base.toArgb(), hsl)
-            val sheetLum = sheetLuminance
-            hsl[2] = if (sheetLum > 0.5) {
-                (hsl[2] - 0.40f).coerceAtLeast(0.08f)
-            } else {
-                (hsl[2] + 0.40f).coerceAtMost(0.95f)
-            }
-            candidate = Color(ColorUtils.HSLToColor(hsl))
-        }
-        candidate
+        hsl[1] = (hsl[1] * 1.10f).coerceIn(0f, 1f)
+        hsl[2] = (hsl[2] * 0.85f).coerceIn(0f, 1f)
+        Color(ColorUtils.HSLToColor(hsl))
     }
     val buttonColor by animateColorAsState(
         targetValue = buttonColorTarget,
@@ -138,11 +119,19 @@ fun BookDetailsBottomSheet(
     )
     val onButtonColor = if (buttonColor.luminance() > 0.5f) Color.Black else Color.White
 
+    val isExpanded = sheetState.bottomSheetState.currentValue == SheetValue.Expanded
+    val coverScale by animateFloatAsState(
+        targetValue = if (isExpanded) 0.85f else 1f,
+        animationSpec = tween(400),
+        label = "cover_scale_anim"
+    )
+
     Box(Modifier.fillMaxSize()) {
         BottomSheetScaffold(
             scaffoldState = sheetState,
             sheetPeekHeight = sheetPeekHeight,
-            sheetContainerColor = sheetColor,
+            sheetContainerColor = sheetContainerColor,
+            sheetTonalElevation = 0.dp,
             sheetShadowElevation = 8.dp,
             sheetDragHandle = { BottomSheetDefaults.DragHandle() },
             topBar = {
@@ -157,17 +146,11 @@ fun BookDetailsBottomSheet(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(sheetColor)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        text = book.title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
+
                     Text(
                         text = book.author,
                         style = MaterialTheme.typography.titleMedium,
@@ -196,33 +179,99 @@ fun BookDetailsBottomSheet(
                 }
             }
         ) { padding ->
-            // Replaced Spacer with centered cover image
+            // Enhanced background with blurred cover + gradient + interactive cover card
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
+                    .padding(padding)
             ) {
+                // Blurred full-bleed background
+                if (!book.coverImageUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = book.coverImageUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(22.dp) // API-safe blur
+                            .graphicsLayer { alpha = 0.55f }
+                    )
+                }
+
+                // Gradient overlay to improve contrast (top & bottom fade)
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Black.copy(alpha = 0.35f),
+                                    Color.Transparent,
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.50f)
+                                )
+                            )
+                        )
+                )
+
+                // Center cover with glow, scale & tap-to-toggle sheet state
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp)
                 ) {
                     if (!book.coverImageUrl.isNullOrBlank()) {
-                        AsyncImage(
-                            model = book.coverImageUrl,
-                            contentDescription = book.title,
+                        Box(
+                            contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .size(220.dp)
-                                .clip(MaterialTheme.shapes.medium)
-                        )
+                                .size(250.dp)
+                                .graphicsLayer { scaleX = coverScale; scaleY = coverScale }
+                                .clickable {
+                                    coroutineScope.launch {
+                                        if (sheetState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                                            sheetState.bottomSheetState.partialExpand()
+                                        } else {
+                                            sheetState.bottomSheetState.expand()
+                                        }
+                                    }
+                                }
+                        ) {
+
+                            AsyncImage(
+                                model = book.coverImageUrl,
+                                contentDescription = book.title,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(MaterialTheme.shapes.medium)
+                            )
+                        }
                     } else {
                         Text(
                             text = book.title.take(1),
-                            style = MaterialTheme.typography.displayMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            style = MaterialTheme.typography.displayLarge,
+                            color = buttonColor,
+                            modifier = Modifier
+                                .graphicsLayer { scaleX = coverScale; scaleY = coverScale }
+                                .clickable {
+                                    coroutineScope.launch {
+                                        if (sheetState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                                            sheetState.bottomSheetState.partialExpand()
+                                        } else {
+                                            sheetState.bottomSheetState.expand()
+                                        }
+                                    }
+                                }
                         )
                     }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        text = book.title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
@@ -289,7 +338,7 @@ fun BookDetailsHeader(
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
     )
 }
 
@@ -330,8 +379,8 @@ private fun BookDetailsScreenPreview() {
         isFavorite = isFavorite,
         onFavoriteToggle = { isFavorite = !isFavorite },
         onNavigateBack = { /* no-op */ },
-        dynamicTheming = false, // skip dynamic palette in preview (no VM)
-        translucentSheet = false,
+        dynamicTheming = false,
+        translucentSheet = true,
         detailsViewModel = null,
         autoExpand = false
     )
