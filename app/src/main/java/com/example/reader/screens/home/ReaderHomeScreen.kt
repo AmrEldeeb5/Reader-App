@@ -150,15 +150,14 @@ fun HomeTopBar(
         },
         navigationIcon = {
             Image(
-                painter = painterResource(id = R.drawable.line_md__person_twotone),
+                painter = painterResource(id = R.drawable.streamline_kameleon_color__eyeglasses),
                 contentDescription = "User avatar",
                 modifier = Modifier
                     .clickable(onClick = {
                         navController.navigate(ReaderScreens.ReaderStatsScreen.name)
                     })
                     .size(48.dp)
-                    .clip(CircleShape),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
+                    .clip(CircleShape)
             )
         },
         actions = {
