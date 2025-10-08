@@ -34,7 +34,7 @@ fun SplashScreen(navController: NavController) {
     val layout = rememberResponsiveLayout()
 
     LaunchedEffect(Unit) {
-        delay(2000L)
+        delay(1000L)
 
         val userPrefs = UserPreferences(context)
         val auth = FirebaseAuth.getInstance()

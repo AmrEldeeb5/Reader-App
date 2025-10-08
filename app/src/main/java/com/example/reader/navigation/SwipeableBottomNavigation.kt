@@ -26,10 +26,10 @@ fun SwipeableBottomNavigation(
     initialPage: Int = 0
 ) {
     val screens = listOf(
-        BottomNavScreen("Home", vectorRes = R.drawable.line_md__home_md),
+        BottomNavScreen("Home", vectorRes = R.drawable.solar__home_angle_bold),
         BottomNavScreen("Explore", vectorRes = R.drawable.line_md__search),
-        BottomNavScreen("Saved", vectorRes = R.drawable.icon_park_outline__bookmark),
-        BottomNavScreen("Profile", vectorRes = R.drawable.line_md__person_twotone)
+        BottomNavScreen("Saved", vectorRes = R.drawable.solar__bookmark_bold),
+        BottomNavScreen("Profile", vectorRes = R.drawable.solar__user_bold)
     )
 
     val pagerState = rememberPagerState(
@@ -60,13 +60,13 @@ fun SwipeableBottomNavigation(
                                 Icon(
                                     imageVector = screen.icon,
                                     contentDescription = screen.label,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(28.dp)
                                 )
                             } else if (screen.vectorRes != null) {
                                 Icon(
                                     painter = painterResource(id = screen.vectorRes),
                                     contentDescription = screen.label,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
                         },
