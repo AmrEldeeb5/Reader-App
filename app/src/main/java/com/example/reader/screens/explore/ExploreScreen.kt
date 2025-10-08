@@ -251,17 +251,17 @@ fun ExploreScreen(
                         )
                     },
                     leadingIcon = {
+                        val isEnabled = searchQuery.isNotEmpty() && !searchState.isLoading
                         IconButton(
                             onClick = {
                                 viewModel.searchBooks(searchQuery)
                                 keyboardController?.hide()
                             },
-                            enabled = searchQuery.isNotEmpty() && !searchState.isLoading
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Search,
                                 contentDescription = "Search",
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = if (isEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
                             )
                         }
                     },
