@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,8 +61,17 @@ private fun adjustColorForContrast(base: Color, makeDarker: Boolean): Color {
     return Color(ColorUtils.HSLToColor(hsl))
 }
 
+// Utility to directly set a new lightness delta relative to original
+private fun shiftLightness(color: Color, delta: Float): Color {
+    val hsl = FloatArray(3)
+    ColorUtils.colorToHSL(color.toArgb(), hsl)
+    hsl[2] = (hsl[2] + delta).coerceIn(0.02f, 0.98f)
+    return Color(ColorUtils.HSLToColor(hsl))
+}
+
 private fun deriveContrastingButtonColor(paletteColor: Color?, primary: Color, sheetBg: Color): Color {
     val base = paletteColor ?: primary
+
     // Start from a modified variant similar to previous logic
     val hsl = FloatArray(3)
     ColorUtils.colorToHSL(base.toArgb(), hsl)
@@ -70,7 +80,11 @@ private fun deriveContrastingButtonColor(paletteColor: Color?, primary: Color, s
     var candidate = Color(ColorUtils.HSLToColor(hsl))
     var ratio = contrastRatio(candidate, sheetBg)
 
-    val targetRatio = 3.0 // Reasonable for colored surfaces (WCAG AA for large-ish text / button prominence)
+    // Raise the desired contrast to make the button stand out more vs sheet
+    val targetRatio = 3.6 // previously 3.0; nudged up for clearer separation
+    val hardMinimum = 3.0 // absolute minimum we accept before aggressive fallback
+    val preferredHigh = 4.5 // try to approach AA text contrast if feasible
+
     val sheetIsLight = sheetBg.luminance() > 0.5f
 
     var attempts = 0
@@ -80,22 +94,49 @@ private fun deriveContrastingButtonColor(paletteColor: Color?, primary: Color, s
         attempts++
     }
 
-    // Fallbacks if still weak contrast
-    if (ratio < 2.4) {
-        candidate = if (sheetIsLight) primary.copy(alpha = 1f).run {
-            // ensure sufficiently dark
-            val fh = FloatArray(3)
-            ColorUtils.colorToHSL(this.toArgb(), fh)
-            fh[2] = (fh[2] * 0.55f).coerceIn(0.05f, 0.65f)
-            Color(ColorUtils.HSLToColor(fh))
-        } else primary.copy(alpha = 1f).run {
-            val fh = FloatArray(3)
-            ColorUtils.colorToHSL(this.toArgb(), fh)
-            // lighten
-            fh[2] = (fh[2] * 1.35f).coerceIn(0.35f, 0.95f)
-            Color(ColorUtils.HSLToColor(fh))
+    // If still not great, explore a wider search space of lightness shifts (both directions)
+    if (ratio < targetRatio) {
+        val searchDeltas = listOf(-0.40f, -0.30f, -0.22f, -0.15f, 0.15f, 0.22f, 0.30f, 0.40f)
+        val variants = mutableListOf<Pair<Color, Double>>()
+        for (d in searchDeltas) {
+            val v = shiftLightness(base, if (sheetIsLight) -kotlin.math.abs(d) else kotlin.math.abs(d))
+            variants += v to contrastRatio(v, sheetBg)
+        }
+        // Also include pure primary darkened/lightened extremes
+        val darkExtreme = shiftLightness(base, if (sheetIsLight) -0.55f else 0.0f)
+        val lightExtreme = shiftLightness(base, if (sheetIsLight) 0.0f else 0.55f)
+        variants += darkExtreme to contrastRatio(darkExtreme, sheetBg)
+        variants += lightExtreme to contrastRatio(lightExtreme, sheetBg)
+
+        val best = variants.maxByOrNull { it.second }
+        if (best != null && best.second > ratio) {
+            candidate = best.first
+            ratio = best.second
         }
     }
+
+    // Fallbacks if still weak contrast
+    if (ratio < hardMinimum) {
+        // Use black/white whichever maximizes contrast
+        val blackRatio = contrastRatio(Color.Black, sheetBg)
+        val whiteRatio = contrastRatio(Color.White, sheetBg)
+        val extreme = if (blackRatio > whiteRatio) Color.Black else Color.White
+        // Blend a little with base for identity but keep strong contrast
+        candidate = Color(
+            ColorUtils.blendARGB(extreme.toArgb(), base.toArgb(), 0.15f)
+        )
+        ratio = contrastRatio(candidate, sheetBg)
+    }
+
+    // If we can cheaply push toward preferredHigh, do a final nudge
+    if (ratio in hardMinimum..preferredHigh && ratio < preferredHigh) {
+        var tweakAttempts = 0
+        while (contrastRatio(candidate, sheetBg) < preferredHigh && tweakAttempts < 4) {
+            candidate = adjustColorForContrast(candidate, makeDarker = sheetIsLight)
+            tweakAttempts++
+        }
+    }
+
     return candidate
 }
 
@@ -147,7 +188,7 @@ fun BookDetailsBottomSheet(
     translucentSheet: Boolean = true,
     detailsViewModel: BookDetailsViewModel? = null,
     autoExpand: Boolean = false,
-    sheetHorizontalMargin: Dp = 16.dp,
+    sheetHorizontalMargin: Dp = 24.dp,
     // NEW: control visibility of drag handle; hiding it removes the small pill/outline artifact
     showDragHandle: Boolean = false
 ) {
@@ -186,16 +227,50 @@ fun BookDetailsBottomSheet(
     )
 
     Box(Modifier.fillMaxSize()) {
+        // NEW: Global blurred background placed UNDER the scaffold (extends beneath top bar & sheet)
+        if (!book.coverImageUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = book.coverImageUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(22.dp)
+                    .graphicsLayer { alpha = 0.55f }
+            )
+        } else {
+            // Fallback background color when no cover
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+        }
+        // Gradient overlay for depth & legibility
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.40f),
+                            Color.Transparent,
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.55f)
+                        )
+                    )
+                )
+        )
+
+        // Foreground scaffold & content
         BottomSheetScaffold(
             scaffoldState = sheetState,
             sheetPeekHeight = sheetPeekHeight,
             sheetContainerColor = Color.Transparent,
-            sheetTonalElevation = 0.dp, // remove tonal overlay
-            sheetShadowElevation = 0.dp, // remove shadow that can look like a border
-            sheetShape = RectangleShape, // flatten shape; inner Surface supplies rounded corners
-            sheetDragHandle = if (showDragHandle) {
-                { BottomSheetDefaults.DragHandle() }
-            } else { {} },
+            sheetTonalElevation = 0.dp,
+            sheetShadowElevation = 0.dp,
+            sheetShape = RectangleShape,
+            sheetDragHandle = if (showDragHandle) { { BottomSheetDefaults.DragHandle() } } else { {} },
             topBar = {
                 BookDetailsHeader(
                     book = book,
@@ -206,8 +281,9 @@ fun BookDetailsBottomSheet(
             },
             sheetContent = {
                 // Constrain width with horizontal margin and use a Surface to host the content (rounded, elevated, translucent)
-                Box(modifier = Modifier
-                    .padding(horizontal = sheetHorizontalMargin, vertical = 8.dp)
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = sheetHorizontalMargin, vertical = 8.dp)
                 ) {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
@@ -254,36 +330,12 @@ fun BookDetailsBottomSheet(
                 }
             }
         ) { padding ->
-            // Background & interactive cover retained (unchanged logic)
+            // CONTENT area (no blurred background here anymore)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                if (!book.coverImageUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = book.coverImageUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .blur(22.dp)
-                            .graphicsLayer { alpha = 0.55f }
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = 0.35f),
-                                    Color.Transparent,
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.50f)
-                                )
-                            )
-                        )
-                )
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -295,17 +347,7 @@ fun BookDetailsBottomSheet(
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .size(250.dp)
-                                .graphicsLayer { scaleX = coverScale; scaleY = coverScale }
-                                .clickable {
-                                    coroutineScope.launch {
-                                        if (sheetState.bottomSheetState.currentValue == SheetValue.Expanded) {
-                                            sheetState.bottomSheetState.partialExpand()
-                                        } else {
-                                            sheetState.bottomSheetState.expand()
-                                        }
-                                    }
-                                }
+                                .size(260.dp)
                         ) {
                             AsyncImage(
                                 model = book.coverImageUrl,
@@ -383,14 +425,7 @@ fun BookDetailsHeader(
     onNavigateBack: () -> Unit
 ) {
     TopAppBar(
-        title = {
-            Text(
-                text = book.title,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium
-            )
-        },
+        title = {},
         navigationIcon = {
             Icon(
                 painter = painterResource(id = R.drawable.solar__alt_arrow_left_line_duotone),
