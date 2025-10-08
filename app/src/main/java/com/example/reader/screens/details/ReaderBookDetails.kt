@@ -266,6 +266,7 @@ fun BookDetailsBottomSheet(
         BottomSheetScaffold(
             scaffoldState = sheetState,
             sheetPeekHeight = sheetPeekHeight,
+            containerColor = Color.Transparent,
             sheetContainerColor = Color.Transparent,
             sheetTonalElevation = 0.dp,
             sheetShadowElevation = 0.dp,
