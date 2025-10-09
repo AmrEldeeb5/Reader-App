@@ -256,6 +256,29 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                     end = Offset(0f, size.height)
                 )
             )
+
+            // Third wave (additional curve) with another shade for depth
+            val wave3 = Path().apply {
+                moveTo(0f, size.height * 0.70f)
+                quadraticTo(
+                    size.width * 0.40f, size.height * 0.95f,
+                    size.width, size.height * 0.75f
+                )
+                lineTo(size.width, size.height)
+                lineTo(0f, size.height)
+                close()
+            }
+            drawPath(
+                path = wave3,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.08f),
+                        Color.Transparent
+                    ),
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height * 0.70f)
+                )
+            )
         }
 
         // Text remains white on both themes for good contrast
