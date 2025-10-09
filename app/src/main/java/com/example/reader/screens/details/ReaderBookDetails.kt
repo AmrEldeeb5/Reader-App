@@ -169,7 +169,12 @@ fun BookDetailsScreen(
 
     // Store last cover and description so Discovery screen can show them
     LaunchedEffect(resolvedBook.id) {
-        LastSelectedCoverStore.set(resolvedBook.coverImageUrl, resolvedBook.description)
+        LastSelectedCoverStore.set(
+            resolvedBook.coverImageUrl,
+            resolvedBook.description,
+            resolvedBook.title,
+            resolvedBook.id
+        )
     }
 
     BookDetailsBottomSheet(
@@ -450,7 +455,7 @@ fun BookDetailsHeader(
             )
             IconButton(onClick = onFavoriteToggle) {
                 Icon(
-                    imageVector = Icons.Filled.Favorite,
+                    painter = painterResource(R.drawable.solar__heart_angle_bold),
                     contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
                     tint = tint
                 )

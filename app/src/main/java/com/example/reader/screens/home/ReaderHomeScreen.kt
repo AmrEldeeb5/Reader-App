@@ -74,7 +74,12 @@ fun Home(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            BookDiscoveryScreen(isDarkTheme = isDarkTheme)
+            BookDiscoveryScreen(
+                isDarkTheme = isDarkTheme,
+                onContinueReading = { id ->
+                    navController.navigate(ReaderScreens.DetailScreen.name + "/$id")
+                }
+            )
 
             CategoryTabs(
                 selectedCategory = selectedCategory,
@@ -101,11 +106,16 @@ fun Home(
                 navController = navController,
                 onBookOpen = { book ->
                     favoritesViewModel.setCurrentBook(book)
-                    // Update last-selected cover and text snippet for Discovery
+                    // Update last-selected data for Discovery (cover, snippet, title, id)
                     val snippet = book.description?.takeIf { it.isNotBlank() }
                         ?: book.subtitle.takeIf { it.isNotBlank() }
                         ?: book.title
-                    LastSelectedCoverStore.set(book.coverImageUrl, snippet)
+                    LastSelectedCoverStore.set(
+                        book.coverImageUrl,
+                        snippet,
+                        book.title,
+                        book.id
+                    )
                     navController.navigate(ReaderScreens.DetailScreen.name + "/${book.id}")
                 }
             )
@@ -245,9 +255,15 @@ fun BookGridSection(
         }
 
         else -> {
-            val midPoint = booksState.books.size / 2
-            val firstRowBooks = booksState.books.take(midPoint)
-            val secondRowBooks = booksState.books.drop(midPoint)
+            // Split into three groups for three rows
+            val total = booksState.books.size
+            val perRow = ((total + 2) / 3).coerceAtLeast(1)
+            val firstEnd = minOf(perRow, total)
+            val secondEnd = minOf(perRow * 2, total)
+
+            val firstRowBooks = booksState.books.subList(0, firstEnd)
+            val secondRowBooks = booksState.books.subList(firstEnd, secondEnd)
+            val thirdRowBooks = booksState.books.subList(secondEnd, total)
 
             // First row
             LazyRow(
@@ -266,47 +282,93 @@ fun BookGridSection(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .clip(RoundedCornerShape(12.dp))
-            ){
-                Text(
-                    text = "More books",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+            if (secondRowBooks.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
                     modifier = Modifier
-                        .padding(12.dp)
-                        .align(Alignment.CenterVertically)
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            // Second row
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(secondRowBooks) { book ->
-                    BookCard(
-                        book = book.copy(isFavorite = favoriteIds.contains(book.id)),
-                        isDarkTheme = isDarkTheme,
-                        onFavoriteToggle = { onFavoriteToggle(book) },
-                        onRatingChange = { rating -> onRatingChange(book.id, rating) },
-                        onBookClick = { onBookOpen(book) }
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .clip(RoundedCornerShape(12.dp))
+                ){
+                    Text(
+                        text = "More books",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .align(Alignment.CenterVertically)
                     )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Second row
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(secondRowBooks) { book ->
+                        BookCard(
+                            book = book.copy(isFavorite = favoriteIds.contains(book.id)),
+                            isDarkTheme = isDarkTheme,
+                            onFavoriteToggle = { onFavoriteToggle(book) },
+                            onRatingChange = { rating -> onRatingChange(book.id, rating) },
+                            onBookClick = { onBookOpen(book) }
+                        )
+                    }
+                }
+            }
+
+            if (thirdRowBooks.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .clip(RoundedCornerShape(12.dp))
+                ){
+                    Text(
+                        text = "Recommended",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .align(Alignment.CenterVertically)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Third row
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(thirdRowBooks) { book ->
+                        BookCard(
+                            book = book.copy(isFavorite = favoriteIds.contains(book.id)),
+                            isDarkTheme = isDarkTheme,
+                            onFavoriteToggle = { onFavoriteToggle(book) },
+                            onRatingChange = { rating -> onRatingChange(book.id, rating) },
+                            onBookClick = { onBookOpen(book) }
+                        )
+                    }
                 }
             }
         }
     }
 }
+
 @Composable
 fun BookCard(
     book: Book,

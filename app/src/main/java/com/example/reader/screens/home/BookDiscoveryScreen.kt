@@ -13,7 +13,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import coil.compose.AsyncImage
 import com.example.reader.data.LastSelectedCoverStore
-import com.example.reader.ui.theme.CardBackground
 import com.example.reader.ui.theme.GreenDark
 import com.example.reader.ui.theme.GreenLight
 import com.example.reader.ui.theme.GreenMid
@@ -34,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun BookDiscoveryScreen(isDarkTheme: Boolean) {
+fun BookDiscoveryScreen(isDarkTheme: Boolean, onContinueReading: (Int) -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -53,18 +52,29 @@ fun BookDiscoveryScreen(isDarkTheme: Boolean) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(top = 130.dp)
             ) {
-                QuoteCard(isDarkTheme = isDarkTheme)
-                BookPlayerCard(
-                    modifier = Modifier.offset(y = (-15).dp),
-                    isDarkTheme = isDarkTheme
-                )
+                val lastBookId by LastSelectedCoverStore.lastBookId.collectAsState(null)
+                val lastDescription by LastSelectedCoverStore.lastDescription.collectAsState(null)
+
+                if (lastBookId != null) {
+                    QuoteCard(
+                        text = lastDescription ?: "Continue your last reading",
+                        onContinue = { onContinueReading(lastBookId!!) }
+                    )
+                }
+
+                // Only show BookPlayerCard after a BookCard has been clicked (state set)
+                if (lastBookId != null) {
+                    BookPlayerCard(
+                        modifier = Modifier.offset(y = (-15).dp)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun QuoteCard(isDarkTheme: Boolean) {
+fun QuoteCard(text: String, onContinue: (() -> Unit)? = null) {
     Card(
         modifier = Modifier.fillMaxWidth(0.88f),
         shape = RoundedCornerShape(12.dp),
@@ -85,7 +95,7 @@ fun QuoteCard(isDarkTheme: Boolean) {
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
                 Text(
-                    text = "On conviction to imprisonment for a period not exceeding four years...",
+                    text = text,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
@@ -93,12 +103,13 @@ fun QuoteCard(isDarkTheme: Boolean) {
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(12.dp))
+                val clickableModifier = if (onContinue != null) Modifier.clickable { onContinue() } else Modifier
                 Text(
                     text = "Continue Reading",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp,
-                    modifier = Modifier.clickable { /* Handle click */ }
+                    modifier = clickableModifier
                 )
             }
         }
@@ -106,7 +117,7 @@ fun QuoteCard(isDarkTheme: Boolean) {
 }
 
 @Composable
-fun BookPlayerCard(modifier: Modifier = Modifier, isDarkTheme: Boolean) {
+fun BookPlayerCard(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .padding(top = 1.dp)
@@ -142,12 +153,12 @@ fun BookPlayerCard(modifier: Modifier = Modifier, isDarkTheme: Boolean) {
             }
             Spacer(modifier = Modifier.width(12.dp))
 
-            val lastDescription by LastSelectedCoverStore.lastDescription.collectAsState(null)
+            val lastTitle by LastSelectedCoverStore.lastTitle.collectAsState(null)
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = lastDescription ?: "No description available",
+                    text = lastTitle ?: "No title available",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
@@ -252,14 +263,14 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .padding(horizontal = 32.dp, vertical = 30.dp)
+                .padding(horizontal = 24.dp, vertical = 28.dp)
         ) {
             Text(
                 text = "Find interesting books from all over the world",
                 color = Color.White,
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
-                maxLines = 2,
+                maxLines = 3,
                 modifier = Modifier.fillMaxWidth()
             )
         }
