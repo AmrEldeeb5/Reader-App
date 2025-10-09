@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.reader.R
+import com.example.reader.data.LastSelectedCoverStore
 import com.example.reader.data.model.Book
 import com.example.reader.screens.saved.FavoritesViewModel
 import coil.compose.AsyncImage
@@ -165,6 +166,11 @@ fun BookDetailsScreen(
     }
 
     val isFavorite = favoritesViewModel.isFavorite(resolvedBook.id)
+
+    // Store last cover and description so Discovery screen can show them
+    LaunchedEffect(resolvedBook.id) {
+        LastSelectedCoverStore.set(resolvedBook.coverImageUrl, resolvedBook.description)
+    }
 
     BookDetailsBottomSheet(
         book = resolvedBook,

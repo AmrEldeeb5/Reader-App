@@ -8,15 +8,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.reader.R
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.home.BookCard
 import com.example.reader.screens.saved.FavoritesViewModel
 import org.koin.compose.koinInject
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun SavedScreen(
@@ -63,6 +66,14 @@ fun SavedScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.streamline_stickies_color__book_library),
+                        contentDescription = "No Favorites Icon",
+                        modifier = Modifier.size(64.dp),
+                        tint = Color.Unspecified
+                    )
+
                 }
             }
         } else {

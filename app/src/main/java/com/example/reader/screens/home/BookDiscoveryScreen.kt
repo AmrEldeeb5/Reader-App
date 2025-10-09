@@ -9,6 +9,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import coil.compose.AsyncImage
+import com.example.reader.data.LastSelectedCoverStore
+import com.example.reader.ui.theme.CardBackground
+import com.example.reader.ui.theme.GreenDark
+import com.example.reader.ui.theme.GreenLight
+import com.example.reader.ui.theme.GreenMid
+import com.example.reader.ui.theme.GreenPrimary
+import com.example.reader.ui.theme.ReaderTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,12 +32,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.reader.ui.theme.CardBackground
-import com.example.reader.ui.theme.GreenDark
-import com.example.reader.ui.theme.GreenLight
-import com.example.reader.ui.theme.GreenMid
-import com.example.reader.ui.theme.GreenPrimary
-import com.example.reader.ui.theme.ReaderTheme
 
 @Composable
 fun BookDiscoveryScreen(isDarkTheme: Boolean) {
@@ -117,20 +121,33 @@ fun BookPlayerCard(modifier: Modifier = Modifier, isDarkTheme: Boolean) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                contentDescription = "Book cover icon",
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            val lastCoverUrl by LastSelectedCoverStore.lastCoverUrl.collectAsState(null)
+            if (!lastCoverUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = lastCoverUrl,
+                    contentDescription = "Last book cover",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                    contentDescription = "Book cover icon",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             Spacer(modifier = Modifier.width(12.dp))
+
+            val lastDescription by LastSelectedCoverStore.lastDescription.collectAsState(null)
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Born a Crime, Stories from a South...",
+                    text = lastDescription ?: "No description available",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,

@@ -3,6 +3,7 @@ package com.example.reader.screens.home
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -12,7 +13,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.reader.R
+import com.example.reader.data.LastSelectedCoverStore
 import com.example.reader.data.model.Book
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.saved.FavoritesViewModel
@@ -100,11 +101,14 @@ fun Home(
                 navController = navController,
                 onBookOpen = { book ->
                     favoritesViewModel.setCurrentBook(book)
+                    // Update last-selected cover and text snippet for Discovery
+                    val snippet = book.description?.takeIf { it.isNotBlank() }
+                        ?: book.subtitle.takeIf { it.isNotBlank() }
+                        ?: book.title
+                    LastSelectedCoverStore.set(book.coverImageUrl, snippet)
                     navController.navigate(ReaderScreens.DetailScreen.name + "/${book.id}")
                 }
             )
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -149,7 +153,7 @@ fun HomeTopBar(
 
     TopAppBar(
         title = {
-            Column {
+            Column(modifier = Modifier.padding(horizontal = 4.dp)) {
                 GreetingSection(resolvedName)
             }
         },
@@ -168,10 +172,10 @@ fun HomeTopBar(
         actions = {
             IconButton(onClick = onNotificationsClick) {
                 Image(
-                    painter = painterResource(id = R.drawable.line_md__bell_filled_loop),
+                    painter = painterResource(id = R.drawable.solar__bell_bing_bold),
                     contentDescription = "Notifications",
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(28.dp)
                 )
             }
             FunThemeToggleCompact(
@@ -262,8 +266,28 @@ fun BookGridSection(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clip(RoundedCornerShape(12.dp))
+            ){
+                Text(
+                    text = "More books",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .align(Alignment.CenterVertically)
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             // Second row
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -339,10 +363,11 @@ fun BookCard(
                             label = "favorite_color"
                         )
                         Icon(
-                            imageVector = Icons.Filled.Favorite,
+                            painter = painterResource(R.drawable.solar__heart_angle_bold),
                             contentDescription = "Favorite",
                             tint = tint,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(28.dp)
+                                .background(Color.Black.copy(alpha = 0.4f), shape = CircleShape).padding(4.dp)
                         )
                     }
                 }
