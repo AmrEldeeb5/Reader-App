@@ -75,7 +75,6 @@ fun Home(
                 .verticalScroll(rememberScrollState())
         ) {
             BookDiscoveryScreen(
-                isDarkTheme = isDarkTheme,
                 onContinueReading = { id ->
                     navController.navigate(ReaderScreens.DetailScreen.name + "/$id")
                 }
@@ -106,16 +105,36 @@ fun Home(
                 navController = navController,
                 onBookOpen = { book ->
                     favoritesViewModel.setCurrentBook(book)
-                    // Update last-selected data for Discovery (cover, snippet, title, id)
                     val snippet = book.description?.takeIf { it.isNotBlank() }
                         ?: book.subtitle.takeIf { it.isNotBlank() }
                         ?: book.title
+
+                    // Map selectedCategory id to a user-facing display name
+                    val categoryName = when (selectedCategory) {
+                        "novels" -> "Novels"
+                        "selflove" -> "Self Love"
+                        "science" -> "Science"
+                        "romance" -> "Romance"
+                        "fantasy" -> "Fantasy"
+                        "mystery" -> "Mystery"
+                        "biography" -> "Biography"
+                        "history" -> "History"
+                        "psychology" -> "Psychology"
+                        "business" -> "Business"
+                        "technology" -> "Technology"
+                        "philosophy" -> "Philosophy"
+                        else -> selectedCategory.replaceFirstChar { it.uppercase() }
+                    }
+
+                    // Update last-selected data (cover, snippet, title, id, category)
                     LastSelectedCoverStore.set(
-                        book.coverImageUrl,
-                        snippet,
-                        book.title,
-                        book.id
+                        coverUrl = book.coverImageUrl,
+                        description = snippet,
+                        title = book.title,
+                        bookId = book.id,
+                        categoryName = categoryName
                     )
+
                     navController.navigate(ReaderScreens.DetailScreen.name + "/${book.id}")
                 }
             )

@@ -7,8 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -230,6 +228,11 @@ fun BookDetailsBottomSheet(
     )
     val onButtonColor = if (buttonColor.luminance() > 0.5f) Color.Black else Color.White
 
+    // NEW: compute content color for the sheet based on its background luminance
+    val onSheetColor: Color = remember(sheetBgColor) {
+        if (sheetBgColor.luminance() > 0.5f) Color.Black else Color.White
+    }
+
     val isExpanded = sheetState.bottomSheetState.currentValue == SheetValue.Expanded
     val coverScale by animateFloatAsState(
         targetValue = if (isExpanded) 0.85f else 1f,
@@ -285,7 +288,6 @@ fun BookDetailsBottomSheet(
             sheetDragHandle = if (showDragHandle) { { BottomSheetDefaults.DragHandle() } } else { {} },
             topBar = {
                 BookDetailsHeader(
-                    book = book,
                     isFavorite = isFavorite,
                     onFavoriteToggle = onFavoriteToggle,
                     onNavigateBack = onNavigateBack
@@ -302,7 +304,8 @@ fun BookDetailsBottomSheet(
                         color = sheetBgColor,
                         tonalElevation = 0.dp,
                         shadowElevation = 8.dp,
-                        shape = MaterialTheme.shapes.extraLarge
+                        shape = MaterialTheme.shapes.extraLarge,
+                        contentColor = onSheetColor
                     ) {
                         Column(
                             modifier = Modifier
@@ -313,28 +316,32 @@ fun BookDetailsBottomSheet(
                         ) {
 
                             Text(
-                                text = book.author,
+                                text = "By ${book.author}",
                                 style = MaterialTheme.typography.titleMedium,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
+                                color = onSheetColor
                             )
                             if (book.subtitle.isNotBlank()) {
                                 Text(
                                     text = book.subtitle,
                                     style = MaterialTheme.typography.bodyMedium,
                                     maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis
+                                    overflow = TextOverflow.Ellipsis,
+                                    color = onSheetColor
                                 )
                             }
                             HorizontalDivider()
                             Text(
                                 text = "Description",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = onSheetColor
                             )
                             val description = book.description?.takeIf { it.isNotBlank() }
                             Text(
                                 text = description ?: "Description not available.",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = onSheetColor
                             )
                             Spacer(Modifier.height(120.dp)) // space for fixed button overlay
                         }
@@ -431,7 +438,6 @@ fun BookDetailsBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookDetailsHeader(
-    book: Book,
     isFavorite: Boolean,
     onFavoriteToggle: () -> Unit,
     onNavigateBack: () -> Unit

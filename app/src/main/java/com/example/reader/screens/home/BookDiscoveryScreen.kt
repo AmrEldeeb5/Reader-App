@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun BookDiscoveryScreen(isDarkTheme: Boolean, onContinueReading: (Int) -> Unit = {}) {
+fun BookDiscoveryScreen(onContinueReading: (Int) -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -146,7 +146,7 @@ fun BookPlayerCard(modifier: Modifier = Modifier) {
                     imageVector = Icons.AutoMirrored.Filled.MenuBook,
                     contentDescription = "Book cover icon",
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(56.dp)
                         .clip(RoundedCornerShape(8.dp)),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -166,8 +166,9 @@ fun BookPlayerCard(modifier: Modifier = Modifier) {
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(3.dp))
+                val lastCategory by LastSelectedCoverStore.lastCategoryName.collectAsState(null)
                 Text(
-                    text = "Chapter 1 of 4",
+                    text = lastCategory ?: "Category",
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     fontSize = 12.sp
                 )
@@ -279,6 +280,52 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                     end = Offset(size.width, size.height * 0.70f)
                 )
             )
+
+            // Fourth wave with a gentle green tint in light mode and soft white in dark mode
+            val wave4 = Path().apply {
+                moveTo(size.width, size.height * 0.62f)
+                quadraticTo(
+                    size.width * 0.55f, size.height * 0.88f,
+                    0f, size.height * 0.74f
+                )
+                lineTo(0f, size.height)
+                lineTo(size.width, size.height)
+                close()
+            }
+            drawPath(
+                path = wave4,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        if (isDark) Color.White.copy(alpha = 0.05f) else GreenMid.copy(alpha = 0.07f),
+                        Color.Transparent
+                    ),
+                    start = Offset(size.width, size.height * 0.62f),
+                    end = Offset(0f, size.height)
+                )
+            )
+
+            // Fifth wave closer to the bottom for subtle layering
+            val wave5 = Path().apply {
+                moveTo(size.width, size.height * 0.85f)
+                quadraticTo(
+                    size.width * 0.70f, size.height * 1.05f,
+                    0f, size.height * 0.90f
+                )
+                lineTo(0f, size.height)
+                lineTo(size.width, size.height)
+                close()
+            }
+            drawPath(
+                path = wave5,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        if (isDark) Color.White.copy(alpha = 0.035f) else GreenDark.copy(alpha = 0.06f),
+                        Color.Transparent
+                    ),
+                    start = Offset(size.width, size.height),
+                    end = Offset(0f, size.height * 0.85f)
+                )
+            )
         }
 
         // Text remains white on both themes for good contrast
@@ -304,6 +351,6 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
 @Composable
 fun DefaultPreview() {
     ReaderTheme(darkTheme = true) {
-        BookDiscoveryScreen(isDarkTheme = true)
+        BookDiscoveryScreen()
     }
 }
