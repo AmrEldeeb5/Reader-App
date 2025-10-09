@@ -305,13 +305,13 @@ fun BookGridSection(
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier
-                        .padding(16.dp)
+                        .padding(12.dp)
                         .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .clip(RoundedCornerShape(12.dp))
+//                        .background(
+//                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+//                            shape = RoundedCornerShape(12.dp)
+//                        )
+//                        .clip(RoundedCornerShape(12.dp))
                 ){
                     Text(
                         text = "More books",
@@ -319,11 +319,10 @@ fun BookGridSection(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
-                            .padding(12.dp)
+                            .padding(8.dp)
                             .align(Alignment.CenterVertically)
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
 
                 // Second row
                 LazyRow(
@@ -347,13 +346,12 @@ fun BookGridSection(
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier
-                        .padding(16.dp)
+                        .padding(12.dp)
                         .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .clip(RoundedCornerShape(12.dp))
+//                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+//                            shape = RoundedCornerShape(12.dp)
+//                        )
+//                        .clip(RoundedCornerShape(12.dp))
                 ){
                     Text(
                         text = "Recommended",
@@ -361,11 +359,10 @@ fun BookGridSection(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
-                            .padding(12.dp)
+                            .padding(8.dp)
                             .align(Alignment.CenterVertically)
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
 
                 // Third row
                 LazyRow(

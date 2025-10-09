@@ -8,6 +8,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -15,11 +19,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.reader.R
 import com.example.reader.navigation.ReaderScreens
+import com.example.reader.ui.theme.ReaderTheme
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.IntrinsicSize
 
 @Composable
 fun StatsScreen(
@@ -31,6 +43,7 @@ fun StatsScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         // Title
         Text(
@@ -40,9 +53,10 @@ fun StatsScreen(
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
-        // Content
+        // Avatar area – don't consume all height so the rest can be seen
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth(),
             contentAlignment = Alignment.TopCenter
         ) {
             // Avatar container (first box) - no clip to avoid clipping the badge
@@ -81,5 +95,81 @@ fun StatsScreen(
                 }
             }
         }
+
+        Spacer(Modifier.height(16.dp))
+
+        // user name and email
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(48.dp)
+                    .fillMaxHeight()
+                    .padding(2.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.solar__user_bold),
+                    contentDescription = "User Icon",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Spacer(Modifier.width(8.dp))
+
+            var displayName by rememberSaveable { mutableStateOf("") }
+
+            TextField(
+                value = displayName,
+                onValueChange = { displayName = it },
+                modifier = Modifier
+                    .weight(1f),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    errorContainerColor = Color.Transparent,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                    disabledIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    errorIndicatorColor = MaterialTheme.colorScheme.error,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                label = { Text("Username") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+        }
+    }
+}
+
+@Preview(name = "Stats - Light", showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Composable
+private fun PreviewStatsScreenLight() {
+    ReaderTheme(darkTheme = false) {
+        StatsScreen(
+            navController = rememberNavController(),
+            isDarkTheme = false,
+            onThemeToggle = {}
+        )
+    }
+}
+
+@Preview(name = "Stats - Dark", showBackground = true, backgroundColor = 0xFF000000)
+@Composable
+private fun PreviewStatsScreenDark() {
+    ReaderTheme(darkTheme = true) {
+        StatsScreen(
+            navController = rememberNavController(),
+            isDarkTheme = true,
+            onThemeToggle = {}
+        )
     }
 }

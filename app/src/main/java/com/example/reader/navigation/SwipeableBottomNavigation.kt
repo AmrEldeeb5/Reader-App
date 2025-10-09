@@ -38,7 +38,6 @@ fun SwipeableBottomNavigation(
         pageCount = { screens.size }
     )
     val coroutineScope = rememberCoroutineScope()
-    Box(modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)) {
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
@@ -119,7 +118,6 @@ fun SwipeableBottomNavigation(
                 }
             }
         }
-    }
 }
 data class BottomNavScreen(
     val label: String,
