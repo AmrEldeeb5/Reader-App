@@ -11,7 +11,9 @@ import com.example.reader.screens.SignUp.SignUpScreen
 import com.example.reader.screens.details.BookDetailsScreen
 import com.example.reader.screens.login.ReaderLoginScreen
 import com.example.reader.screens.screen.SplashScreen
-import com.example.reader.screens.stats.AboutScreen
+import com.example.reader.screens.profile.AboutScreen
+import com.example.reader.screens.profile.YourFeedbackScreen
+import com.example.reader.screens.profile.ChangePasswordScreen
 
 @Composable
 fun ReaderNavigation(
@@ -80,6 +82,14 @@ fun ReaderNavigation(
         // About screen route
         composable(ReaderScreens.AboutScreen.name) {
             AboutScreen(navController = navController)
+        }
+        // Your Feedback route
+        composable(ReaderScreens.YourFeedbackScreen.name) {
+            YourFeedbackScreen(navController = navController)
+        }
+        // Change Password route
+        composable(ReaderScreens.ChangePasswordScreen.name) {
+            ChangePasswordScreen(navController = navController)
         }
     }
 }

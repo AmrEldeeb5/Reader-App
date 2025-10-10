@@ -1,5 +1,10 @@
-package com.example.reader.screens.stats
+package com.example.reader.screens.profile
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,8 +37,14 @@ import com.example.reader.navigation.ReaderScreens
 import com.example.reader.ui.theme.ReaderTheme
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.shape.RoundedCornerShape
-
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalContext
+import com.example.reader.screens.login.LoginScreenViewModel
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
@@ -42,6 +53,11 @@ fun StatsScreen(
     isDarkTheme: Boolean,
     onThemeToggle: (Boolean) -> Unit
 ) {
+    // Obtain context and ViewModel for logout action
+    val context = LocalContext.current
+    val isPreview = LocalInspectionMode.current
+    val loginViewModel: LoginScreenViewModel? = if (isPreview) null else koinViewModel()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -101,11 +117,11 @@ fun StatsScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // user name and email
+        // user name input field
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp), // match TextField default height
+                .height(48.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -165,6 +181,7 @@ fun StatsScreen(
         Spacer(Modifier.height(24.dp))
         Row(modifier = Modifier
             .fillMaxWidth()
+            .clickable { navController.navigate(ReaderScreens.YourFeedbackScreen.name) }
             .height(48.dp),
             verticalAlignment = Alignment.CenterVertically
         ){
@@ -236,8 +253,42 @@ fun StatsScreen(
         }
         Spacer(Modifier.height(24.dp))
         Row(modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth().clickable { onThemeToggle(!isDarkTheme) }
             .height(48.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Box(
+                modifier = Modifier
+                    .width(48.dp)
+                    .fillMaxHeight()
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                ThemeToggleCompact(
+                    isDark = isDarkTheme,
+                    onToggle = onThemeToggle
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Text("Theme",modifier = Modifier.
+            padding(12.dp)
+                ,style = MaterialTheme.typography.titleMedium
+                ,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(24.dp))
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clickable { navController.navigate(ReaderScreens.ChangePasswordScreen.name) },
             verticalAlignment = Alignment.CenterVertically
         ){
             Box(
@@ -264,7 +315,7 @@ fun StatsScreen(
                 )
             }
             Spacer(Modifier.width(8.dp))
-            Text("Change Your Password",modifier = Modifier.
+            Text("Change Password",modifier = Modifier.
             padding(12.dp)
                 ,style = MaterialTheme.typography.titleMedium
                 ,color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -272,7 +323,18 @@ fun StatsScreen(
         Spacer(Modifier.height(24.dp))
         Row(modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp),
+            .height(48.dp)
+            .clickable {
+                // Sign out with Firebase via ViewModel and clear preferences
+                loginViewModel?.logout(context)
+
+                // Navigate to login (or onboarding) and clear back stack
+                val startRoute = navController.graph.startDestinationRoute
+                navController.navigate(ReaderScreens.LoginScreen.name) {
+                    popUpTo(startRoute ?: ReaderScreens.ReaderHomeScreen.name) { inclusive = true }
+                    launchSingleTop = true
+                }
+            },
             verticalAlignment = Alignment.CenterVertically
         ){
             Box(
@@ -305,11 +367,50 @@ fun StatsScreen(
                 ,color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
+
     }
 }
 
 
+@Composable
+fun ThemeToggleCompact(
+    isDark: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isDark) 180f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "icon_rotation"
+    )
 
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isDark) Color(0xFF1A1B3A) else Color(0xFF3FAF9E).copy(alpha = 0.3f),
+        animationSpec = tween(300),
+        label = "background_color"
+    )
+
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .clickable { onToggle(!isDark) },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = if (isDark) Icons.Filled.DarkMode else Icons.Filled.LightMode,
+            contentDescription = if (isDark) "Switch to Light Mode" else "Switch to Dark Mode",
+            tint = if (isDark) Color.White else Color(0xFF4A4A4A),
+            modifier = Modifier
+                .size(24.dp)
+                .rotate(rotationAngle)
+        )
+    }
+}
 
 
 

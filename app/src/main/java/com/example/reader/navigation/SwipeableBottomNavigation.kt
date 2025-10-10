@@ -1,11 +1,11 @@
 package com.example.reader.navigation
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -13,7 +13,7 @@ import com.example.reader.R
 import com.example.reader.screens.explore.ExploreScreen
 import com.example.reader.screens.SavedScreen
 import com.example.reader.screens.home.Home
-import com.example.reader.screens.stats.StatsScreen
+import com.example.reader.screens.profile.StatsScreen
 import com.example.reader.ui.theme.GreenMid
 import com.example.reader.ui.theme.GreenPrimary
 import com.example.reader.ui.theme.SubtleTextColor
@@ -121,6 +121,6 @@ fun SwipeableBottomNavigation(
 }
 data class BottomNavScreen(
     val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    val icon: ImageVector? = null,
     val vectorRes: Int? = null
 )
