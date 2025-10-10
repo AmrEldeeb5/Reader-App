@@ -31,7 +31,10 @@ import com.example.reader.R
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.ui.theme.ReaderTheme
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+
+
+
 
 @Composable
 fun StatsScreen(
@@ -96,27 +99,36 @@ fun StatsScreen(
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(24.dp))
 
         // user name and email
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(IntrinsicSize.Min),
+                .height(56.dp), // match TextField default height
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
                     .width(48.dp)
                     .fillMaxHeight()
-                    .padding(2.dp),
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.solar__user_bold),
                     contentDescription = "User Icon",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.size(32.dp)
                 )
             }
 
@@ -140,15 +152,172 @@ fun StatsScreen(
                     errorIndicatorColor = MaterialTheme.colorScheme.error,
                     cursorColor = MaterialTheme.colorScheme.primary,
                     focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                 ),
                 label = { Text("Username") },
+                textStyle = MaterialTheme.typography.bodyMedium,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
         }
+        Spacer(Modifier.height(24.dp))
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Box(
+                modifier = Modifier
+                    .width(48.dp)
+                    .fillMaxHeight()
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.solar__smile_circle_bold),
+                    contentDescription = "Feedback Icon",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Text("Your Feedback",modifier = Modifier.
+            padding(12.dp)
+                ,style = MaterialTheme.typography.titleMedium
+            ,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(24.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .clickable { navController.navigate(ReaderScreens.AboutScreen.name) },
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Box(
+                modifier = Modifier
+                    .width(48.dp)
+                    .fillMaxHeight()
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.solar__danger_circle_bold),
+                    contentDescription = "About Icon",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Text("About Us",modifier = Modifier.
+            padding(12.dp)
+                ,style = MaterialTheme.typography.titleMedium
+                ,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(24.dp))
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Box(
+                modifier = Modifier
+                    .width(48.dp)
+                    .fillMaxHeight()
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.solar__lock_password_bold),
+                    contentDescription = "Password Icon",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Text("Change Your Password",modifier = Modifier.
+            padding(12.dp)
+                ,style = MaterialTheme.typography.titleMedium
+                ,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(24.dp))
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Box(
+                modifier = Modifier
+                    .width(48.dp)
+                    .fillMaxHeight()
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.solar__login_2_bold),
+                    contentDescription = "Sign Out Icon",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Text("Log Out",modifier = Modifier.
+            padding(12.dp)
+                ,style = MaterialTheme.typography.titleMedium
+                ,color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+
     }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 @Preview(name = "Stats - Light", showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable

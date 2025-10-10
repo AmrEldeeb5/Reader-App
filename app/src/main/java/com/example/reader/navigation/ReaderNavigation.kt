@@ -11,6 +11,7 @@ import com.example.reader.screens.SignUp.SignUpScreen
 import com.example.reader.screens.details.BookDetailsScreen
 import com.example.reader.screens.login.ReaderLoginScreen
 import com.example.reader.screens.screen.SplashScreen
+import com.example.reader.screens.stats.AboutScreen
 
 @Composable
 fun ReaderNavigation(
@@ -75,6 +76,10 @@ fun ReaderNavigation(
                 onThemeToggle = onThemeToggle,
                 initialPage = 3
             )
+        }
+        // About screen route
+        composable(ReaderScreens.AboutScreen.name) {
+            AboutScreen(navController = navController)
         }
     }
 }
