@@ -39,9 +39,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 
-/**
- * Validates login form input
- */
+
 private fun validateLoginForm(email: String, password: String): String? {
     return when {
         email.isBlank() -> "Email is required"
@@ -51,9 +49,7 @@ private fun validateLoginForm(email: String, password: String): String? {
     }
 }
 
-/**
- * Top app bar for login screen
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LoginTopAppBar(navController: NavController) {
@@ -81,9 +77,7 @@ private fun LoginTopAppBar(navController: NavController) {
     )
 }
 
-/**
- * App logo and title section
- */
+
 @Composable
 private fun LoginHeader(layout: ResponsiveLayout) {
     // App Logo
@@ -100,8 +94,8 @@ private fun LoginHeader(layout: ResponsiveLayout) {
         )
     }
 
+    Spacer(modifier = Modifier.height(1.dp))
 }
-
 
 @Composable
 private fun EmailTextField(

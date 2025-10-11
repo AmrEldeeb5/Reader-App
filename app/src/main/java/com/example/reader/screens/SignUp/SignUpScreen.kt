@@ -276,6 +276,9 @@ fun SignUpScreen(
                         contentScale = ContentScale.Fit
                     )
                 }
+
+                Spacer(modifier = Modifier.height(layout.verticalSpacing / 4))
+
                 // Form Fields
                 SignUpTextField(
                     value = formState.name,
