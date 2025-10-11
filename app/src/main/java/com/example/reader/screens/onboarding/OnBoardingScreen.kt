@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +40,13 @@ import kotlin.math.min
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnBoardingScreen(navController: NavController) {
+    // Define Cinzel font family
+    val cinzelFontFamily = FontFamily(
+        Font(R.font.cinzel_regular, FontWeight.Normal),
+        Font(R.font.cinzel_medium, FontWeight.Medium),
+        Font(R.font.cinzel_bold, FontWeight.Bold)
+    )
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -56,8 +64,40 @@ fun OnBoardingScreen(navController: NavController) {
                     .fillMaxSize()
                     .padding(innerPadding)
                     .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
+                // Main Heading
+                Text(
+                    text = "Get\nStarted!",
+                    fontSize = 64.sp,
+                    fontFamily = cinzelFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    textAlign = TextAlign.Start,
+                    lineHeight = 60.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp)
+                        .padding(bottom = 8.dp)
+                )
+
+                // Tagline
+                Text(
+                    text = "Join us now and start\nYour reading Journey.",
+                    fontSize = 24.sp,
+                    fontFamily = cinzelFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    textAlign = TextAlign.Start,
+                    lineHeight = 24.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp)
+                        .padding(bottom = 48.dp)
+                )
+
+                // Create Account Button
                 Button(
                     onClick = {
                         navController.navigate(ReaderScreens.CreateAccountScreen.name) {
@@ -65,24 +105,26 @@ fun OnBoardingScreen(navController: NavController) {
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = Color(0xFFE8D7C3), // Cream/beige color from image
+                        contentColor = Color(0xFF5D4037)
                     ),
-                    modifier = Modifier.padding(horizontal = 24.dp)
+                    modifier = Modifier
+                        .padding(horizontal = 32.dp)
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         "Create an account",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF5D4037) // Dark brown text
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Outlined Sign In Button
+                // Sign In Button - Outlined
                 OutlinedButton(
                     onClick = {
                         navController.navigate(ReaderScreens.LoginScreen.name) {
@@ -90,17 +132,21 @@ fun OnBoardingScreen(navController: NavController) {
                         }
                     },
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color(0xFF8D6E63)
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White
                     ),
-                    modifier = Modifier.padding(horizontal = 24.dp)
+                    border = BorderStroke(2.dp, Color(0xFF8D6E63)), // Brown border
+                    modifier = Modifier
+                        .padding(horizontal = 32.dp)
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         "Sign in to your account",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
                     )
                 }
 

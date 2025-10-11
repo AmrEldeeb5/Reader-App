@@ -100,26 +100,9 @@ private fun LoginHeader(layout: ResponsiveLayout) {
         )
     }
 
-    Spacer(modifier = Modifier.height(1.dp))
-
-    // App Title
-    Text(
-        text = "Reader",
-        color = MaterialTheme.colorScheme.onBackground,
-        style = if (layout.isCompact)
-            MaterialTheme.typography.headlineLarge
-        else
-            MaterialTheme.typography.displayLarge,
-        fontWeight = FontWeight.ExtraBold,
-        modifier = Modifier.padding(
-            bottom = if (layout.isCompactHeight) 16.dp else 32.dp
-        )
-    )
 }
 
-/**
- * Email input field
- */
+
 @Composable
 private fun EmailTextField(
     email: String,

@@ -15,12 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.reader.R
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.utils.UserPreferences
 import com.example.reader.utils.rememberResponsiveLayout
@@ -32,6 +34,13 @@ import kotlinx.coroutines.tasks.await
 fun SplashScreen(navController: NavController) {
     val context = LocalContext.current
     val layout = rememberResponsiveLayout()
+
+    // Define Cinzel font family
+    val cinzelFontFamily = FontFamily(
+        Font(R.font.cinzel_regular, FontWeight.Normal),
+        Font(R.font.cinzel_medium, FontWeight.Medium),
+        Font(R.font.cinzel_bold, FontWeight.Bold)
+    )
 
     LaunchedEffect(Unit) {
         delay(1000L)
@@ -112,7 +121,7 @@ fun SplashScreen(navController: NavController) {
                 style = MaterialTheme.typography.displayLarge.copy(
                     fontSize = rFontSize,
                     fontWeight = FontWeight.ExtraBold,
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = cinzelFontFamily,
                     color = Color.White,
                     letterSpacing = 2.sp,
                     shadow = androidx.compose.ui.graphics.Shadow(
@@ -131,7 +140,7 @@ fun SplashScreen(navController: NavController) {
                 style = MaterialTheme.typography.displaySmall.copy(
                     fontSize = readerFontSize,
                     fontWeight = FontWeight.Medium,
-                    fontFamily = FontFamily.SansSerif,
+                    fontFamily = cinzelFontFamily,
                     color = Color.White.copy(alpha = 0.95f),
                     letterSpacing = 3.sp
                 ),

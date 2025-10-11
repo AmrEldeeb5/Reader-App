@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -33,10 +34,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
+import com.example.reader.R
+import com.example.reader.utils.cinzelFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnBoardingTopAppBar(navController : NavController) {
+    // Define Cinzel font family
+    val cinzelFontFamily = FontFamily(
+        Font(R.font.cinzel_regular, FontWeight.Normal),
+        Font(R.font.cinzel_medium, FontWeight.Medium),
+        Font(R.font.cinzel_bold, FontWeight.Bold)
+    )
+
     TopAppBar(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -45,7 +55,7 @@ fun OnBoardingTopAppBar(navController : NavController) {
                     style = MaterialTheme.typography.displayLarge.copy(
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = 2.sp,
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = cinzelFontFamily,
                         color = Color.White.copy(alpha = 0.95f)
                     )
                 )
@@ -55,7 +65,7 @@ fun OnBoardingTopAppBar(navController : NavController) {
                     style = MaterialTheme.typography.displaySmall.copy(
                         fontWeight = FontWeight.Medium,
                         letterSpacing = 2.sp,
-                        fontFamily = FontFamily.SansSerif,
+                        fontFamily = cinzelFontFamily,
                         color = Color.White.copy(alpha = 0.95f)
                     )
                 )
@@ -66,7 +76,14 @@ fun OnBoardingTopAppBar(navController : NavController) {
                 navController.navigate(ReaderScreens.LoginScreen.name) {
                     popUpTo(ReaderScreens.OnBoardingScreen.name) { inclusive = true }
                 }
-            }) { Text("Skip", color = Color.White.copy(alpha = 0.9f)) }
+            }) {
+                Text(
+                    "Skip",
+                    color = Color.White,
+                    fontFamily = cinzelFontFamily
+                    ,fontSize = (16.sp)
+                )
+            }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
         modifier = Modifier.background(Color.Transparent)
@@ -81,6 +98,8 @@ fun SocialButton(
     onClick: () -> Unit,
     height: Dp = 56.dp
 ) {
+    // Define Cinzel font family
+
     Surface(
         modifier = modifier
             .height(height)
@@ -106,7 +125,8 @@ fun SocialButton(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = Color.White,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = cinzelFontFamily
                 )
             )
         }

@@ -276,21 +276,6 @@ fun SignUpScreen(
                         contentScale = ContentScale.Fit
                     )
                 }
-
-                Spacer(modifier = Modifier.height(layout.verticalSpacing / 4))
-
-                // App Title
-                Text(
-                    text = "Reader",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = if (layout.isCompact)
-                        MaterialTheme.typography.headlineLarge
-                    else
-                        MaterialTheme.typography.displayLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(bottom = layout.verticalSpacing)
-                )
-
                 // Form Fields
                 SignUpTextField(
                     value = formState.name,

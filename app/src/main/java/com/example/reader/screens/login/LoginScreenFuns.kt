@@ -112,14 +112,6 @@ fun CreateAccountPrompt(
     )
 }
 
-/**
- * Forgot password link that navigates to password recovery
- *
- * @param navController Navigation controller for screen transitions
- * @param isCompact Whether the screen is in compact height mode
- * @param isVeryNarrow Whether the screen is very narrow
- * @param inRow Whether this component is being used inside a Row layout
- */
 @Composable
 fun ForgotPasswordLink(
     navController: NavController,
@@ -131,8 +123,7 @@ fun ForgotPasswordLink(
         TextButton(
             onClick = {
                 // Navigate to create account screen as placeholder
-                // TODO: Replace with actual password recovery screen when available
-                navController.navigate(ReaderScreens.CreateAccountScreen.name)
+                navController.navigate(ReaderScreens.ChangePasswordScreen.name)
             }
         ) {
             Text(
@@ -161,14 +152,7 @@ fun ForgotPasswordLink(
     }
 }
 
-/**
- * Footer section containing forgot password and create account links
- * Arranged horizontally with space between them
- *
- * @param navController Navigation controller for screen transitions
- * @param isCompact Whether the screen is in compact height mode
- * @param isVeryNarrow Whether the screen is very narrow
- */
+
 @Composable
 fun AuthFooterLinks(
     navController: NavController,
@@ -194,11 +178,7 @@ fun AuthFooterLinks(
     }
 }
 
-/**
- * Custom checkbox component for "Remember Me" functionality
- * Uses Material 3 design system colors and shows a check icon when selected
- * Now with persistent storage support!
- */
+
 @Composable
 fun RememberMeBox() {
     val context = LocalContext.current
