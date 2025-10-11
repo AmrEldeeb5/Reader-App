@@ -90,7 +90,7 @@ fun OnBoardingScreen(navController: NavController) {
                         }
                     },
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.White
+                        contentColor = Color(0xFF8D6E63)
                     ),
                     modifier = Modifier.padding(horizontal = 24.dp)
                         .fillMaxWidth()
@@ -99,7 +99,7 @@ fun OnBoardingScreen(navController: NavController) {
                     Text(
                         "Sign in to your account",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFF8D6E63), // Changed from Color.White to brown
+                        color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                 }
