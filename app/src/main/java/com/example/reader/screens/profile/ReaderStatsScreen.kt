@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,7 +45,9 @@ import org.koin.androidx.compose.koinViewModel
 fun StatsScreen(
     navController: NavController,
     isDarkTheme: Boolean,
-    onThemeToggle: (Boolean) -> Unit
+    onThemeToggle: (Boolean) -> Unit,
+    isGreenTheme: Boolean = true,
+    onColorSchemeToggle: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
     val isPreview = LocalInspectionMode.current
@@ -76,7 +77,7 @@ fun StatsScreen(
             .verticalScroll(rememberScrollState())
     ) {
         ProfileTitle()
-        ProfileAvatar(navController)
+        ProfileAvatar(navController, isGreenTheme)
         Spacer(Modifier.height(24.dp))
 
         UsernameSection(
@@ -102,6 +103,11 @@ fun StatsScreen(
         ThemeMenuItem(
             isDarkTheme = isDarkTheme,
             onThemeToggle = onThemeToggle
+        )
+
+        ColorSchemeMenuItem(
+            isGreenTheme = isGreenTheme,
+            onColorSchemeToggle = onColorSchemeToggle
         )
 
         ProfileMenuItem(
@@ -134,7 +140,7 @@ private fun ProfileTitle() {
 }
 
 @Composable
-private fun ProfileAvatar(navController: NavController) {
+private fun ProfileAvatar(navController: NavController, isGreenTheme: Boolean) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopCenter
@@ -144,7 +150,7 @@ private fun ProfileAvatar(navController: NavController) {
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.streamline_kameleon_color__eyeglasses),
+                painter = if (isGreenTheme) painterResource(id = R.drawable.streamline_kameleon_color__eyeglasses) else painterResource(id = R.drawable.streamline_kameleon_color_2__eyeglasses),
                 contentDescription = "User avatar",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -272,7 +278,51 @@ private fun ThemeMenuItem(
         }
         Spacer(Modifier.width(8.dp))
         Text(
-            text = "Theme",
+            text = "Dark Mode",
+            modifier = Modifier.padding(12.dp),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+    Spacer(Modifier.height(24.dp))
+}
+
+@Composable
+private fun ColorSchemeMenuItem(
+    isGreenTheme: Boolean,
+    onColorSchemeToggle: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clickable { onColorSchemeToggle(!isGreenTheme) },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .width(48.dp)
+                .fillMaxHeight()
+                .background(
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                    RoundedCornerShape(12.dp)
+                )
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    RoundedCornerShape(12.dp)
+                )
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            ColorSchemeToggleCompact(
+                isGreen = isGreenTheme,
+                onToggle = onColorSchemeToggle
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = if (isGreenTheme) "Green Theme" else "Brown Theme",
             modifier = Modifier.padding(12.dp),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -344,7 +394,7 @@ fun ThemeToggleCompact(
     )
 
     val backgroundColor by animateColorAsState(
-        targetValue = if (isDark) Color(0xFF1A1B3A) else Color(0xFF3FAF9E).copy(alpha = 0.3f),
+        targetValue = if (isDark) Color(0xFF1A1B3A) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
         animationSpec = tween(300),
         label = "background_color"
     )
@@ -364,6 +414,43 @@ fun ThemeToggleCompact(
             modifier = Modifier
                 .size(24.dp)
                 .rotate(rotationAngle)
+        )
+    }
+}
+
+@Composable
+fun ColorSchemeToggleCompact(
+    isGreen: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isGreen) 0f else 360f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "icon_rotation"
+    )
+
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isGreen) Color(0xFF24786D).copy(alpha = 0.3f) else Color(0xFF6D4C41).copy(alpha = 0.3f),
+        animationSpec = tween(300),
+        label = "background_color"
+    )
+
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .clickable { onToggle(!isGreen) },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = if (isGreen) "🌿" else "🌰",
+            fontSize = 24.sp,
+            modifier = Modifier.rotate(rotationAngle)
         )
     }
 }

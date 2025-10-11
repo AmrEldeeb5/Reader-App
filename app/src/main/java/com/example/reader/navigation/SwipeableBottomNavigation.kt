@@ -14,8 +14,7 @@ import com.example.reader.screens.explore.ExploreScreen
 import com.example.reader.screens.SavedScreen
 import com.example.reader.screens.home.Home
 import com.example.reader.screens.profile.StatsScreen
-import com.example.reader.ui.theme.GreenMid
-import com.example.reader.ui.theme.GreenPrimary
+import com.example.reader.ui.theme.BrownPrimary
 import com.example.reader.ui.theme.SubtleTextColor
 import kotlinx.coroutines.launch
 
@@ -24,6 +23,8 @@ fun SwipeableBottomNavigation(
     navController: NavController,
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
+    isGreenTheme: Boolean = true,
+    onColorSchemeToggle: (Boolean) -> Unit = {},
     initialPage: Int = 0
 ) {
     val screens = listOf(
@@ -71,10 +72,10 @@ fun SwipeableBottomNavigation(
                                 }
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = GreenPrimary,
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
                                 unselectedIconColor = SubtleTextColor,
-                                indicatorColor = GreenMid.copy(alpha = 0.2f),
-                                selectedTextColor = GreenPrimary,
+                                indicatorColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
                                 unselectedTextColor = SubtleTextColor
                             )
                         )
@@ -95,7 +96,8 @@ fun SwipeableBottomNavigation(
                     0 -> Home(
                         navController = navController,
                         isDarkTheme = isDarkTheme,
-                        onThemeToggle = onThemeToggle
+                        onThemeToggle = onThemeToggle,
+                        isGreenTheme = isGreenTheme
                     )
 
                     1 -> ExploreScreen(
@@ -113,7 +115,9 @@ fun SwipeableBottomNavigation(
                     3 -> StatsScreen(
                         navController = navController,
                         isDarkTheme = isDarkTheme,
-                        onThemeToggle = onThemeToggle
+                        onThemeToggle = onThemeToggle,
+                        isGreenTheme = isGreenTheme,
+                        onColorSchemeToggle = onColorSchemeToggle
                     )
                 }
             }

@@ -13,10 +13,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import coil.compose.AsyncImage
 import com.example.reader.data.LastSelectedCoverStore
-import com.example.reader.ui.theme.GreenDark
-import com.example.reader.ui.theme.GreenLight
-import com.example.reader.ui.theme.GreenMid
-import com.example.reader.ui.theme.GreenPrimary
+import com.example.reader.ui.theme.BrownDark
+import com.example.reader.ui.theme.BrownLight
+import com.example.reader.ui.theme.BrownMid
+import com.example.reader.ui.theme.BrownPrimary
 import com.example.reader.ui.theme.ReaderTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun BookDiscoveryScreen(onContinueReading: (Int) -> Unit = {}) {
+fun BookDiscoveryScreen(
+    onContinueReading: (Int) -> Unit = {},
+    isDarkTheme: Boolean = isSystemInDarkTheme(),
+    isGreenTheme: Boolean = true
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -46,7 +50,9 @@ fun BookDiscoveryScreen(onContinueReading: (Int) -> Unit = {}) {
                 modifier = Modifier
                     .fillMaxWidth(0.95f)
                     .height(270.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(16.dp)),
+                isDarkTheme = isDarkTheme,
+                isGreenTheme = isGreenTheme
             )
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -178,42 +184,47 @@ fun BookPlayerCard(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun BookFinderBackground(modifier: Modifier = Modifier) {
-    val isDark = isSystemInDarkTheme()
-
+fun BookFinderBackground(modifier: Modifier = Modifier, isDarkTheme: Boolean, isGreenTheme: Boolean) {
     Box(modifier = modifier) {
         Canvas(modifier = Modifier.matchParentSize()) {
-            if (isDark) {
-                // Dark theme gradient (existing)
-                drawRect(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF00796B),
-                            Color(0xFF00695C),
-                            Color(0xFF004D40),
-                            Color(0xFF00332C)
-                        ),
-                        start = Offset(0f, 0f),
-                        end = Offset(size.width, size.height)
-                    )
+            // Choose gradient colors based on theme combination
+            val gradientColors = when {
+                isDarkTheme && isGreenTheme -> listOf(
+                    Color(0xFF00796B),  // Teal
+                    Color(0xFF00695C),  // Dark teal
+                    Color(0xFF004D40),  // Darker teal
+                    Color(0xFF00332C)   // Darkest teal
                 )
-            } else {
-                // Light theme gradient
-                drawRect(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            GreenLight,      // Light teal
-                            GreenMid,        // Medium green
-                            GreenPrimary,    // Primary green
-                            GreenDark        // Dark green
-                        ),
-                        start = Offset(0f, 0f),
-                        end = Offset(size.width, size.height)
-                    )
+                isDarkTheme && !isGreenTheme -> listOf(
+                    Color(0xFF6D4C41),  // Brown primary
+                    Color(0xFF5D4037),  // Darker brown
+                    Color(0xFF4E342E),  // Even darker brown
+                    Color(0xFF3E2723)   // Darkest brown
+                )
+                !isDarkTheme && isGreenTheme -> listOf(
+                    Color(0xFF3FAF9E),  // Light green
+                    Color(0xFF2F8F81),  // Green mid
+                    Color(0xFF24786D),  // Green primary
+                    Color(0xFF0F4F47)   // Green dark
+                )
+                else -> listOf(  // Light brown theme
+                    BrownLight,      // Light brown
+                    BrownMid,        // Medium brown
+                    BrownPrimary,    // Primary brown
+                    BrownDark        // Dark brown
                 )
             }
 
-            // Wave patterns work for both themes
+            // Draw main gradient background
+            drawRect(
+                brush = Brush.linearGradient(
+                    colors = gradientColors,
+                    start = Offset(0f, 0f),
+                    end = Offset(size.width, size.height)
+                )
+            )
+
+            // Wave 1 - Top decorative wave
             val wave1 = Path().apply {
                 moveTo(size.width, 0f)
                 quadraticTo(
@@ -228,7 +239,7 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 path = wave1,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = if (isDark) 0.08f else 0.15f),
+                        Color.White.copy(alpha = if (isDarkTheme) 0.08f else 0.15f),
                         Color.Transparent
                     ),
                     start = Offset(size.width, 0f),
@@ -236,6 +247,7 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 )
             )
 
+            // Wave 2 - Mid decorative wave
             val wave2 = Path().apply {
                 moveTo(size.width, size.height * 0.25f)
                 quadraticTo(
@@ -250,7 +262,7 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 path = wave2,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color.Black.copy(alpha = if (isDark) 0.12f else 0.06f),
+                        Color.Black.copy(alpha = if (isDarkTheme) 0.12f else 0.06f),
                         Color.Transparent
                     ),
                     start = Offset(size.width, size.height * 0.25f),
@@ -258,7 +270,7 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 )
             )
 
-            // Third wave (additional curve) with another shade for depth
+            // Wave 3 - Additional depth wave
             val wave3 = Path().apply {
                 moveTo(0f, size.height * 0.70f)
                 quadraticTo(
@@ -273,7 +285,7 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 path = wave3,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.08f),
+                        if (isDarkTheme) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.08f),
                         Color.Transparent
                     ),
                     start = Offset(0f, size.height),
@@ -281,7 +293,7 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 )
             )
 
-            // Fourth wave with a gentle green tint in light mode and soft white in dark mode
+            // Wave 4 - Theme-aware accent wave
             val wave4 = Path().apply {
                 moveTo(size.width, size.height * 0.62f)
                 quadraticTo(
@@ -292,19 +304,23 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 lineTo(size.width, size.height)
                 close()
             }
+
+            val wave4Color = when {
+                isDarkTheme -> Color.White.copy(alpha = 0.05f)
+                isGreenTheme -> Color(0xFF2F8F81).copy(alpha = 0.07f)  // Green accent
+                else -> BrownMid.copy(alpha = 0.07f)  // Brown accent
+            }
+
             drawPath(
                 path = wave4,
                 brush = Brush.linearGradient(
-                    colors = listOf(
-                        if (isDark) Color.White.copy(alpha = 0.05f) else GreenMid.copy(alpha = 0.07f),
-                        Color.Transparent
-                    ),
+                    colors = listOf(wave4Color, Color.Transparent),
                     start = Offset(size.width, size.height * 0.62f),
                     end = Offset(0f, size.height)
                 )
             )
 
-            // Fifth wave closer to the bottom for subtle layering
+            // Wave 5 - Bottom subtle layering
             val wave5 = Path().apply {
                 moveTo(size.width, size.height * 0.85f)
                 quadraticTo(
@@ -315,13 +331,17 @@ fun BookFinderBackground(modifier: Modifier = Modifier) {
                 lineTo(size.width, size.height)
                 close()
             }
+
+            val wave5Color = when {
+                isDarkTheme -> Color.White.copy(alpha = 0.035f)
+                isGreenTheme -> Color(0xFF0F4F47).copy(alpha = 0.06f)  // Green dark
+                else -> BrownDark.copy(alpha = 0.06f)  // Brown dark
+            }
+
             drawPath(
                 path = wave5,
                 brush = Brush.linearGradient(
-                    colors = listOf(
-                        if (isDark) Color.White.copy(alpha = 0.035f) else GreenDark.copy(alpha = 0.06f),
-                        Color.Transparent
-                    ),
+                    colors = listOf(wave5Color, Color.Transparent),
                     start = Offset(size.width, size.height),
                     end = Offset(0f, size.height * 0.85f)
                 )

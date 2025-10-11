@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.reader.navigation.ReaderScreens
-import com.example.reader.ui.theme.GreenPrimary
+import com.example.reader.ui.theme.BrownPrimary
 import com.example.reader.ui.theme.SubtleTextColor
 import com.example.reader.ui.theme.TextColor
 import java.util.Calendar
@@ -253,7 +253,7 @@ fun FunThemeToggleCompact(
     )
 
     val backgroundColor by animateColorAsState(
-        targetValue = if (isDark) Color(0xFF1A1B3A) else Color(0xFF3FAF9E).copy(alpha = 0.3f),
+        targetValue = if (isDark) Color(0xFF1A1B3A) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
         animationSpec = tween(300),
         label = "background_color"
     )

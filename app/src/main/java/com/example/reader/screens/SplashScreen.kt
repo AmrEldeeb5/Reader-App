@@ -104,7 +104,7 @@ fun SplashScreen(navController: NavController) {
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFF24786D) // green background
+        color = MaterialTheme.colorScheme.primary // Now adapts to theme
     ) {
         Column(
             modifier = Modifier

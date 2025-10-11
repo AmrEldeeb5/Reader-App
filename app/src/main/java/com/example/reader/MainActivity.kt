@@ -13,9 +13,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.reader.navigation.ReaderNavigation
 import com.example.reader.ui.theme.ReaderTheme
+import com.example.reader.utils.UserPreferences
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,17 +31,36 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ReaderApp() {
+    val context = LocalContext.current
+    val userPreferences = remember { UserPreferences(context) }
+
     // Get the system theme first
     val systemInDarkTheme = isSystemInDarkTheme()
 
-    // Then use it in the remember block
-    var isDarkTheme by remember { mutableStateOf(systemInDarkTheme) }
+    // Load saved theme preferences directly, not in remember block
+    val savedDarkTheme = userPreferences.getDarkTheme()
+    val savedGreenTheme = userPreferences.getGreenTheme()
 
-    ReaderTheme(darkTheme = isDarkTheme) {
+    // Theme states - initialize with saved values or defaults
+    var isDarkTheme by remember { mutableStateOf(savedDarkTheme ?: systemInDarkTheme) }
+    var isGreenTheme by remember { mutableStateOf(savedGreenTheme) }
+
+    ReaderTheme(
+        darkTheme = isDarkTheme,
+        isGreenTheme = isGreenTheme
+    ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             ReaderNavigation(
                 isDarkTheme = isDarkTheme,
-                onThemeToggle = { isDarkTheme = it }
+                onThemeToggle = { newDarkTheme ->
+                    isDarkTheme = newDarkTheme
+                    userPreferences.setDarkTheme(newDarkTheme) // Save preference
+                },
+                isGreenTheme = isGreenTheme,
+                onColorSchemeToggle = { newGreenTheme ->
+                    isGreenTheme = newGreenTheme
+                    userPreferences.setGreenTheme(newGreenTheme) // Save preference
+                }
             )
         }
     }

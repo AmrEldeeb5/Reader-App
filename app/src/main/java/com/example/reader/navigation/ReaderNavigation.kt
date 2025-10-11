@@ -18,7 +18,9 @@ import com.example.reader.screens.profile.ChangePasswordScreen
 @Composable
 fun ReaderNavigation(
     isDarkTheme: Boolean = false,
-    onThemeToggle: (Boolean) -> Unit = {}
+    onThemeToggle: (Boolean) -> Unit = {},
+    isGreenTheme: Boolean = true,
+    onColorSchemeToggle: (Boolean) -> Unit = {}
 ) {
     val navController = rememberNavController()
     NavHost(
@@ -52,6 +54,8 @@ fun ReaderNavigation(
                 navController = navController,
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,
+                isGreenTheme = isGreenTheme,
+                onColorSchemeToggle = onColorSchemeToggle,
                 initialPage = 0
             )
         }
@@ -60,6 +64,8 @@ fun ReaderNavigation(
                 navController = navController,
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,
+                isGreenTheme = isGreenTheme,
+                onColorSchemeToggle = onColorSchemeToggle,
                 initialPage = 1
             )
         }
@@ -68,6 +74,8 @@ fun ReaderNavigation(
                 navController = navController,
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,
+                isGreenTheme = isGreenTheme,
+                onColorSchemeToggle = onColorSchemeToggle,
                 initialPage = 2
             )
         }
@@ -76,6 +84,8 @@ fun ReaderNavigation(
                 navController = navController,
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,
+                isGreenTheme = isGreenTheme,
+                onColorSchemeToggle = onColorSchemeToggle,
                 initialPage = 3
             )
         }

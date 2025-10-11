@@ -61,6 +61,8 @@ class UserPreferences(context: Context) {
         private const val KEY_SAVED_EMAIL = "saved_email"
         private const val KEY_SAVED_PASSWORD = "saved_password"
         private const val KEY_USER_NAME = "user_name"
+        private const val KEY_DARK_THEME = "dark_theme"
+        private const val KEY_GREEN_THEME = "green_theme"
     }
 
     /**
@@ -154,5 +156,43 @@ class UserPreferences(context: Context) {
     fun clearAll() {
         prefs.edit { clear() }
         encryptedPrefs.edit { clear() }
+    }
+
+    /**
+     * Save dark theme preference
+     */
+    fun setDarkTheme(isDark: Boolean) {
+        prefs.edit {
+            putBoolean(KEY_DARK_THEME, isDark)
+        }
+    }
+
+    /**
+     * Get dark theme preference
+     * Returns null if not set (will use system default)
+     */
+    fun getDarkTheme(): Boolean? {
+        return if (prefs.contains(KEY_DARK_THEME)) {
+            prefs.getBoolean(KEY_DARK_THEME, false)
+        } else {
+            null // Not set, use system default
+        }
+    }
+
+    /**
+     * Save color scheme preference (green vs brown)
+     */
+    fun setGreenTheme(isGreen: Boolean) {
+        prefs.edit {
+            putBoolean(KEY_GREEN_THEME, isGreen)
+        }
+    }
+
+    /**
+     * Get color scheme preference
+     * Returns true (green) by default
+     */
+    fun getGreenTheme(): Boolean {
+        return prefs.getBoolean(KEY_GREEN_THEME, true) // Default to green
     }
 }

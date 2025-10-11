@@ -11,7 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
+// Green Dark Color Scheme
+private val GreenDarkColorScheme = darkColorScheme(
     primary = GreenPrimary,
     onPrimary = Color.White,
     primaryContainer = GreenDark,
@@ -27,12 +28,12 @@ private val DarkColorScheme = darkColorScheme(
     tertiaryContainer = GreenDark,
     onTertiaryContainer = GreenExtraLight,
 
-    background = DarkBackground,
-    onBackground = DarkOnBackground,
-    surface = DarkSurface,
-    onSurface = DarkOnBackground,
+    background = DarkGreenBackground,
+    onBackground = DarkGreenOnBackground,
+    surface = DarkGreenSurface,
+    onSurface = DarkGreenOnBackground,
 
-    surfaceVariant = CardBackground,
+    surfaceVariant = GreenCardBackground,
     onSurfaceVariant = TextColor,
 
     outline = SubtleTextColor,
@@ -44,15 +45,16 @@ private val DarkColorScheme = darkColorScheme(
     onErrorContainer = Color(0xFFFFDAD6)
 )
 
-private val LightColorScheme = lightColorScheme(
+// Green Light Color Scheme
+private val GreenLightColorScheme = lightColorScheme(
     primary = GreenPrimary,
     onPrimary = Color.White,
-    primaryContainer = LightPrimaryContainer,
+    primaryContainer = GreenLightPrimaryContainer,
     onPrimaryContainer = GreenDark,
 
     secondary = GreenMid,
     onSecondary = Color.White,
-    secondaryContainer = LightSecondaryContainer,
+    secondaryContainer = GreenLightSecondaryContainer,
     onSecondaryContainer = GreenDark,
 
     tertiary = GreenLight,
@@ -60,32 +62,104 @@ private val LightColorScheme = lightColorScheme(
     tertiaryContainer = Color(0xFFC8F2EC), // Light mint tertiary container
     onTertiaryContainer = GreenDark,
 
-    background = LightBackground,
-    onBackground = LightTextPrimary,
-    surface = LightSurface,
-    onSurface = LightTextPrimary,
+    background = GreenLightBackground,
+    onBackground = GreenLightTextPrimary,
+    surface = GreenLightSurface,
+    onSurface = GreenLightTextPrimary,
 
-    surfaceVariant = LightCardBackground,
-    onSurfaceVariant = LightTextSecondary,
+    surfaceVariant = GreenLightCardBackground,
+    onSurfaceVariant = GreenLightTextSecondary,
 
-    outline = LightTextTertiary,
-    outlineVariant = LightBorder,
+    outline = GreenLightTextTertiary,
+    outlineVariant = GreenLightBorder,
 
     error = BrandErrorRed,
     onError = Color.White,
-    errorContainer = Color(0xFFFFEDEA), // Light red container
+    errorContainer = Color(0xFFFFEDEA),
     onErrorContainer = Color(0xFF410002),
 
-    // Additional surface colors for better hierarchy
-    surfaceContainer = LightCardBackground,
-    surfaceContainerHigh = Color(0xFFEBF7F4), // Light green tint
-    surfaceContainerHighest = Color(0xFFD9F0EA) // Slightly more green
+    surfaceContainer = GreenLightCardBackground,
+    surfaceContainerHigh = Color(0xFFEBF7F4),
+    surfaceContainerHighest = Color(0xFFD9F0EA)
+)
+
+// Brown Dark Color Scheme
+private val BrownDarkColorScheme = darkColorScheme(
+    primary = BrownPrimary,
+    onPrimary = Color.White,
+    primaryContainer = BrownDark,
+    onPrimaryContainer = BrownExtraLight,
+
+    secondary = BrownMid,
+    onSecondary = Color.White,
+    secondaryContainer = BrownDark,
+    onSecondaryContainer = BrownLight,
+
+    tertiary = BrownLight,
+    onTertiary = Color.White,
+    tertiaryContainer = BrownDark,
+    onTertiaryContainer = BrownExtraLight,
+
+    background = DarkBrownBackground,
+    onBackground = DarkBrownOnBackground,
+    surface = DarkBrownSurface,
+    onSurface = DarkBrownOnBackground,
+
+    surfaceVariant = BrownCardBackground,
+    onSurfaceVariant = TextColor,
+
+    outline = SubtleTextColor,
+    outlineVariant = Color(0xFF3A3A3A),
+
+    error = BrandErrorRed,
+    onError = Color.White,
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6)
+)
+
+// Brown Light Color Scheme
+private val BrownLightColorScheme = lightColorScheme(
+    primary = BrownPrimary,
+    onPrimary = Color.White,
+    primaryContainer = BrownLightPrimaryContainer,
+    onPrimaryContainer = BrownDark,
+
+    secondary = BrownMid,
+    onSecondary = Color.White,
+    secondaryContainer = BrownLightSecondaryContainer,
+    onSecondaryContainer = BrownDark,
+
+    tertiary = BrownLight,
+    onTertiary = Color.White,
+    tertiaryContainer = BrownLightPrimaryContainer,
+    onTertiaryContainer = BrownDark,
+
+    background = BrownLightBackground,
+    onBackground = BrownLightTextPrimary,
+    surface = BrownLightSurface,
+    onSurface = BrownLightTextPrimary,
+
+    surfaceVariant = BrownLightCardBackground,
+    onSurfaceVariant = BrownLightTextSecondary,
+
+    outline = BrownLightTextTertiary,
+    outlineVariant = BrownLightBorder,
+
+    error = BrandErrorRed,
+    onError = Color.White,
+    errorContainer = Color(0xFFFFEDEA),
+    onErrorContainer = Color(0xFF410002),
+
+    surfaceContainer = BrownLightCardBackground,
+    surfaceContainerHigh = BrownLightSecondaryContainer,
+    surfaceContainerHighest = BrownLightPrimaryContainer
 )
 
 @Composable
 fun ReaderTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false, // disable dynamic so brand colors are consistent
+    dynamicColor: Boolean = false,
+    isGreenTheme: Boolean = true, // Green is default
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -93,9 +167,12 @@ fun ReaderTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        isGreenTheme -> {
+            if (darkTheme) GreenDarkColorScheme else GreenLightColorScheme
+        }
+        else -> {
+            if (darkTheme) BrownDarkColorScheme else BrownLightColorScheme
+        }
     }
     MaterialTheme(
         colorScheme = colorScheme,

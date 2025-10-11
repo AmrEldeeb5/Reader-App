@@ -34,7 +34,6 @@ import com.example.reader.data.LastSelectedCoverStore
 import com.example.reader.data.model.Book
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.saved.FavoritesViewModel
-import com.example.reader.ui.theme.CardBackground
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -48,6 +47,7 @@ fun Home(
     navController: NavController,
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
+    isGreenTheme: Boolean = true,
     viewModel: HomeViewModel = koinViewModel(),
     favoritesViewModel: FavoritesViewModel = koinInject() // Inject singleton
 ) {
@@ -65,7 +65,8 @@ fun Home(
             HomeTopBar(
                 navController = navController,
                 isDarkTheme = isDarkTheme,
-                onThemeToggle = onThemeToggle
+                onThemeToggle = onThemeToggle,
+                isGreenTheme = isGreenTheme
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -79,7 +80,9 @@ fun Home(
             BookDiscoveryScreen(
                 onContinueReading = { id ->
                     navController.navigate(ReaderScreens.DetailScreen.name + "/$id")
-                }
+                },
+                isDarkTheme = isDarkTheme,
+                isGreenTheme = isGreenTheme
             )
 
             CategoryTabs(
@@ -151,7 +154,8 @@ fun HomeTopBar(
     isDarkTheme: Boolean,
     onThemeToggle: (Boolean) -> Unit,
     userName: String? = null,
-    onNotificationsClick: () -> Unit = {}
+    onNotificationsClick: () -> Unit = {},
+    isGreenTheme: Boolean
 ) {
     val isPreview = LocalInspectionMode.current
     val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else koinViewModel()
@@ -171,7 +175,7 @@ fun HomeTopBar(
         },
         navigationIcon = {
             Image(
-                painter = painterResource(id = R.drawable.streamline_kameleon_color__eyeglasses),
+                painter = if (isGreenTheme) painterResource(id = R.drawable.streamline_kameleon_color__eyeglasses) else painterResource(id = R.drawable.streamline_kameleon_color_2__eyeglasses),
                 contentDescription = "User avatar",
                 modifier = Modifier
                     .clickable(onClick = {
@@ -459,11 +463,7 @@ fun BookCard(
             .height(290.dp)
             .clickable { onBookClick() },
         colors = CardDefaults.cardColors(
-            containerColor = if (isDarkTheme) {
-                CardBackground
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
