@@ -157,6 +157,9 @@ fun HomeTopBar(
     val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else koinViewModel()
     val syncedUsername by (userProfileViewModel?.username?.collectAsState() ?: remember { mutableStateOf("Andy") })
 
+    // State for notification popup
+    var showNotificationPopup by remember { mutableStateOf(false) }
+
     // Use the synced username from ViewModel, fallback to parameter or default
     val displayUsername = syncedUsername.takeIf { it.isNotBlank() } ?: userName ?: "Andy"
 
@@ -179,14 +182,29 @@ fun HomeTopBar(
             )
         },
         actions = {
-            IconButton(onClick = onNotificationsClick) {
-                Image(
-                    painter = painterResource(id = R.drawable.solar__bell_bing_bold),
-                    contentDescription = "Notifications",
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
-                    modifier = Modifier.size(28.dp)
-                )
+            Box {
+                IconButton(onClick = { showNotificationPopup = true }) {
+                    Image(
+                        painter = painterResource(id = R.drawable.solar__bell_bing_bold),
+                        contentDescription = "Notifications",
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                // Notification Dropdown Menu
+                DropdownMenu(
+                    expanded = showNotificationPopup,
+                    onDismissRequest = { showNotificationPopup = false },
+                    modifier = Modifier.width(280.dp)
+                ) {
+                    NotificationContent(
+                        onDismiss = { showNotificationPopup = false },
+                        isDarkTheme = isDarkTheme
+                    )
+                }
             }
+
             FunThemeToggleCompact(
                 isDark = isDarkTheme,
                 onToggle = onThemeToggle
@@ -199,6 +217,66 @@ fun HomeTopBar(
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
     )
+}
+
+@Composable
+fun NotificationContent(
+    onDismiss: () -> Unit,
+    isDarkTheme: Boolean
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Bell icon with subtle animation
+        Icon(
+            painter = painterResource(id = R.drawable.solar__bell_bing_bold),
+            contentDescription = "No notifications",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.size(40.dp)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Title
+        Text(
+            text = "No Notifications",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Message
+        Text(
+            text = "You have no notifications yet",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Close button with theme-aware styling
+        OutlinedButton(
+            onClick = onDismiss,
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary
+            ),
+            border = ButtonDefaults.outlinedButtonBorder.copy(
+                brush = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                ).brush
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("OK", fontWeight = FontWeight.Medium)
+        }
+    }
 }
 
 @Composable

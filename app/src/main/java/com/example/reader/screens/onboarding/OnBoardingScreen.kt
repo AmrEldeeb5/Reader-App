@@ -29,204 +29,93 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import com.example.reader.R
 import androidx.compose.ui.platform.LocalConfiguration
+import coil.compose.AsyncImage
 import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnBoardingScreen(navController: NavController) {
-    // Gradient background (vertical)
-    val gradient = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFF0F4F47), // dark variant
-            Color(0xFF24786D), // base splash color
-            Color(0xFF2F8F81), // mid accent
-            Color(0xFF3FAF9E)  // lighter accent
-        )
-    )
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Background Image - full screen, behind everything
+        BackGround()
 
-    val configuration = LocalConfiguration.current
-    val sw = configuration.screenWidthDp
-    val sh = configuration.screenHeightDp
-    val isTablet = sw >= 600
-    val isNarrow = sw < 340
-    val isShort = sh < 600
-
-    val horizontalPadding = when {
-        isTablet -> 64.dp
-        isNarrow -> 16.dp
-        else -> 24.dp
-    }
-
-    val headingSize = when {
-        isTablet -> 44.sp
-        isNarrow -> 26.sp
-        else -> 32.sp
-    }
-    val headingLineHeight = (headingSize.value * 1.18f).sp
-    val subTextSize = when {
-        isTablet -> 18.sp
-        isNarrow -> 12.sp
-        else -> 14.sp
-    }
-
-    Scaffold(
-        topBar = {
-            OnBoardingTopAppBar(navController)
-        },
-        containerColor = Color.Transparent
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(gradient)
-                .padding(innerPadding)
-                .padding(horizontal = horizontalPadding)
-        ) {
+        Scaffold(
+            topBar = {
+                OnBoardingTopAppBar(navController)
+            },
+            containerColor = Color.Transparent
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(innerPadding)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(if (isShort) 32.dp else 48.dp))
-
-                Text(
-                    text = if (isTablet) "Read smarter,\non any device" else "Read smarter,\nanytime & anywhere",
-                    color = Color.White,
-                    fontSize = headingSize,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = headingLineHeight,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(if (isShort) 12.dp else 16.dp))
-
-                // Subtext
-                Text(
-                    text = "Your digital bookshelf with hand-picked stories, novels, and more — always within reach.",
-                    color = Color.White.copy(alpha = 0.82f),
-                    fontSize = subTextSize,
-                    lineHeight = (subTextSize.value * 1.3f).sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = if (isNarrow) 4.dp else 8.dp)
-                )
-
-                Spacer(modifier = Modifier.height(if (isShort) 24.dp else 32.dp))
-
-                // Responsive social auth layout
-                if (isNarrow) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        SocialButton(
-                            modifier = Modifier.fillMaxWidth(),
-                            iconRes = R.drawable.facebook,
-                            label = "Facebook",
-                            onClick = { }
-                        )
-                        Spacer(modifier = Modifier.height(14.dp))
-                        SocialButton(
-                            modifier = Modifier.fillMaxWidth(),
-                            iconRes = R.drawable.search,
-                            label = "Google",
-                            onClick = { }
-                        )
-                    }
-                } else {
-                    val maxButtonWidth = min((sw - (horizontalPadding.value * 2) - 40), 300f) // leave spacing
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        SocialButton(
-                            modifier = Modifier.width(maxButtonWidth.dp / 2f),
-                            iconRes = R.drawable.facebook,
-                            label = "Facebook",
-                            onClick = { }
-                        )
-                        Spacer(modifier = Modifier.width(20.dp))
-                        SocialButton(
-                            modifier = Modifier.width(maxButtonWidth.dp / 2f),
-                            iconRes = R.drawable.search,
-                            label = "Google",
-                            onClick = { }
-                        )
-                    }
-                }
-
-                // Replace standalone spacers + Text("OR") with centered OR flanked by horizontal lines
-                Spacer(modifier = Modifier.height(if (isShort) 20.dp else 24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = Color.White.copy(alpha = 0.3f),
-                        thickness = 1.dp
-                    )
-                    Text(
-                        "OR",
-                        color = Color.White.copy(alpha = 0.7f),
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = 12.dp)
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = Color.White.copy(alpha = 0.3f),
-                        thickness = 1.dp
-                    )
-                }
-                Spacer(modifier = Modifier.height(if (isShort) 12.dp else 16.dp))
-
                 Button(
-                    onClick = { navController.navigate(ReaderScreens.LoginScreen.name) {
-                        popUpTo(ReaderScreens.OnBoardingScreen.name) { inclusive = true } } },
+                    onClick = {
+                        navController.navigate(ReaderScreens.CreateAccountScreen.name) {
+                            popUpTo(ReaderScreens.OnBoardingScreen.name) { inclusive = true }
+                        }
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
-                    modifier = Modifier
+                    modifier = Modifier.padding(horizontal = 24.dp)
                         .fillMaxWidth()
-                        .height(if (isNarrow) 46.dp else 50.dp),
-                    shape = RoundedCornerShape(if (isNarrow) 20.dp else 24.dp)
+                        .height(50.dp),
                 ) {
                     Text(
-                        "Continue with email",
-                        style = if (isNarrow) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
+                        "Create an account",
+                        style = MaterialTheme.typography.bodyLarge,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                Spacer(modifier = Modifier.height(if (isShort) 24.dp else 32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                // Sign up link (navigates to Create Account)
-                val signUpTag = "SIGN_UP_TAG"
-                val annotated = buildAnnotatedString {
-                    append("New reader? ")
-                    pushStringAnnotation(tag = signUpTag, annotation = "signup")
-                    withStyle(SpanStyle(color = Color.White, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)) {
-                        append("Sign up")
-                    }
-                    pop()
-                }
-                ClickableText(
-                    text = annotated,
-                    style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray),
-                    onClick = { offset ->
-                        annotated.getStringAnnotations(signUpTag, offset, offset).firstOrNull()?.let {
-                            navController.navigate(ReaderScreens.CreateAccountScreen.name) {
-                                popUpTo(ReaderScreens.OnBoardingScreen.name) { inclusive = true }
-                            }
+                // Outlined Sign In Button
+                OutlinedButton(
+                    onClick = {
+                        navController.navigate(ReaderScreens.LoginScreen.name) {
+                            popUpTo(ReaderScreens.OnBoardingScreen.name) { inclusive = true }
                         }
-                    }
-                )
+                    },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                        .fillMaxWidth()
+                        .height(50.dp),
+                ) {
+                    Text(
+                        "Sign in to your account",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF8D6E63), // Changed from Color.White to brown
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(48.dp))
             }
         }
     }
+}
+
+@Composable
+fun BackGround() {
+    AsyncImage(
+        model = R.drawable.beautiful_world,
+        contentDescription = "Background Image",
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxSize()
+    )
 }

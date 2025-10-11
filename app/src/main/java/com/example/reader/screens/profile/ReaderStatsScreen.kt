@@ -200,7 +200,7 @@ private fun UsernameSection(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = if (username.isNotBlank()) username else "Tap to edit",
+                text = if (username.isNotBlank()) username else "edit",
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (username.isNotBlank())
                     MaterialTheme.colorScheme.onSurface
