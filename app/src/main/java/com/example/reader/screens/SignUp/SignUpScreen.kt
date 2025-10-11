@@ -34,6 +34,7 @@ import com.example.reader.components.SignUpFormState
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.login.RememberMeBox
 import com.example.reader.screens.login.RememberMeBoxState
+import com.example.reader.screens.profile.UserProfileViewModel
 import com.example.reader.utils.UserPreferences
 import com.example.reader.utils.rememberResponsiveLayout
 import kotlinx.coroutines.launch
@@ -168,6 +169,9 @@ fun SignUpScreen(
     val context = LocalContext.current
     val userPrefs = remember { UserPreferences(context) }
 
+    // Add UserProfileViewModel for username synchronization
+    val userProfileViewModel: UserProfileViewModel = koinViewModel()
+
     // Form state management
     var formState by remember { mutableStateOf(SignUpFormState()) }
     var formErrors by remember { mutableStateOf(FormErrors()) }
@@ -207,6 +211,9 @@ fun SignUpScreen(
 
         viewModel.signUp(formState.name, formState.email, formState.password) { success, errorMsg ->
             if (success) {
+                // Synchronize username with UserProfileViewModel immediately after successful signup
+                userProfileViewModel.updateUsername(formState.name.trim())
+
                 // Handle "Remember Me" for auto-login
                 if (RememberMeBoxState.rememberMe) {
                     // Save credentials securely for auto-login
@@ -217,8 +224,8 @@ fun SignUpScreen(
                     )
                     userPrefs.setRememberMe(true)
                 } else {
-                    // Clear saved credentials if user unchecked "Remember Me"
-                    userPrefs.clearCredentials()
+                    // Still save the username even if remember me is false
+                    userPrefs.updateUserName(formState.name.trim())
                     userPrefs.setRememberMe(false)
                 }
 

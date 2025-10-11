@@ -40,6 +40,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.example.reader.screens.profile.UserProfileViewModel
+import androidx.compose.ui.platform.LocalInspectionMode
 
 @Composable
 fun Home(
@@ -151,39 +153,17 @@ fun HomeTopBar(
     userName: String? = null,
     onNotificationsClick: () -> Unit = {}
 ) {
-    val auth = FirebaseAuth.getInstance()
-    val initialName = remember(userName, auth.currentUser) {
-        userName ?: auth.currentUser?.displayName?.takeIf { it.isNotBlank() }
-        ?: "Andy"
-    }
-    var resolvedName by remember { mutableStateOf(initialName) }
+    val isPreview = LocalInspectionMode.current
+    val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else koinViewModel()
+    val syncedUsername by (userProfileViewModel?.username?.collectAsState() ?: remember { mutableStateOf("Andy") })
 
-    LaunchedEffect(initialName) {
-        val currentUser = auth.currentUser
-        if (currentUser == null) return@LaunchedEffect
-        try {
-            val snapshot = FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(currentUser.uid)
-                .get()
-                .await()
-            if (snapshot.exists()) {
-                val fromDoc = snapshot.getString("displayName")
-                    ?: snapshot.getString("username")
-                    ?: snapshot.getString("name")
-                if (!fromDoc.isNullOrBlank() && fromDoc != resolvedName) {
-                    resolvedName = fromDoc
-                }
-            }
-        } catch (_: Exception) {
-            // Ignore failures and keep the immediate fallback
-        }
-    }
+    // Use the synced username from ViewModel, fallback to parameter or default
+    val displayUsername = syncedUsername.takeIf { it.isNotBlank() } ?: userName ?: "Andy"
 
     TopAppBar(
         title = {
             Column(modifier = Modifier.padding(horizontal = 4.dp)) {
-                GreetingSection(resolvedName)
+                GreetingSection(displayUsername)
             }
         },
         navigationIcon = {

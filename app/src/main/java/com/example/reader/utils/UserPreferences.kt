@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Manages user preferences for the Reader app
@@ -40,6 +43,15 @@ class UserPreferences(context: Context) {
 
     // Regular SharedPreferences for non-sensitive data
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    // StateFlow for reactive username updates - initialize with null first, then load
+    private val _userName = MutableStateFlow<String?>(null)
+    val userName: StateFlow<String?> = _userName.asStateFlow()
+
+    init {
+        // Initialize the username StateFlow with saved value
+        _userName.value = getSavedUserName()
+    }
 
     companion object {
         private const val PREFS_NAME = "reader_user_prefs"
@@ -110,6 +122,16 @@ class UserPreferences(context: Context) {
      */
     fun getSavedUserName(): String? {
         return prefs.getString(KEY_USER_NAME, null)
+    }
+
+    /**
+     * Update just the user name without affecting other saved data
+     */
+    fun updateUserName(userName: String) {
+        prefs.edit {
+            putString(KEY_USER_NAME, userName)
+        }
+        _userName.value = userName // Update StateFlow
     }
 
     /**
