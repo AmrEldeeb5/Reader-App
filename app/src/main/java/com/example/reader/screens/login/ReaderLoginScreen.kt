@@ -94,7 +94,7 @@ private fun LoginHeader(layout: ResponsiveLayout) {
         )
     }
 
-    Spacer(modifier = Modifier.height(1.dp))
+    Spacer(modifier = Modifier.height(16.dp))
 }
 
 @Composable
