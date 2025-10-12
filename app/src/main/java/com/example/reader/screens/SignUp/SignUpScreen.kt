@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -132,9 +131,9 @@ private fun SignUpButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        enabled = isEnabled && !isLoading,
+        modifier = Modifier.fillMaxWidth().height(50.dp),
         shape = MaterialTheme.shapes.medium,
+        enabled = isEnabled && !isLoading,
         colors = ButtonDefaults.buttonColors(
             containerColor = if (isEnabled) MaterialTheme.colorScheme.primary
             else MaterialTheme.colorScheme.surfaceVariant,
@@ -280,7 +279,8 @@ fun SignUpScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(layout.verticalSpacing ))
+                // Restore original smaller spacing after logo
+                Spacer(modifier = Modifier.height(layout.verticalSpacing))
 
                 // Form Fields
                 SignUpTextField(
@@ -367,6 +367,9 @@ fun SignUpScreen(
                         }
                     )
                 }
+
+                // Add spacing between Remember Me and Sign Up button
+                Spacer(modifier = Modifier.height(layout.verticalSpacing))
 
                 // Sign Up Button
                 SignUpButton(
