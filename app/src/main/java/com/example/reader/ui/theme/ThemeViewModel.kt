@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * Handles both dark/light mode and color scheme (green/brown)
  */
 class ThemeViewModel : ViewModel() {
-    private val _isGreenTheme = MutableStateFlow(true) // Green is default
+    private val _isGreenTheme = MutableStateFlow(false) // Brown is default
     val isGreenTheme: StateFlow<Boolean> = _isGreenTheme.asStateFlow()
 
     fun toggleColorScheme() {
@@ -21,4 +21,3 @@ class ThemeViewModel : ViewModel() {
         _isGreenTheme.value = isGreen
     }
 }
-

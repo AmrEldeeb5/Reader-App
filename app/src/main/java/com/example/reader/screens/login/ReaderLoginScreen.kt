@@ -79,7 +79,7 @@ private fun LoginTopAppBar(navController: NavController) {
 
 
 @Composable
-private fun LoginHeader(layout: ResponsiveLayout) {
+private fun LoginHeader(layout: ResponsiveLayout, isGreenTheme: Boolean) {
     // App Logo
     Box(
         modifier = Modifier
@@ -88,7 +88,7 @@ private fun LoginHeader(layout: ResponsiveLayout) {
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.reader_logo),
+            painter = if (isGreenTheme) painterResource(id = R.drawable.reader_logo) else painterResource(id = R.drawable.reader_logo2),
             contentDescription = "Reader app logo with books and mug",
             contentScale = ContentScale.Fit
         )
@@ -220,7 +220,7 @@ private fun LoginButton(
             .fillMaxWidth()
             .height(LoginConstants.BUTTON_HEIGHT.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.secondary,
         ),
         shape = MaterialTheme.shapes.medium,
         enabled = !isLoading
@@ -251,7 +251,8 @@ private fun LoginButton(
 fun ReaderLoginScreen(
     navController: NavController,
     onLoginClick: (String, String) -> Unit,
-    viewModel: LoginScreenViewModel = koinViewModel()
+    viewModel: LoginScreenViewModel = koinViewModel(),
+    isGreenTheme: Boolean = true
 ) {
     val context = LocalContext.current
     val userPrefs = remember { UserPreferences(context) }
@@ -366,7 +367,7 @@ fun ReaderLoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Header Section
-                LoginHeader(layout)
+                LoginHeader(layout, isGreenTheme)
 
                 // Email Input
                 EmailTextField(

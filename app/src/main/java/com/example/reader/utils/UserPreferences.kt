@@ -190,9 +190,9 @@ class UserPreferences(context: Context) {
 
     /**
      * Get color scheme preference
-     * Returns true (green) by default
+     * Returns false (brown) by default
      */
     fun getGreenTheme(): Boolean {
-        return prefs.getBoolean(KEY_GREEN_THEME, true) // Default to green
+        return prefs.getBoolean(KEY_GREEN_THEME, false) // Default to brown
     }
 }

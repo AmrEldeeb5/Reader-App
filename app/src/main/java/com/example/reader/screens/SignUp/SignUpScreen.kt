@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -133,6 +134,7 @@ private fun SignUpButton(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         enabled = isEnabled && !isLoading,
+        shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
             containerColor = if (isEnabled) MaterialTheme.colorScheme.primary
             else MaterialTheme.colorScheme.surfaceVariant,
@@ -164,7 +166,8 @@ private fun SignUpButton(
 fun SignUpScreen(
     navController: NavController,
     onSignUpClick: (String, String, String) -> Unit,
-    viewModel: SignUpScreenViewModel = koinViewModel()
+    viewModel: SignUpScreenViewModel = koinViewModel(),
+    isGreenTheme: Boolean = true
 ) {
     val context = LocalContext.current
     val userPrefs = remember { UserPreferences(context) }
@@ -271,13 +274,13 @@ fun SignUpScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.reader_logo),
+                        painter = if (isGreenTheme) painterResource(id = R.drawable.reader_logo) else painterResource(id = R.drawable.reader_logo2),
                         contentDescription = "Illustration of books and a mug",
                         contentScale = ContentScale.Fit
                     )
                 }
 
-                Spacer(modifier = Modifier.height(layout.verticalSpacing / 4))
+                Spacer(modifier = Modifier.height(layout.verticalSpacing ))
 
                 // Form Fields
                 SignUpTextField(

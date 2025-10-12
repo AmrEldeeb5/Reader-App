@@ -34,10 +34,18 @@ fun ReaderNavigation(
             OnBoardingScreen(navController = navController)
         }
         composable(ReaderScreens.LoginScreen.name) {
-            ReaderLoginScreen(navController = navController, onLoginClick = { email, password -> })
+            ReaderLoginScreen(
+                navController = navController,
+                onLoginClick = { email, password -> },
+                isGreenTheme = isGreenTheme
+            )
         }
         composable(ReaderScreens.CreateAccountScreen.name) {
-            SignUpScreen(navController = navController, onSignUpClick = { name, email, password -> })
+            SignUpScreen(
+                navController = navController,
+                onSignUpClick = { name, email, password -> },
+                isGreenTheme = isGreenTheme
+            )
         }
         // Detail screen with argument
         composable(
