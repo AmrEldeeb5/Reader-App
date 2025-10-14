@@ -34,13 +34,11 @@ import com.example.reader.data.LastSelectedCoverStore
 import com.example.reader.data.model.Book
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.saved.FavoritesViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import com.example.reader.screens.profile.UserProfileViewModel
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.foundation.BorderStroke
 
 @Composable
 fun Home(
@@ -60,6 +58,13 @@ fun Home(
         favoriteBooks.map { it.id }.toSet()
     }
 
+    // Animated colors for smooth theme transitions
+    val animatedBackgroundColor by animateColorAsState(
+        targetValue = MaterialTheme.colorScheme.background,
+        animationSpec = tween(durationMillis = 300),
+        label = "background_color"
+    )
+
     Scaffold(
         topBar = {
             HomeTopBar(
@@ -69,7 +74,7 @@ fun Home(
                 isGreenTheme = isGreenTheme
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = animatedBackgroundColor
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -154,7 +159,6 @@ fun HomeTopBar(
     isDarkTheme: Boolean,
     onThemeToggle: (Boolean) -> Unit,
     userName: String? = null,
-    onNotificationsClick: () -> Unit = {},
     isGreenTheme: Boolean
 ) {
     val isPreview = LocalInspectionMode.current
@@ -166,6 +170,25 @@ fun HomeTopBar(
 
     // Use the synced username from ViewModel, fallback to parameter or default
     val displayUsername = syncedUsername.takeIf { it.isNotBlank() } ?: userName ?: "Andy"
+
+    // Animated colors for smooth theme transitions
+    val animatedContainerColor by animateColorAsState(
+        targetValue = MaterialTheme.colorScheme.background,
+        animationSpec = tween(durationMillis = 300),
+        label = "topbar_container_color"
+    )
+
+    val animatedContentColor by animateColorAsState(
+        targetValue = MaterialTheme.colorScheme.onBackground,
+        animationSpec = tween(durationMillis = 300),
+        label = "topbar_content_color"
+    )
+
+    val animatedIconColor by animateColorAsState(
+        targetValue = MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(durationMillis = 300),
+        label = "topbar_icon_color"
+    )
 
     TopAppBar(
         title = {
@@ -191,7 +214,7 @@ fun HomeTopBar(
                     Image(
                         painter = painterResource(id = R.drawable.solar__bell_bing_bold),
                         contentDescription = "Notifications",
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
+                        colorFilter = ColorFilter.tint(animatedIconColor),
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -203,8 +226,7 @@ fun HomeTopBar(
                     modifier = Modifier.width(280.dp)
                 ) {
                     NotificationContent(
-                        onDismiss = { showNotificationPopup = false },
-                        isDarkTheme = isDarkTheme
+                        onDismiss = { showNotificationPopup = false }
                     )
                 }
             }
@@ -215,18 +237,17 @@ fun HomeTopBar(
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            titleContentColor = MaterialTheme.colorScheme.onBackground,
-            navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            containerColor = animatedContainerColor,
+            titleContentColor = animatedContentColor,
+            navigationIconContentColor = animatedIconColor,
+            actionIconContentColor = animatedIconColor
         ),
     )
 }
 
 @Composable
 fun NotificationContent(
-    onDismiss: () -> Unit,
-    isDarkTheme: Boolean
+    onDismiss: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -270,12 +291,7 @@ fun NotificationContent(
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.primary
             ),
-            border = ButtonDefaults.outlinedButtonBorder.copy(
-                brush = androidx.compose.foundation.BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                ).brush
-            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("OK", fontWeight = FontWeight.Medium)

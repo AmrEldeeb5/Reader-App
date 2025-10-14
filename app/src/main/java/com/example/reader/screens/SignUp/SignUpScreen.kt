@@ -35,6 +35,7 @@ import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.login.RememberMeBox
 import com.example.reader.screens.login.RememberMeBoxState
 import com.example.reader.screens.profile.UserProfileViewModel
+import com.example.reader.ui.theme.animatedScaffoldContainerColor
 import com.example.reader.utils.UserPreferences
 import com.example.reader.utils.rememberResponsiveLayout
 import kotlinx.coroutines.launch
@@ -245,7 +246,7 @@ fun SignUpScreen(
 
     Scaffold(
         topBar = { SignUpTopAppBar(navController) },
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = animatedScaffoldContainerColor(),
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Box(

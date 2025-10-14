@@ -1,28 +1,27 @@
 package com.example.reader
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.reader.navigation.ReaderNavigation
 import com.example.reader.ui.theme.ReaderTheme
 import com.example.reader.utils.UserPreferences
+import com.example.reader.ui.theme.rememberAppThemeState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
         setContent {
             ReaderApp()
         }
@@ -32,42 +31,46 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ReaderApp() {
     val context = LocalContext.current
-    val userPreferences = remember { UserPreferences(context) }
+    val prefs = remember { UserPreferences(context) }
 
-    // Get the system theme first
-    val systemInDarkTheme = isSystemInDarkTheme()
-
-    // Load saved theme preferences directly, not in remember block
-    val savedDarkTheme = userPreferences.getDarkTheme()
-    val savedGreenTheme = userPreferences.getGreenTheme()
-
-    // Theme states - initialize with saved values or defaults
-    var isDarkTheme by remember { mutableStateOf(savedDarkTheme ?: systemInDarkTheme) }
-    var isGreenTheme by remember { mutableStateOf(savedGreenTheme) }
+    // Centralized, stable theme state with instant persistence
+    val themeState = rememberAppThemeState(prefs)
 
     ReaderTheme(
-        darkTheme = isDarkTheme,
-        isGreenTheme = isGreenTheme
+        darkTheme = themeState.isDarkTheme,
+        isGreenTheme = themeState.isGreenTheme
     ) {
+        // Apply system bars only when theme changes
+        val activity = context as? ComponentActivity
+        DisposableEffect(themeState.isDarkTheme) {
+            activity?.enableEdgeToEdge(
+                statusBarStyle = if (themeState.isDarkTheme) {
+                    SystemBarStyle.dark(Color.TRANSPARENT)
+                } else {
+                    SystemBarStyle.light(Color.TRANSPARENT, Color.BLACK)
+                },
+                navigationBarStyle = if (themeState.isDarkTheme) {
+                    SystemBarStyle.dark(Color.TRANSPARENT)
+                } else {
+                    SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                }
+            )
+            onDispose { }
+        }
+
         Surface(modifier = Modifier.fillMaxSize()) {
             ReaderNavigation(
-                isDarkTheme = isDarkTheme,
-                onThemeToggle = { newDarkTheme ->
-                    isDarkTheme = newDarkTheme
-                    userPreferences.setDarkTheme(newDarkTheme) // Save preference
-                },
-                isGreenTheme = isGreenTheme,
-                onColorSchemeToggle = { newGreenTheme ->
-                    isGreenTheme = newGreenTheme
-                    userPreferences.setGreenTheme(newGreenTheme) // Save preference
-                }
+                isDarkTheme = themeState.isDarkTheme,
+                onThemeToggle = { themeState.setDark(it) },
+                isGreenTheme = themeState.isGreenTheme,
+                onColorSchemeToggle = { themeState.setGreen(it) }
             )
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ReaderAppPreview() {
-    ReaderApp()
-}
+// @Preview(showBackground = true)
+// @Composable
+// fun ReaderAppPreview() {
+//     ReaderApp()
+// }

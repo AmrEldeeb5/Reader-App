@@ -32,6 +32,8 @@ import com.example.reader.components.LoadingState
 import com.example.reader.components.LoginConstants
 import com.example.reader.components.LoginFormState
 import com.example.reader.navigation.ReaderScreens
+import com.example.reader.ui.theme.animatedScaffoldContainerColor
+import com.example.reader.ui.theme.animatedTopBarContainerColor
 import com.example.reader.utils.ResponsiveLayout
 import com.example.reader.utils.UserPreferences
 import com.example.reader.utils.rememberResponsiveLayout
@@ -73,7 +75,10 @@ private fun LoginTopAppBar(navController: NavController) {
                     contentDescription = "Back"
                 )
             }
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = animatedTopBarContainerColor()
+        )
     )
 }
 

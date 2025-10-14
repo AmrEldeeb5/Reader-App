@@ -1,17 +1,20 @@
 package com.example.reader.screens.saved
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.reader.data.model.Book
+import com.example.reader.data.realm.RealmRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Shared ViewModel for managing favorite books across the app
- * This ensures favorites persist across screen navigation
+ * This ensures favorites persist across screen navigation and app restarts using Realm DB
  * Uses Koin for dependency injection as a singleton
  */
-class FavoritesViewModel : ViewModel() {
+class FavoritesViewModel(private val realmRepository: RealmRepository) : ViewModel() {
 
     private val _favoriteBooks = MutableStateFlow<List<Book>>(emptyList())
     val favoriteBooks: StateFlow<List<Book>> = _favoriteBooks.asStateFlow()
@@ -20,29 +23,41 @@ class FavoritesViewModel : ViewModel() {
     private val _currentBook = MutableStateFlow<Book?>(null)
     val currentBook: StateFlow<Book?> = _currentBook.asStateFlow()
 
+    init {
+        loadFavoritesFromRealm()
+    }
+
+    private fun loadFavoritesFromRealm() {
+        viewModelScope.launch {
+            realmRepository.getAllFavoriteBooks().collect { books ->
+                _favoriteBooks.value = books
+            }
+        }
+    }
+
     fun setCurrentBook(book: Book) {
         _currentBook.value = book
     }
 
     fun addFavorite(book: Book) {
-        val currentFavorites = _favoriteBooks.value.toMutableList()
-
-        // Check if book already exists
-        if (currentFavorites.none { it.id == book.id }) {
-            currentFavorites.add(book.copy(isFavorite = true))
-            _favoriteBooks.value = currentFavorites
+        viewModelScope.launch {
+            realmRepository.saveFavoriteBook(book)
         }
     }
 
     fun removeFavorite(bookId: Int) {
-        _favoriteBooks.value = _favoriteBooks.value.filter { it.id != bookId }
+        viewModelScope.launch {
+            realmRepository.removeFavoriteBook(bookId)
+        }
     }
 
     fun toggleFavorite(book: Book) {
-        if (isFavorite(book.id)) {
-            removeFavorite(book.id)
-        } else {
-            addFavorite(book)
+        viewModelScope.launch {
+            if (isFavorite(book.id)) {
+                removeFavorite(book.id)
+            } else {
+                addFavorite(book)
+            }
         }
     }
 
@@ -51,12 +66,8 @@ class FavoritesViewModel : ViewModel() {
     }
 
     fun updateUserRating(bookId: Int, rating: Double) {
-        _favoriteBooks.value = _favoriteBooks.value.map { book ->
-            if (book.id == bookId) {
-                book.copy(userRating = rating)
-            } else {
-                book
-            }
+        viewModelScope.launch {
+            realmRepository.updateBookRating(bookId, rating)
         }
     }
 }

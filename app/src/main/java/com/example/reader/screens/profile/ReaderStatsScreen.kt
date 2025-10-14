@@ -1,19 +1,12 @@
 package com.example.reader.screens.profile
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
@@ -40,7 +33,6 @@ import com.example.reader.screens.login.LoginScreenViewModel
 import com.example.reader.ui.theme.ReaderTheme
 import org.koin.androidx.compose.koinViewModel
 
-
 @Composable
 fun StatsScreen(
     navController: NavController,
@@ -49,16 +41,14 @@ fun StatsScreen(
     isGreenTheme: Boolean = true,
     onColorSchemeToggle: (Boolean) -> Unit = {}
 ) {
-    val context = LocalContext.current
     val isPreview = LocalInspectionMode.current
     val loginViewModel: LoginScreenViewModel? = if (isPreview) null else koinViewModel()
     val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else koinViewModel()
-
+    val context = LocalContext.current
     val username by (userProfileViewModel?.username?.collectAsState() ?: remember { mutableStateOf("") })
     val isLoading by (userProfileViewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) })
     var showUsernameDialog by remember { mutableStateOf(false) }
 
-    // Username Edit Dialog
     UsernameEditDialog(
         currentUsername = username,
         isVisible = showUsernameDialog,
@@ -74,83 +64,53 @@ fun StatsScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
-        ProfileTitle()
+        Text(
+            text = "Profile",
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
+
         ProfileAvatar(navController, isGreenTheme)
         Spacer(Modifier.height(24.dp))
 
-        UsernameSection(
-            username = username,
-            onClick = { showUsernameDialog = true }
-        )
-
+        UsernameRow(username) { showUsernameDialog = true }
         Spacer(Modifier.height(24.dp))
 
-        // Menu Items
-        ProfileMenuItem(
-            iconRes = R.drawable.solar__smile_circle_bold,
-            title = "Your Feedback",
-            onClick = { navController.navigate(ReaderScreens.YourFeedbackScreen.name) }
-        )
-
-        ProfileMenuItem(
-            iconRes = R.drawable.solar__danger_circle_bold,
-            title = "About Us",
-            onClick = { navController.navigate(ReaderScreens.AboutScreen.name) }
-        )
-
-        ThemeMenuItem(
-            isDarkTheme = isDarkTheme,
-            onThemeToggle = onThemeToggle
-        )
-
-        ColorSchemeMenuItem(
-            isGreenTheme = isGreenTheme,
-            onColorSchemeToggle = onColorSchemeToggle
-        )
-
-        ProfileMenuItem(
-            iconRes = R.drawable.solar__lock_password_bold,
-            title = "Change Password",
-            onClick = { navController.navigate(ReaderScreens.ChangePasswordScreen.name) }
-        )
-
-        LogoutMenuItem(
-            onClick = {
-                loginViewModel?.logout(context)
-                val startRoute = navController.graph.startDestinationRoute
-                navController.navigate(ReaderScreens.LoginScreen.name) {
-                    popUpTo(startRoute ?: ReaderScreens.ReaderHomeScreen.name) { inclusive = true }
-                    launchSingleTop = true
+        MenuItem(R.drawable.solar__smile_circle_bold, "Your Feedback") {
+            navController.navigate(ReaderScreens.YourFeedbackScreen.name)
+        }
+        MenuItem(R.drawable.solar__danger_circle_bold, "About Us") {
+            navController.navigate(ReaderScreens.AboutScreen.name)
+        }
+        ThemeToggleRow(isDarkTheme, onThemeToggle)
+        ColorSchemeRow(isGreenTheme, onColorSchemeToggle)
+        MenuItem(R.drawable.solar__lock_password_bold, "Change Password") {
+            navController.navigate(ReaderScreens.ChangePasswordScreen.name)
+        }
+        MenuItem(R.drawable.solar__login_2_bold, "Log Out") {
+            loginViewModel?.logout(context)
+            navController.navigate(ReaderScreens.LoginScreen.name) {
+                popUpTo(navController.graph.startDestinationRoute ?: ReaderScreens.ReaderHomeScreen.name) {
+                    inclusive = true
                 }
+                launchSingleTop = true
             }
-        )
+        }
     }
 }
 
 @Composable
-private fun ProfileTitle() {
-    Text(
-        text = "Profile",
-        fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        modifier = Modifier.padding(vertical = 16.dp)
-    )
-}
-
-@Composable
 private fun ProfileAvatar(navController: NavController, isGreenTheme: Boolean) {
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        Box(
-            modifier = Modifier.size(200.dp),
-            contentAlignment = Alignment.Center
-        ) {
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+        Box(Modifier.size(200.dp), contentAlignment = Alignment.Center) {
             Image(
-                painter = if (isGreenTheme) painterResource(id = R.drawable.streamline_kameleon_color__eyeglasses) else painterResource(id = R.drawable.streamline_kameleon_color_2__eyeglasses),
+                painter = painterResource(
+                    if (isGreenTheme) R.drawable.streamline_kameleon_color__eyeglasses
+                    else R.drawable.streamline_kameleon_color_2__eyeglasses
+                ),
                 contentDescription = "User avatar",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -159,7 +119,6 @@ private fun ProfileAvatar(navController: NavController, isGreenTheme: Boolean) {
                     .clickable { navController.navigate(ReaderScreens.ReaderStatsScreen.name) }
             )
 
-            // Camera badge
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -172,7 +131,7 @@ private fun ProfileAvatar(navController: NavController, isGreenTheme: Boolean) {
             ) {
                 Icon(
                     painter = painterResource(R.drawable.solar__camera_linear),
-                    contentDescription = "Camera Icon",
+                    contentDescription = "Camera",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(28.dp)
                 )
@@ -182,36 +141,26 @@ private fun ProfileAvatar(navController: NavController, isGreenTheme: Boolean) {
 }
 
 @Composable
-private fun UsernameSection(
-    username: String,
-    onClick: () -> Unit
-) {
+private fun UsernameRow(username: String, onClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .clickable { onClick() },
+        Modifier.fillMaxWidth().wrapContentHeight().clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ProfileIconBox(iconRes = R.drawable.solar__user_bold)
-
+        IconBox(R.drawable.solar__user_bold)
         Spacer(Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
+        Column(Modifier.weight(1f)) {
             Text(
-                text = "Username",
+                "Username",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp)
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(Modifier.height(2.dp))
             Text(
-                text = if (username.isNotBlank()) username else "edit",
+                if (username.isNotBlank()) username else "edit",
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (username.isNotBlank())
-                    MaterialTheme.colorScheme.onSurface
-                else
-                    MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (username.isNotBlank()) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp)
             )
         }
@@ -219,22 +168,15 @@ private fun UsernameSection(
 }
 
 @Composable
-private fun ProfileMenuItem(
-    iconRes: Int,
-    title: String,
-    onClick: () -> Unit
-) {
+private fun MenuItem(iconRes: Int, title: String, onClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .clickable { onClick() },
+        Modifier.fillMaxWidth().wrapContentHeight().clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ProfileIconBox(iconRes = iconRes)
+        IconBox(iconRes)
         Spacer(Modifier.width(8.dp))
         Text(
-            text = title,
+            title,
             modifier = Modifier.padding(12.dp),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -244,41 +186,15 @@ private fun ProfileMenuItem(
 }
 
 @Composable
-private fun ThemeMenuItem(
-    isDarkTheme: Boolean,
-    onThemeToggle: (Boolean) -> Unit
-) {
+private fun ThemeToggleRow(isDark: Boolean, onToggle: (Boolean) -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .clickable { onThemeToggle(!isDarkTheme) },
+        Modifier.fillMaxWidth().wrapContentHeight().clickable { onToggle(!isDark) },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .width(48.dp)
-                .fillMaxHeight()
-                .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                    RoundedCornerShape(12.dp)
-                )
-                .border(
-                    1.dp,
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                    RoundedCornerShape(12.dp)
-                )
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            ThemeToggleCompact(
-                isDark = isDarkTheme,
-                onToggle = onThemeToggle
-            )
-        }
+        ToggleBox { ThemeToggle(isDark, onToggle) }
         Spacer(Modifier.width(8.dp))
         Text(
-            text = "Dark Mode",
+            "Dark Mode",
             modifier = Modifier.padding(12.dp),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -288,41 +204,15 @@ private fun ThemeMenuItem(
 }
 
 @Composable
-private fun ColorSchemeMenuItem(
-    isGreenTheme: Boolean,
-    onColorSchemeToggle: (Boolean) -> Unit
-) {
+private fun ColorSchemeRow(isGreen: Boolean, onToggle: (Boolean) -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .clickable { onColorSchemeToggle(!isGreenTheme) },
+        Modifier.fillMaxWidth().wrapContentHeight().clickable { onToggle(!isGreen) },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .width(48.dp)
-                .fillMaxHeight()
-                .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                    RoundedCornerShape(12.dp)
-                )
-                .border(
-                    1.dp,
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                    RoundedCornerShape(12.dp)
-                )
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            ColorSchemeToggleCompact(
-                isGreen = isGreenTheme,
-                onToggle = onColorSchemeToggle
-            )
-        }
+        ToggleBox { ColorSchemeToggle(isGreen, onToggle) }
         Spacer(Modifier.width(8.dp))
         Text(
-            text = if (isGreenTheme) "Green Theme" else "Brown Theme",
+            if (isGreen) "Green Theme" else "Brown Theme",
             modifier = Modifier.padding(12.dp),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -332,45 +222,17 @@ private fun ColorSchemeMenuItem(
 }
 
 @Composable
-private fun LogoutMenuItem(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        ProfileIconBox(iconRes = R.drawable.solar__login_2_bold)
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = "Log Out",
-            modifier = Modifier.padding(12.dp),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun ProfileIconBox(iconRes: Int) {
+private fun IconBox(iconRes: Int) {
     Box(
-        modifier = Modifier
-            .width(48.dp)
-            .height(48.dp)
-            .background(
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                RoundedCornerShape(12.dp)
-            )
-            .border(
-                1.dp,
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                RoundedCornerShape(12.dp)
-            )
+        Modifier
+            .size(48.dp)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(id = iconRes),
+            painterResource(iconRes),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(32.dp)
@@ -379,102 +241,79 @@ private fun ProfileIconBox(iconRes: Int) {
 }
 
 @Composable
-fun ThemeToggleCompact(
-    isDark: Boolean,
-    onToggle: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val rotationAngle by animateFloatAsState(
-        targetValue = if (isDark) 180f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "icon_rotation"
-    )
+private fun ToggleBox(content: @Composable () -> Unit) {
+    Box(
+        Modifier
+            .size(48.dp)
+            .fillMaxHeight()
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        content()
+    }
+}
 
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isDark) Color(0xFF1A1B3A) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-        animationSpec = tween(300),
-        label = "background_color"
+@Composable
+private fun ThemeToggle(isDark: Boolean, onToggle: (Boolean) -> Unit) {
+    val rotation by animateFloatAsState(
+        if (isDark) 180f else 0f,
+        spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
+        label = "rotation"
+    )
+    val bgColor by animateColorAsState(
+        if (isDark) Color(0xFF1A1B3A) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+        tween(300),
+        label = "bg"
     )
 
     Box(
-        modifier = modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(backgroundColor)
-            .clickable { onToggle(!isDark) },
+        Modifier.size(48.dp).clip(CircleShape).background(bgColor).clickable { onToggle(!isDark) },
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = if (isDark) Icons.Filled.DarkMode else Icons.Filled.LightMode,
-            contentDescription = if (isDark) "Switch to Light Mode" else "Switch to Dark Mode",
+            if (isDark) Icons.Filled.DarkMode else Icons.Filled.LightMode,
+            contentDescription = null,
             tint = if (isDark) Color.White else Color(0xFF4A4A4A),
-            modifier = Modifier
-                .size(24.dp)
-                .rotate(rotationAngle)
+            modifier = Modifier.size(24.dp).rotate(rotation)
         )
     }
 }
 
 @Composable
-fun ColorSchemeToggleCompact(
-    isGreen: Boolean,
-    onToggle: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val rotationAngle by animateFloatAsState(
-        targetValue = if (isGreen) 0f else 360f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "icon_rotation"
+private fun ColorSchemeToggle(isGreen: Boolean, onToggle: (Boolean) -> Unit) {
+    val rotation by animateFloatAsState(
+        if (isGreen) 0f else 360f,
+        spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
+        label = "rotation"
     )
-
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isGreen) Color(0xFF24786D).copy(alpha = 0.3f) else Color(0xFF6D4C41).copy(alpha = 0.3f),
-        animationSpec = tween(300),
-        label = "background_color"
+    val bgColor by animateColorAsState(
+        if (isGreen) Color(0xFF24786D).copy(alpha = 0.3f) else Color(0xFF6D4C41).copy(alpha = 0.3f),
+        tween(300),
+        label = "bg"
     )
 
     Box(
-        modifier = modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(backgroundColor)
-            .clickable { onToggle(!isGreen) },
+        Modifier.size(48.dp).clip(CircleShape).background(bgColor).clickable { onToggle(!isGreen) },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = if (isGreen) "🌿" else "🌰",
-            fontSize = 24.sp,
-            modifier = Modifier.rotate(rotationAngle)
-        )
+        Text(if (isGreen) "🌿" else "🌰", fontSize = 16.sp, modifier = Modifier.rotate(rotation))
     }
 }
 
-@Preview(name = "Stats - Light", showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(name = "Light", showBackground = true)
 @Composable
-private fun PreviewStatsScreenLight() {
+private fun PreviewLight() {
     ReaderTheme(darkTheme = false) {
-        StatsScreen(
-            navController = rememberNavController(),
-            isDarkTheme = false,
-            onThemeToggle = {}
-        )
+        StatsScreen(rememberNavController(), false, {})
     }
 }
 
-@Preview(name = "Stats - Dark", showBackground = true, backgroundColor = 0xFF000000)
+@Preview(name = "Dark", showBackground = true)
 @Composable
-private fun PreviewStatsScreenDark() {
+private fun PreviewDark() {
     ReaderTheme(darkTheme = true) {
-        StatsScreen(
-            navController = rememberNavController(),
-            isDarkTheme = true,
-            onThemeToggle = {}
-        )
+        StatsScreen(rememberNavController(), true, {})
     }
 }

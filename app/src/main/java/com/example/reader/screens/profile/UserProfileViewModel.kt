@@ -2,6 +2,7 @@ package com.example.reader.screens.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.reader.data.realm.RealmRepository
 import com.example.reader.utils.UserPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -12,7 +13,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class UserProfileViewModel(
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val realmRepository: RealmRepository
 ) : ViewModel() {
 
     private val _username = MutableStateFlow<String>("")
@@ -47,16 +49,24 @@ class UserProfileViewModel(
                             ?: snapshot.getString("name")
                     } else null
 
-                    // Fallback hierarchy: Firestore -> Firebase Auth -> UserPreferences -> Default
+                    // Try to get from Realm DB
+                    val realmProfile = realmRepository.getUserProfileOnce()
+                    val realmUsername = realmProfile?.username?.takeIf { it.isNotBlank() }
+
+                    // Fallback hierarchy: Firestore -> Realm DB -> Firebase Auth -> UserPreferences -> Default
                     val resolvedUsername = firestoreUsername?.takeIf { it.isNotBlank() }
+                        ?: realmUsername
                         ?: currentUser.displayName?.takeIf { it.isNotBlank() }
                         ?: userPreferences.getSavedUserName()?.takeIf { it.isNotBlank() }
                         ?: "Andy"
 
                     _username.value = resolvedUsername
                 } else {
-                    // User not logged in, use saved username or default
-                    _username.value = userPreferences.getSavedUserName()?.takeIf { it.isNotBlank() } ?: "Andy"
+                    // User not logged in, try Realm DB first, then saved username or default
+                    val realmProfile = realmRepository.getUserProfileOnce()
+                    _username.value = realmProfile?.username?.takeIf { it.isNotBlank() }
+                        ?: userPreferences.getSavedUserName()?.takeIf { it.isNotBlank() }
+                        ?: "Andy"
                 }
             } catch (e: Exception) {
                 // Fallback to saved username or default on error
@@ -77,6 +87,10 @@ class UserProfileViewModel(
 
                 // Save to UserPreferences
                 userPreferences.updateUserName(newUsername)
+
+                // Save to Realm DB
+                val email = auth.currentUser?.email ?: ""
+                realmRepository.saveUserProfile(newUsername, email)
 
                 // Update Firebase if user is logged in
                 val currentUser = auth.currentUser

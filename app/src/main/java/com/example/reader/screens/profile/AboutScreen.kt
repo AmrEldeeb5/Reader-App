@@ -15,6 +15,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.reader.R
 import com.example.reader.ui.theme.ReaderTheme
+import com.example.reader.ui.theme.animatedScaffoldContainerColor
+import com.example.reader.ui.theme.animatedTopBarContainerColor
 import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,9 +33,13 @@ fun AboutScreen(navController: NavController) {
                             contentDescription = "Back"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = animatedTopBarContainerColor()
+                )
             )
-        }
+        },
+        containerColor = animatedScaffoldContainerColor()
     ) { innerPadding ->
         Column(
             modifier = Modifier

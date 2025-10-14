@@ -1,7 +1,6 @@
 package com.example.reader.screens.profile
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -21,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.example.reader.ui.theme.animatedScaffoldContainerColor
+import com.example.reader.ui.theme.animatedTopBarContainerColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -116,10 +117,14 @@ fun ChangePasswordScreen(navController: NavController) {
                             contentDescription = "Back"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = animatedTopBarContainerColor()
+                )
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = animatedScaffoldContainerColor()
     ) { innerPadding ->
         Column(
             modifier = Modifier

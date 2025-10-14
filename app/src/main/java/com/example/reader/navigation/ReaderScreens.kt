@@ -14,6 +14,7 @@ enum class ReaderScreens {
     SavedScreen,
     AboutScreen,
     YourFeedbackScreen, // added
+    ViewFeedbackScreen, // view saved feedback
     ChangePasswordScreen; // new
 
     companion object {
@@ -32,6 +33,7 @@ enum class ReaderScreens {
             SavedScreen.name -> SavedScreen
             AboutScreen.name -> AboutScreen
             YourFeedbackScreen.name -> YourFeedbackScreen
+            ViewFeedbackScreen.name -> ViewFeedbackScreen
             ChangePasswordScreen.name -> ChangePasswordScreen
             null -> ReaderHomeScreen
             else -> throw IllegalArgumentException("Route $route is not recognized.")

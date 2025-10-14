@@ -1,9 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp)
-    id("com.google.gms.google-services")
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
+    alias(libs.plugins.realm.kotlin)
 }
 
 
@@ -42,7 +42,6 @@ android {
     buildFeatures {
         compose = true
     }
-
 
 }
 
@@ -88,7 +87,6 @@ dependencies {
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
 
     // Image Loading
     implementation(libs.coil.kt.compose)
@@ -98,8 +96,9 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.realm.library.base)
 
-    // Testing
+    // Realm Database
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.espresso.core)

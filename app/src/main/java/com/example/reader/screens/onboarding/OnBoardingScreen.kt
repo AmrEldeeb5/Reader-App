@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.example.reader.R
 import androidx.compose.ui.platform.LocalConfiguration
 import coil.compose.AsyncImage
+import com.example.reader.ui.theme.animatedScaffoldContainerColor
 import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)

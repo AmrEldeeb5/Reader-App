@@ -24,11 +24,17 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.reader.R
 import com.example.reader.ui.theme.ReaderTheme
+import com.example.reader.ui.theme.animatedScaffoldContainerColor
+import com.example.reader.ui.theme.animatedTopBarContainerColor
 import kotlinx.coroutines.delay
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun YourFeedbackScreen(navController: NavController) {
+fun YourFeedbackScreen(
+    navController: NavController,
+    feedbackViewModel: FeedbackViewModel = koinInject()
+) {
     var feedback by remember { mutableStateOf("") }
     var selectedIndex by remember { mutableStateOf(3) } // default to very satisfied
     // Show a short-lived thank you popup before navigating back
@@ -60,9 +66,13 @@ fun YourFeedbackScreen(navController: NavController) {
                             contentDescription = "Back"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = animatedTopBarContainerColor()
+                )
             )
-        }
+        },
+        containerColor = animatedScaffoldContainerColor()
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -169,6 +179,8 @@ fun YourFeedbackScreen(navController: NavController) {
 
             Button(
                 onClick = {
+                    // Save feedback to Realm DB
+                    feedbackViewModel.saveFeedback(feedback, selectedIndex)
                     // Show a quick thank-you popup, then navigate back
                     showThanks = true
                 },
@@ -188,7 +200,7 @@ fun YourFeedbackScreen(navController: NavController) {
                 onDismissRequest = { /* Block manual dismiss to ensure brief display */ },
                 confirmButton = {},
                 title = { Text("Thank you!") },
-                text = { Text("Thanks for your feedback.") }
+                text = { Text("Thanks for your feedback. It has been saved!") }
             )
         }
     }
