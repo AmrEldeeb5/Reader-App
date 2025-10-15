@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -136,7 +138,7 @@ private fun SignUpButton(
         shape = MaterialTheme.shapes.medium,
         enabled = isEnabled && !isLoading,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isEnabled) MaterialTheme.colorScheme.primary
+            containerColor = if (isEnabled) MaterialTheme.colorScheme.secondary
             else MaterialTheme.colorScheme.surfaceVariant,
             contentColor = if (isEnabled) MaterialTheme.colorScheme.onPrimary
             else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -162,6 +164,7 @@ private fun SignUpButton(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("UNUSED_PARAMETER")
 @Composable
 fun SignUpScreen(
     navController: NavController,
@@ -172,14 +175,11 @@ fun SignUpScreen(
     val context = LocalContext.current
     val userPrefs = remember { UserPreferences(context) }
 
-    // Add UserProfileViewModel for username synchronization
     val userProfileViewModel: UserProfileViewModel = koinViewModel()
 
-    // Form state management
     var formState by remember { mutableStateOf(SignUpFormState()) }
     var formErrors by remember { mutableStateOf(FormErrors()) }
 
-    // Check if all required fields are filled
     val isFormValid = remember(formState) {
         formState.name.isNotBlank() &&
                 formState.email.isNotBlank() &&
@@ -192,15 +192,12 @@ fun SignUpScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // ViewModel reactive state
     val loading by viewModel.loading.collectAsState()
     val signUpState by viewModel.signUpState.collectAsState()
 
-    // Modern responsive layout
     val layout = rememberResponsiveLayout()
     val scrollState = rememberScrollState()
 
-    // Validation logic
     fun validateAndSignUp() {
         if (loading || signUpState.status == LoadingState.Status.LOADING) return
 
@@ -214,12 +211,8 @@ fun SignUpScreen(
 
         viewModel.signUp(formState.name, formState.email, formState.password) { success, errorMsg ->
             if (success) {
-                // Synchronize username with UserProfileViewModel immediately after successful signup
                 userProfileViewModel.updateUsername(formState.name.trim())
-
-                // Handle "Remember Me" for auto-login
                 if (RememberMeBoxState.rememberMe) {
-                    // Save credentials securely for auto-login
                     userPrefs.saveCredentials(
                         email = formState.email,
                         password = formState.password,
@@ -227,7 +220,6 @@ fun SignUpScreen(
                     )
                     userPrefs.setRememberMe(true)
                 } else {
-                    // Still save the username even if remember me is false
                     userPrefs.updateUserName(formState.name.trim())
                     userPrefs.setRememberMe(false)
                 }
@@ -247,12 +239,37 @@ fun SignUpScreen(
     Scaffold(
         topBar = { SignUpTopAppBar(navController) },
         containerColor = animatedScaffoldContainerColor(),
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = layout.horizontalPadding, vertical = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .widthIn(max = layout.contentMaxWidth)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "By signing up, you agree to our Terms & Conditions",
+                        style = if (layout.isCompact)
+                            MaterialTheme.typography.bodySmall
+                        else
+                            MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(top = innerPadding.calculateTopPadding()),
             contentAlignment = if (layout.isExpanded) Alignment.Center else Alignment.TopCenter
         ) {
             Column(
@@ -266,23 +283,6 @@ fun SignUpScreen(
                     .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // App Logo
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(layout.imageHeight),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = if (isGreenTheme) painterResource(id = R.drawable.reader_logo) else painterResource(id = R.drawable.reader_logo2),
-                        contentDescription = "Illustration of books and a mug",
-                        contentScale = ContentScale.Fit
-                    )
-                }
-
-                // Restore original smaller spacing after logo
-                Spacer(modifier = Modifier.height(layout.verticalSpacing))
-
                 // Form Fields
                 SignUpTextField(
                     value = formState.name,
@@ -369,7 +369,6 @@ fun SignUpScreen(
                     )
                 }
 
-                // Add spacing between Remember Me and Sign Up button
                 Spacer(modifier = Modifier.height(layout.verticalSpacing))
 
                 // Sign Up Button
@@ -379,7 +378,6 @@ fun SignUpScreen(
                     isLoading = loading || signUpState.status == LoadingState.Status.LOADING
                 )
 
-                // General Error Display
                 if (formErrors.generalError != null) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -388,11 +386,101 @@ fun SignUpScreen(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
+                // Divider with "or"
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(1.dp),
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                    Text(
+                        text = "  or  ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(1.dp),
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+
+                // Social Login Section
+                Text(
+                    text = "Join with your favorite Social Media Account",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SocialIconButton(
+                        iconRes = R.drawable.icons8_google,
+                        contentDescription = "Google login",
+                        onClick = { /* TODO: Google Login */ }
+                    )
+                    SocialIconButton(
+                        iconRes = R.drawable.facebook,
+                        contentDescription = "Facebook login",
+                        onClick = { /* TODO: Facebook Login */ }
+                    )
+                    SocialIconButton(
+                        iconRes = R.drawable.devicon__github,
+                        contentDescription = "GitHub login",
+                        onClick = { /* TODO: GitHub Login */ }
+                    )
+                    SocialIconButton(
+                        iconRes = R.drawable.devicon__apple,
+                        contentDescription = "Apple login",
+                        onClick = { /* TODO: Apple Login */ }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(layout.verticalSpacing))
 
+                // Already have an account? Sign In
                 LogInPrompt(navController)
+
+                // Extra breathing room at the end of the scroll content
+                Spacer(modifier = Modifier.height(layout.verticalSpacing))
             }
         }
+    }
+}
+
+@Composable
+fun SocialIconButton(
+    iconRes: Int,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = Modifier.size(56.dp),
+        shape = CircleShape,
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.secondary,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Image(
+            painter = painterResource(id = iconRes),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(32.dp),
+            contentScale = ContentScale.Fit
+        )
     }
 }

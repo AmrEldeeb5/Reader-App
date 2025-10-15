@@ -32,6 +32,7 @@ import com.example.reader.components.LoadingState
 import com.example.reader.components.LoginConstants
 import com.example.reader.components.LoginFormState
 import com.example.reader.navigation.ReaderScreens
+import com.example.reader.screens.SignUp.SocialIconButton
 import com.example.reader.ui.theme.animatedScaffoldContainerColor
 import com.example.reader.ui.theme.animatedTopBarContainerColor
 import com.example.reader.utils.ResponsiveLayout
@@ -240,7 +241,7 @@ private fun LoginButton(
             Text(
                 text = "Login",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.ExtraBold
             )
         }
@@ -357,7 +358,7 @@ fun ReaderLoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(top = innerPadding.calculateTopPadding()),
             contentAlignment = if (layout.isExpanded) Alignment.Center else Alignment.TopCenter
         ) {
             Column(
@@ -421,7 +422,60 @@ fun ReaderLoginScreen(
                     isLoading = isLoading,
                     onLoginClick = { handleLogin() }
                 )
-
+                // Divider with "or"
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(1.dp),
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                    Text(
+                        text = "  or  ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(1.dp),
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+                // Social Login Section
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SocialIconButton(
+                        iconRes = R.drawable.icons8_google,
+                        contentDescription = "Google login",
+                        onClick = { /* TODO: Google Login */ }
+                    )
+                    SocialIconButton(
+                        iconRes = R.drawable.facebook,
+                        contentDescription = "Facebook login",
+                        onClick = { /* TODO: Facebook Login */ }
+                    )
+                    SocialIconButton(
+                        iconRes = R.drawable.devicon__github,
+                        contentDescription = "GitHub login",
+                        onClick = { /* TODO: GitHub Login */ }
+                    )
+                    SocialIconButton(
+                        iconRes = R.drawable.icons8_apple_logo,
+                        contentDescription = "Apple login",
+                        onClick = { /* TODO: Apple Login */ }
+                    )
+                }
                 Spacer(modifier = Modifier.height(layout.verticalSpacing))
 
                 // Footer Links (Forgot Password & Create Account)
