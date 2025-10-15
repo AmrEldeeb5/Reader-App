@@ -73,7 +73,7 @@ fun OnBoardingTopAppBar(navController : NavController) {
         },
         actions = {
             TextButton(onClick = {
-                navController.navigate(ReaderScreens.LoginScreen.name) {
+                navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
                     popUpTo(ReaderScreens.OnBoardingScreen.name) { inclusive = true }
                 }
             }) {

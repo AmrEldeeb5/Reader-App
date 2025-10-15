@@ -4,7 +4,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -48,6 +47,8 @@ fun StatsScreen(
     val username by (userProfileViewModel?.username?.collectAsState() ?: remember { mutableStateOf("") })
     val isLoading by (userProfileViewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) })
     var showUsernameDialog by remember { mutableStateOf(false) }
+    // Show logout confirmation dialog state
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     UsernameEditDialog(
         currentUsername = username,
@@ -57,6 +58,21 @@ fun StatsScreen(
         onSave = { newUsername ->
             userProfileViewModel?.updateUsername(newUsername)
             showUsernameDialog = false
+        }
+    )
+
+    // Logout confirmation dialog
+    LogoutConfirmationDialog(
+        isVisible = showLogoutDialog,
+        onDismiss = { showLogoutDialog = false },
+        onConfirm = {
+            loginViewModel?.logout(context)
+            navController.navigate(ReaderScreens.LoginScreen.name) {
+                popUpTo(navController.graph.startDestinationRoute ?: ReaderScreens.ReaderHomeScreen.name) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
         }
     )
 
@@ -91,13 +107,8 @@ fun StatsScreen(
             navController.navigate(ReaderScreens.ChangePasswordScreen.name)
         }
         MenuItem(R.drawable.solar__login_2_bold, "Log Out") {
-            loginViewModel?.logout(context)
-            navController.navigate(ReaderScreens.LoginScreen.name) {
-                popUpTo(navController.graph.startDestinationRoute ?: ReaderScreens.ReaderHomeScreen.name) {
-                    inclusive = true
-                }
-                launchSingleTop = true
-            }
+            // Open confirmation instead of logging out immediately
+            showLogoutDialog = true
         }
     }
 }
@@ -300,6 +311,38 @@ private fun ColorSchemeToggle(isGreen: Boolean, onToggle: (Boolean) -> Unit) {
     ) {
         Text(if (isGreen) "🌿" else "🌰", fontSize = 16.sp, modifier = Modifier.rotate(rotation))
     }
+}
+
+@Composable
+private fun LogoutConfirmationDialog(
+    isVisible: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    if (!isVisible) return
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                painter = painterResource(R.drawable.solar__login_2_bold),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        title = { Text("Confirm Logout", style = MaterialTheme.typography.titleLarge) },
+        text = { Text("Are you sure you want to logout?😟", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Logout", color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Preview(name = "Light", showBackground = true)
