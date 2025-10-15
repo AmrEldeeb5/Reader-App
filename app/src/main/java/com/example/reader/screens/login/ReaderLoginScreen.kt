@@ -471,7 +471,7 @@ fun ReaderLoginScreen(
                         onClick = { /* TODO: GitHub Login */ }
                     )
                     SocialIconButton(
-                        iconRes = R.drawable.icons8_apple_logo,
+                        iconRes = R.drawable.devicon__apple,
                         contentDescription = "Apple login",
                         onClick = { /* TODO: Apple Login */ }
                     )

@@ -1,6 +1,7 @@
 package com.example.reader.screens.home
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -185,8 +186,28 @@ fun BookPlayerCard(modifier: Modifier = Modifier) {
 
 @Composable
 fun BookFinderBackground(modifier: Modifier = Modifier, isDarkTheme: Boolean, isGreenTheme: Boolean) {
-    Box(modifier = modifier) {
-        Canvas(modifier = Modifier.matchParentSize()) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 12.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    color = if (isDarkTheme)
+                        Color.White.copy(alpha = 0.05f)
+                    else
+                        Color.White.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(16.dp)
+                )
+        ) {
+            Canvas(modifier = Modifier.matchParentSize()) {
             // Choose gradient colors based on theme combination
             val gradientColors = when {
                 isDarkTheme && isGreenTheme -> listOf(
@@ -366,11 +387,4 @@ fun BookFinderBackground(modifier: Modifier = Modifier, isDarkTheme: Boolean, is
         }
     }
 }
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-fun DefaultPreview() {
-    ReaderTheme(darkTheme = true) {
-        BookDiscoveryScreen()
-    }
 }
