@@ -1,0 +1,13 @@
+# This file contains local configuration for your machine.
+# Copy this file to local.properties and add your actual API keys.
+# DO NOT commit local.properties to version control!
+
+# Android SDK Location (required)
+# Windows: sdk.dir=C\:\\Users\\YOUR_USERNAME\\AppData\\Local\\Android\\Sdk
+# Mac: sdk.dir=/Users/YOUR_USERNAME/Library/Android/sdk
+# Linux: sdk.dir=/home/YOUR_USERNAME/Android/Sdk
+sdk.dir=
+
+# Google Books API Key
+# Get your key from: https://console.cloud.google.com/apis/credentials
+google.books.api.key=YOUR_API_KEY_HERE
