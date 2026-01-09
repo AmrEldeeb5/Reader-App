@@ -190,14 +190,21 @@ private fun ErrorMessage(errorMessage: String?) {
  * Remember me checkbox section
  */
 @Composable
-private fun RememberMeSection(layout: ResponsiveLayout) {
+private fun RememberMeSection(
+    layout: ResponsiveLayout,
+    rememberMe: Boolean,
+    onToggle: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RememberMeBox()
+        RememberMeBox(
+            isChecked = rememberMe,
+            onToggle = onToggle
+        )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "Remember me",
@@ -206,9 +213,7 @@ private fun RememberMeSection(layout: ResponsiveLayout) {
             else
                 MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.clickable {
-                RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe
-            }
+            modifier = Modifier.clickable { onToggle() }
         )
     }
 }
@@ -283,6 +288,7 @@ fun LoginScreen(
     // ViewModel state observation
     val loginState by viewModel.loginState.collectAsState()
     val isLoading = loginState.status == LoadingState.Status.LOADING
+    val rememberMe by viewModel.rememberMe.collectAsState()
 
     // Modern responsive layout
     val layout = rememberResponsiveLayout()
@@ -318,23 +324,8 @@ fun LoginScreen(
         keyboardController?.hide()
 
         // Attempt Firebase login
-        viewModel.login(formState.email, formState.password) { success, message ->
-            if (success) {
-                // Handle "Remember Me" for auto-login
-                if (RememberMeBoxState.rememberMe) {
-                    // Save credentials securely for auto-login
-                    userPrefs.saveCredentials(
-                        email = formState.email,
-                        password = formState.password
-                    )
-                    userPrefs.setRememberMe(true)
-                } else {
-                    // Clear saved credentials if user unchecked "Remember Me"
-                    userPrefs.clearCredentials()
-                    userPrefs.setRememberMe(false)
-                }
-
-                // Firebase Auth automatically handles session persistence
+        viewModel.login(formState.email, formState.password, rememberMe) { success, message ->
+            if (success) {                // Firebase Auth automatically handles session persistence
                 // No need to manually track login state
 
                 onLoginClick(formState.email, formState.password)
@@ -414,7 +405,11 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(layout.verticalSpacing))
 
                 // Remember Me Section
-                RememberMeSection(layout)
+                RememberMeSection(
+                    layout = layout,
+                    rememberMe = rememberMe,
+                    onToggle = { viewModel.toggleRememberMe() }
+                )
 
                 Spacer(modifier = Modifier.height(layout.verticalSpacing))
 

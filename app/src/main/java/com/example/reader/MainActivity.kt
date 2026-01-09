@@ -17,7 +17,9 @@ import com.example.reader.navigation.ReaderNavigation
 import com.example.reader.ui.theme.ReaderTheme
 import com.example.reader.utils.UserPreferences
 import com.example.reader.ui.theme.rememberAppThemeState
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

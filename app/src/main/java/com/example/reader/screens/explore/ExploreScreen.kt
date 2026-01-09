@@ -161,7 +161,7 @@ fun ExploreScreen(
                                 bottom = 16.dp
                             )
                         ) {
-                            items(searchState.books) { book ->
+                            items(searchState.books, key = { it.id }) { book ->
                                 val isFavorite by viewModel.isFavoriteFlow(book.id).collectAsState(initial = false)
                                 BookCard(
                                     book = book,

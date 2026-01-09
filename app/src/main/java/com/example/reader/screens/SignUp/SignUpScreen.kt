@@ -35,7 +35,7 @@ import com.example.reader.components.SignUpConstants
 import com.example.reader.components.SignUpFormState
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.login.RememberMeBox
-import com.example.reader.screens.login.RememberMeBoxState
+import com.example.reader.screens.login.LoginScreenViewModel
 import com.example.reader.screens.profile.UserProfileViewModel
 import com.example.reader.ui.theme.animatedScaffoldContainerColor
 import com.example.reader.utils.UserPreferences
@@ -171,12 +171,14 @@ fun SignUpScreen(
     navController: NavController,
     onSignUpClick: (String, String, String) -> Unit,
     viewModel: SignUpScreenViewModel = hiltViewModel(),
+    loginViewModel: LoginScreenViewModel = hiltViewModel(),
     isGreenTheme: Boolean = true
 ) {
     val context = LocalContext.current
     val userPrefs = remember { UserPreferences(context) }
 
     val userProfileViewModel: UserProfileViewModel = hiltViewModel()
+    val rememberMe by loginViewModel.rememberMe.collectAsState()
 
     var formState by remember { mutableStateOf(SignUpFormState()) }
     var formErrors by remember { mutableStateOf(FormErrors()) }
@@ -213,7 +215,7 @@ fun SignUpScreen(
         viewModel.signUp(formState.name, formState.email, formState.password) { success, errorMsg ->
             if (success) {
                 userProfileViewModel.updateUsername(formState.name.trim())
-                if (RememberMeBoxState.rememberMe) {
+                if (rememberMe) {
                     userPrefs.saveCredentials(
                         email = formState.email,
                         password = formState.password,
@@ -355,7 +357,10 @@ fun SignUpScreen(
                         .padding(vertical = layout.verticalSpacing / 6),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    RememberMeBox()
+                    RememberMeBox(
+                        isChecked = rememberMe,
+                        onToggle = { loginViewModel.toggleRememberMe() }
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Remember me",
@@ -365,7 +370,7 @@ fun SignUpScreen(
                             MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.clickable {
-                            RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe
+                            loginViewModel.toggleRememberMe()
                         }
                     )
                 }

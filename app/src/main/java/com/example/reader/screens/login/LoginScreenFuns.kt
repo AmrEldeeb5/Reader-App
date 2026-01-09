@@ -21,29 +21,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
-import com.example.reader.utils.UserPreferences
-
-/**
- * Global state holder for the "Remember Me" checkbox functionality.
- * This persists across login and signup screens and saves to SharedPreferences.
- */
-object RememberMeBoxState {
-    var rememberMe by mutableStateOf(false)
-
-    /**
-     * Initialize state from saved preferences
-     */
-    fun loadFromPreferences(userPrefs: UserPreferences) {
-        rememberMe = userPrefs.getRememberMe()
-    }
-
-    /**
-     * Save current state to preferences
-     */
-    fun saveToPreferences(userPrefs: UserPreferences) {
-        userPrefs.setRememberMe(rememberMe)
-    }
-}
 
 /**
  * Constants for the login screen components
@@ -180,30 +157,22 @@ fun AuthFooterLinks(
 
 
 @Composable
-fun RememberMeBox() {
-    val context = LocalContext.current
-    val userPrefs = remember { UserPreferences(context) }
-
-    // Load saved state on first composition
-    LaunchedEffect(Unit) {
-        RememberMeBoxState.loadFromPreferences(userPrefs)
-    }
-
+fun RememberMeBox(
+    isChecked: Boolean,
+    onToggle: () -> Unit
+) {
     Surface(
         modifier = Modifier
             .size(LoginComponentConstants.CHECKBOX_SIZE.dp)
-            .clickable {
-                RememberMeBoxState.rememberMe = !RememberMeBoxState.rememberMe
-                RememberMeBoxState.saveToPreferences(userPrefs)
-            },
+            .clickable { onToggle() },
         shape = RoundedCornerShape(LoginComponentConstants.CHECKBOX_CORNER_RADIUS.dp),
-        color = if (RememberMeBoxState.rememberMe)
+        color = if (isChecked)
             MaterialTheme.colorScheme.primaryContainer
         else
             Color.Transparent,
         border = BorderStroke(
             width = LoginComponentConstants.CHECKBOX_BORDER_WIDTH.dp,
-            color = if (RememberMeBoxState.rememberMe)
+            color = if (isChecked)
                 MaterialTheme.colorScheme.primary
             else
                 MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
@@ -213,7 +182,7 @@ fun RememberMeBox() {
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            if (RememberMeBoxState.rememberMe) {
+            if (isChecked) {
                 Icon(
                     imageVector = Icons.Filled.Check,
                     contentDescription = "Checked",

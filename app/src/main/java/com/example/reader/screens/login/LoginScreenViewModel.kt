@@ -33,6 +33,38 @@ class LoginScreenViewModel @Inject constructor(
     private val _loginState = MutableStateFlow(LoadingState.IDLE)
     val loginState: StateFlow<LoadingState> = _loginState.asStateFlow()
 
+    private val _rememberMe = MutableStateFlow(false)
+    val rememberMe: StateFlow<Boolean> = _rememberMe.asStateFlow()
+
+    init {
+        // Load remember me preference on initialization
+        viewModelScope.launch {
+            _rememberMe.value = userPreferencesRepository.getRememberMe()
+        }
+    }
+
+    /**
+     * Toggle the "Remember Me" preference.
+     */
+    fun toggleRememberMe() {
+        _rememberMe.value = !_rememberMe.value
+        viewModelScope.launch {
+            userPreferencesRepository.setRememberMe(_rememberMe.value)
+        }
+    }
+
+    /**
+     * Set the "Remember Me" preference.
+     *
+     * @param value Whether to remember the user
+     */
+    fun setRememberMe(value: Boolean) {
+        _rememberMe.value = value
+        viewModelScope.launch {
+            userPreferencesRepository.setRememberMe(value)
+        }
+    }
+
     /**
      * Attempt to sign in with email and password.
      *
