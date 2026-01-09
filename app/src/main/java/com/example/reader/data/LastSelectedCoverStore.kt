@@ -14,8 +14,8 @@ object LastSelectedCoverStore {
     private val _lastTitle = MutableStateFlow<String?>(null)
     val lastTitle: StateFlow<String?> = _lastTitle.asStateFlow()
 
-    private val _lastBookId = MutableStateFlow<Int?>(null)
-    val lastBookId: StateFlow<Int?> = _lastBookId.asStateFlow()
+    private val _lastBookId = MutableStateFlow<String?>(null)
+    val lastBookId: StateFlow<String?> = _lastBookId.asStateFlow()
 
     private val _lastCategoryName = MutableStateFlow<String?>(null)
     val lastCategoryName: StateFlow<String?> = _lastCategoryName.asStateFlow()
@@ -24,7 +24,7 @@ object LastSelectedCoverStore {
         coverUrl: String? = null,
         description: String? = null,
         title: String? = null,
-        bookId: Int? = null,
+        bookId: String? = null,
         categoryName: String? = null
     ) {
         if (coverUrl != null) _lastCoverUrl.value = coverUrl

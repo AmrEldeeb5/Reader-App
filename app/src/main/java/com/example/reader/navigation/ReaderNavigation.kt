@@ -51,9 +51,9 @@ fun ReaderNavigation(
         // Detail screen with argument
         composable(
             route = ReaderScreens.DetailScreen.name + "/{bookId}",
-            arguments = listOf(navArgument("bookId") { type = NavType.IntType })
+            arguments = listOf(navArgument("bookId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val bookId = backStackEntry.arguments?.getInt("bookId")
+            val bookId = backStackEntry.arguments?.getString("bookId")
             BookDetailsScreen(navController = navController, bookId = bookId)
         }
 

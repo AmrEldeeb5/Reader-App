@@ -44,7 +44,7 @@ fun StatsScreen(
     val loginViewModel: LoginScreenViewModel? = if (isPreview) null else hiltViewModel()
     val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else hiltViewModel()
     val context = LocalContext.current
-    val username by (userProfileViewModel?.username?.collectAsState() ?: remember { mutableStateOf("") })
+    val username by (userProfileViewModel?.username?.collectAsState() ?: remember { mutableStateOf("Andy") })
     var showUsernameDialog by remember { mutableStateOf(false) }
     // Show logout confirmation dialog state
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -52,7 +52,7 @@ fun StatsScreen(
     UsernameEditDialog(
         currentUsername = username,
         isVisible = showUsernameDialog,
-        isLoading = isLoading,
+        isLoading = false,
         onDismiss = { showUsernameDialog = false },
         onSave = { newUsername ->
             userProfileViewModel?.updateUsername(newUsername)
@@ -65,7 +65,7 @@ fun StatsScreen(
         isVisible = showLogoutDialog,
         onDismiss = { showLogoutDialog = false },
         onConfirm = {
-            loginViewModel?.logout(context)
+            loginViewModel?.logout()
             navController.navigate(ReaderScreens.LoginScreen.name) {
                 popUpTo(navController.graph.startDestinationRoute ?: ReaderScreens.ReaderHomeScreen.name) {
                     inclusive = true
@@ -347,7 +347,7 @@ private fun LogoutConfirmationDialog(
 @Preview(name = "Light", showBackground = true)
 @Composable
 private fun PreviewLight() {
-    ReaderTheme(darkTheme = false) {
+    MaterialTheme {
         StatsScreen(rememberNavController(), false, {})
     }
 }
@@ -355,7 +355,7 @@ private fun PreviewLight() {
 @Preview(name = "Dark", showBackground = true)
 @Composable
 private fun PreviewDark() {
-    ReaderTheme(darkTheme = true) {
+    MaterialTheme {
         StatsScreen(rememberNavController(), true, {})
     }
 }

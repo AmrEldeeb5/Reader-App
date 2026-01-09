@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun BookDiscoveryScreen(
-    onContinueReading: (Int) -> Unit = {},
+    onContinueReading: (String) -> Unit = {},
     isDarkTheme: Boolean = isSystemInDarkTheme(),
     isGreenTheme: Boolean = true
 ) {

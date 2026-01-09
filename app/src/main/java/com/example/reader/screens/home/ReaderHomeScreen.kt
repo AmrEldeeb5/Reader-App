@@ -140,7 +140,7 @@ fun Home(
                         coverUrl = book.coverImageUrl,
                         description = snippet,
                         title = book.title,
-                        bookId = book.id.hashCode(), // Convert String ID to Int for legacy store
+                        bookId = book.id,
                         categoryName = categoryName
                     )
 

@@ -140,4 +140,12 @@ class ExploreViewModel @Inject constructor(
     suspend fun isFavorite(bookId: String): Boolean {
         return favoritesRepository.isFavorite(bookId)
     }
+
+    /**
+     * Observe favorite status for a book as a Flow.
+     *
+     * @param bookId Book identifier
+     * @return Flow emitting favorite status
+     */
+    fun isFavoriteFlow(bookId: String) = favoritesRepository.observeFavorite(bookId)
 }

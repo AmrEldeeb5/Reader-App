@@ -27,8 +27,9 @@ import com.example.reader.R
 import com.example.reader.data.LastSelectedCoverStore
 import coil.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.reader.screens.saved.FavoritesViewModel
+import com.example.reader.screens.savedScreen.FavoritesViewModel
 import com.example.reader.screens.details.BookDetailsViewModel
+import com.example.reader.domain.model.Book
 import androidx.core.graphics.ColorUtils
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.animation.core.animateFloatAsState
@@ -142,18 +143,18 @@ private fun deriveContrastingButtonColor(paletteColor: Color?, primary: Color, s
 @Composable
 fun BookDetailsScreen(
     navController: NavController,
-    bookId: Int?,
+    bookId: String?,
     favoritesViewModel: FavoritesViewModel = hiltViewModel(),
     detailsViewModel: BookDetailsViewModel = hiltViewModel()
 ) {
     val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsState()
     val currentBook by favoritesViewModel.currentBook.collectAsState()
 
-    val resolvedBook: com.example.reader.domain.model.Book? = remember(bookId, currentBook, favoriteBooks) {
+    val resolvedBook: Book? = remember(bookId, currentBook, favoriteBooks) {
         when {
-            currentBook != null && currentBook?.id?.hashCode() == bookId -> currentBook
+            currentBook != null && currentBook?.id == bookId -> currentBook
             bookId == null -> null
-            else -> favoriteBooks.firstOrNull { it.book.id.hashCode() == bookId }?.book
+            else -> favoriteBooks.firstOrNull { it.book.id == bookId }?.book
         }
     }
 
@@ -162,7 +163,13 @@ fun BookDetailsScreen(
         return
     }
 
-    val isFavorite = favoritesViewModel.isFavorite(resolvedBook.id)
+    val coroutineScope = rememberCoroutineScope()
+    var isFavorite by remember { mutableStateOf(false) }
+
+    // Check favorite status
+    LaunchedEffect(resolvedBook.id) {
+        isFavorite = favoritesViewModel.isFavorite(resolvedBook.id)
+    }
 
     // Store last cover and description so Discovery screen can show them
     LaunchedEffect(resolvedBook.id) {
@@ -494,13 +501,14 @@ private fun MissingBookContent(onBack: () -> Unit) {
 private fun BookDetailsScreenPreview() {
     var isFavorite by remember { mutableStateOf(false) }
     val sample = Book(
-        id = 99,
+        id = "preview-99",
         title = "Preview Book",
         author = "Preview Author",
         subtitle = "Preview Subtitle",
         rating = 3.8,
         coverImageUrl = null,
-        description = "This is a sample description used only for preview purposes."
+        description = "This is a sample description used only for preview purposes.",
+        publishedDate = null
     )
     BookDetailsBottomSheet(
         book = sample,

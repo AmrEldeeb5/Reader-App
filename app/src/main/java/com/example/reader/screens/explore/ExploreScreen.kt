@@ -162,11 +162,12 @@ fun ExploreScreen(
                             )
                         ) {
                             items(searchState.books) { book ->
+                                val isFavorite by viewModel.isFavoriteFlow(book.id).collectAsState(initial = false)
                                 BookCard(
                                     book = book,
-                                    isDarkTheme = isDarkTheme,
+                                    isFavorite = isFavorite,
                                     onFavoriteToggle = {
-                                        viewModel.toggleFavorite(book.id)
+                                        viewModel.toggleFavorite(book)
                                     },
                                     onRatingChange = { rating ->
                                         viewModel.updateUserRating(book.id, rating)

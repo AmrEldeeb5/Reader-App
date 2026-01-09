@@ -97,7 +97,7 @@ fun SavedScreen(
                         },
                         onBookClick = {
                             favoritesViewModel.setCurrentBook(favorite.book)
-                            navController.navigate(ReaderScreens.DetailScreen.name + "/${favorite.book.id.hashCode()}")
+                            navController.navigate(ReaderScreens.DetailScreen.name + "/${favorite.book.id}")
                         }
                     )
                 }
