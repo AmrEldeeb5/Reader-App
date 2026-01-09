@@ -2,6 +2,7 @@ package com.example.reader.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
@@ -29,6 +30,7 @@ class UserPreferences(context: Context) {
 
     // Use encrypted SharedPreferences for sensitive data
     private val encryptedPrefs: SharedPreferences = try {
+        @Suppress("DEPRECATION")
         EncryptedSharedPreferences.create(
             context,
             ENCRYPTED_PREFS_NAME,
@@ -37,8 +39,10 @@ class UserPreferences(context: Context) {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
     } catch (e: Exception) {
-        // Fallback to regular SharedPreferences if encrypted fails
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        // SECURITY: Don't fallback to unencrypted storage
+        Log.e(TAG, "Failed to create encrypted preferences. User credentials will not be saved.", e)
+        // Return a dummy SharedPreferences that doesn't actually save credentials
+        context.getSharedPreferences("${ENCRYPTED_PREFS_NAME}_disabled", Context.MODE_PRIVATE)
     }
 
     // Regular SharedPreferences for non-sensitive data
@@ -54,6 +58,7 @@ class UserPreferences(context: Context) {
     }
 
     companion object {
+        private const val TAG = "UserPreferences"
         private const val PREFS_NAME = "reader_user_prefs"
         private const val ENCRYPTED_PREFS_NAME = "reader_secure_prefs"
         private const val KEY_REMEMBER_ME = "remember_me"

@@ -54,6 +54,32 @@
 }
 
 # ================================================================================================
+# Reader App - Data Models
+# ================================================================================================
+# Keep all data models used with Gson/Retrofit
+-keep class com.example.reader.data.source.remote.api.dto.** { *; }
+-keep class com.example.reader.data.model.** { *; }
+-keep class com.example.reader.domain.model.** { *; }
+
+# Keep data class fields and constructors
+-keepclassmembers class com.example.reader.domain.model.** {
+    <fields>;
+    <init>(...);
+}
+-keepclassmembers class com.example.reader.data.model.** {
+    <fields>;
+    <init>(...);
+}
+-keepclassmembers class com.example.reader.data.source.remote.api.dto.** {
+    <fields>;
+    <init>(...);
+}
+
+# Keep Realm models
+-keep class com.example.reader.data.realm.** { *; }
+-keep class com.example.reader.data.source.local.realm.entities.** { *; }
+
+# ================================================================================================
 # Retrofit & OkHttp
 # ================================================================================================
 # Retrofit does reflection on generic parameters. InnerClasses is required to use Signature and

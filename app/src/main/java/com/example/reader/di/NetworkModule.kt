@@ -1,12 +1,15 @@
 package com.example.reader.di
 
+import android.content.Context
 import com.example.reader.BuildConfig
 import com.example.reader.data.source.remote.api.ApiService
+import com.example.reader.utils.NetworkConnectivityManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -19,8 +22,8 @@ import javax.inject.Singleton
 /**
  * Hilt module providing network-related dependencies.
  *
- * This module provides Retrofit, OkHttpClient, and ApiService instances
- * with proper configuration for API key injection and logging.
+ * This module provides Retrofit, OkHttpClient, ApiService, and NetworkConnectivityManager
+ * instances with proper configuration for API key injection and logging.
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -29,6 +32,14 @@ object NetworkModule {
     private const val BASE_URL = "https://www.googleapis.com/books/v1/"
     private const val TIMEOUT_SECONDS = 30L
     
+    @Provides
+    @Singleton
+    fun provideNetworkConnectivityManager(
+        @ApplicationContext context: Context
+    ): NetworkConnectivityManager {
+        return NetworkConnectivityManager(context)
+    }
+
     @Provides
     @Singleton
     fun provideGson(): Gson {
