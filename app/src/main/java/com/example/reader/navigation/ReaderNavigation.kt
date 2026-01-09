@@ -9,7 +9,7 @@ import androidx.navigation.navArgument
 import com.example.reader.screens.onboarding.OnBoardingScreen
 import com.example.reader.screens.SignUp.SignUpScreen
 import com.example.reader.screens.details.BookDetailsScreen
-import com.example.reader.screens.login.ReaderLoginScreen
+import com.example.reader.screens.login.LoginScreen
 import com.example.reader.screens.screen.SplashScreen
 import com.example.reader.screens.profile.AboutScreen
 import com.example.reader.screens.profile.YourFeedbackScreen
@@ -35,7 +35,7 @@ fun ReaderNavigation(
             OnBoardingScreen(navController = navController)
         }
         composable(ReaderScreens.LoginScreen.name) {
-            ReaderLoginScreen(
+            LoginScreen(
                 navController = navController,
                 onLoginClick = { email, password -> },
                 isGreenTheme = isGreenTheme
@@ -58,7 +58,7 @@ fun ReaderNavigation(
         }
 
         // Main app screens with bottom navigation
-        composable(ReaderScreens.ReaderHomeScreen.name) {
+        composable(ReaderScreens.HomeScreen.name) {
             SwipeableBottomNavigation(
                 navController = navController,
                 isDarkTheme = isDarkTheme,
@@ -88,7 +88,7 @@ fun ReaderNavigation(
                 initialPage = 2
             )
         }
-        composable(ReaderScreens.ReaderStatsScreen.name) {
+        composable(ReaderScreens.StatsScreen.name) {
             SwipeableBottomNavigation(
                 navController = navController,
                 isDarkTheme = isDarkTheme,

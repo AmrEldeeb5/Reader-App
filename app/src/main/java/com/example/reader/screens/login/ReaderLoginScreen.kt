@@ -255,7 +255,7 @@ private fun LoginButton(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReaderLoginScreen(
+fun LoginScreen(
     navController: NavController,
     onLoginClick: (String, String) -> Unit,
     viewModel: LoginScreenViewModel = hiltViewModel(),
@@ -338,7 +338,7 @@ fun ReaderLoginScreen(
                 // No need to manually track login state
 
                 onLoginClick(formState.email, formState.password)
-                navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
+                navController.navigate(ReaderScreens.HomeScreen.name) {
                     popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
                 }
             } else {

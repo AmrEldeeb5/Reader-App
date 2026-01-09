@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import coil.compose.AsyncImage
-import com.example.reader.data.LastSelectedCoverStore
 import com.example.reader.ui.theme.BrownDark
 import com.example.reader.ui.theme.BrownLight
 import com.example.reader.ui.theme.BrownMid
@@ -35,6 +34,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun BookDiscoveryScreen(
+    lastSelectedBook: LastSelectedBookState,
     onContinueReading: (String) -> Unit = {},
     isDarkTheme: Boolean = isSystemInDarkTheme(),
     isGreenTheme: Boolean = true
@@ -59,19 +59,17 @@ fun BookDiscoveryScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(top = 130.dp)
             ) {
-                val lastBookId by LastSelectedCoverStore.lastBookId.collectAsState(null)
-                val lastDescription by LastSelectedCoverStore.lastDescription.collectAsState(null)
-
-                if (lastBookId != null) {
+                if (lastSelectedBook.bookId != null) {
                     QuoteCard(
-                        text = lastDescription ?: "Continue your last reading",
-                        onContinue = { onContinueReading(lastBookId!!) }
+                        text = lastSelectedBook.description ?: "Continue your last reading",
+                        onContinue = { onContinueReading(lastSelectedBook.bookId) }
                     )
                 }
 
                 // Only show BookPlayerCard after a BookCard has been clicked (state set)
-                if (lastBookId != null) {
+                if (lastSelectedBook.bookId != null) {
                     BookPlayerCard(
+                        lastSelectedBook = lastSelectedBook,
                         modifier = Modifier.offset(y = (-15).dp)
                     )
                 }
@@ -124,7 +122,7 @@ fun QuoteCard(text: String, onContinue: (() -> Unit)? = null) {
 }
 
 @Composable
-fun BookPlayerCard(modifier: Modifier = Modifier) {
+fun BookPlayerCard(lastSelectedBook: LastSelectedBookState, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .padding(top = 1.dp)
@@ -139,10 +137,9 @@ fun BookPlayerCard(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val lastCoverUrl by LastSelectedCoverStore.lastCoverUrl.collectAsState(null)
-            if (!lastCoverUrl.isNullOrBlank()) {
+            if (!lastSelectedBook.coverUrl.isNullOrBlank()) {
                 AsyncImage(
-                    model = lastCoverUrl,
+                    model = lastSelectedBook.coverUrl,
                     contentDescription = "Last book cover",
                     modifier = Modifier
                         .size(48.dp)
@@ -160,12 +157,11 @@ fun BookPlayerCard(modifier: Modifier = Modifier) {
             }
             Spacer(modifier = Modifier.width(12.dp))
 
-            val lastTitle by LastSelectedCoverStore.lastTitle.collectAsState(null)
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = lastTitle ?: "No title available",
+                    text = lastSelectedBook.title ?: "No title available",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
@@ -173,9 +169,8 @@ fun BookPlayerCard(modifier: Modifier = Modifier) {
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(3.dp))
-                val lastCategory by LastSelectedCoverStore.lastCategoryName.collectAsState(null)
                 Text(
-                    text = lastCategory ?: "Category",
+                    text = lastSelectedBook.categoryName ?: "Category",
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     fontSize = 12.sp
                 )

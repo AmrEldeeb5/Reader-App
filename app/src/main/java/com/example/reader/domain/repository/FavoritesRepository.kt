@@ -52,4 +52,12 @@ interface FavoritesRepository {
      * @return true if the book is favorited, false otherwise
      */
     suspend fun isFavorite(bookId: String): Boolean
+    
+    /**
+     * Observe the favorite status of a specific book.
+     *
+     * @param bookId Unique book identifier
+     * @return Flow emitting true if favorited, false otherwise
+     */
+    fun observeFavorite(bookId: String): Flow<Boolean>
 }

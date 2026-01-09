@@ -226,7 +226,7 @@ fun SignUpScreen(
                 }
 
                 onSignUpClick(formState.name, formState.email, formState.password)
-                navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
+                navController.navigate(ReaderScreens.HomeScreen.name) {
                     popUpTo(ReaderScreens.CreateAccountScreen.name) { inclusive = true }
                 }
             } else {

@@ -166,6 +166,7 @@ fun ExploreScreen(
                                 BookCard(
                                     book = book,
                                     isFavorite = isFavorite,
+                                    isDarkTheme = isDarkTheme,
                                     onFavoriteToggle = {
                                         viewModel.toggleFavorite(book)
                                     },

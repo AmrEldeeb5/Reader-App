@@ -5,11 +5,11 @@ enum class ReaderScreens {
     LoginScreen,
     CreateAccountScreen,
     OnBoardingScreen,
-    ReaderHomeScreen,
+    HomeScreen,
     DetailScreen,
     SearchScreen,
     UpdateScreen,
-    ReaderStatsScreen,
+    StatsScreen,
     ExploreScreen,
     SavedScreen,
     AboutScreen,
@@ -24,18 +24,18 @@ enum class ReaderScreens {
             LoginScreen.name -> LoginScreen
             CreateAccountScreen.name -> CreateAccountScreen
             OnBoardingScreen.name -> OnBoardingScreen
-            ReaderHomeScreen.name -> ReaderHomeScreen
+            HomeScreen.name -> HomeScreen
             DetailScreen.name -> DetailScreen
             SearchScreen.name -> SearchScreen
             UpdateScreen.name -> UpdateScreen
-            ReaderStatsScreen.name -> ReaderStatsScreen
+            StatsScreen.name -> StatsScreen
             ExploreScreen.name -> ExploreScreen
             SavedScreen.name -> SavedScreen
             AboutScreen.name -> AboutScreen
             YourFeedbackScreen.name -> YourFeedbackScreen
             ViewFeedbackScreen.name -> ViewFeedbackScreen
             ChangePasswordScreen.name -> ChangePasswordScreen
-            null -> ReaderHomeScreen
+            null -> HomeScreen
             else -> throw IllegalArgumentException("Route $route is not recognized.")
         }
     }

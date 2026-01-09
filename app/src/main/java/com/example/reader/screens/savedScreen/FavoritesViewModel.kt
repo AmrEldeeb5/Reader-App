@@ -1,4 +1,4 @@
-package com.example.reader.screens.saved
+package com.example.reader.screens.savedScreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

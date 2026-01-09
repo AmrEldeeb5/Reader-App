@@ -19,13 +19,13 @@ class BookDetailsViewModel : ViewModel() {
     val paletteColor: StateFlow<Color?> = _paletteColor.asStateFlow()
 
     // In-memory cache of raw dominant colors keyed by book id
-    private val paletteCache: MutableMap<Int, Color> = mutableMapOf()
+    private val paletteCache: MutableMap<String, Color> = mutableMapOf()
 
     /**
      * Load (or reuse) the dominant color from the book cover.
      * The 'translucent' flag is now ignored here; alpha is applied in the UI layer so we always cache raw color.
      */
-    fun loadPalette(context: Context, bookId: Int, url: String?, @Suppress("UNUSED_PARAMETER") translucent: Boolean) {
+    fun loadPalette(context: Context, bookId: String, url: String?, @Suppress("UNUSED_PARAMETER") translucent: Boolean) {
         paletteCache[bookId]?.let { cached ->
             _paletteColor.value = cached
             return

@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.reader.R
-import com.example.reader.data.LastSelectedCoverStore
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.savedScreen.FavoritesViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,7 +39,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.foundation.BorderStroke
 
 @Composable
-fun Home(
+fun HomeScreen(
     navController: NavController,
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
@@ -51,6 +50,7 @@ fun Home(
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val booksState by viewModel.booksState.collectAsState()
     val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsState()
+    val lastSelectedBook by viewModel.lastSelectedBook.collectAsState()
 
     // Create a set of favorite IDs for quick lookup
     val favoriteIds = remember(favoriteBooks) {
@@ -82,6 +82,7 @@ fun Home(
                 .verticalScroll(rememberScrollState())
         ) {
             BookDiscoveryScreen(
+                lastSelectedBook = lastSelectedBook,
                 onContinueReading = { id ->
                     navController.navigate(ReaderScreens.DetailScreen.name + "/$id")
                 },
@@ -135,12 +136,12 @@ fun Home(
                         else -> selectedCategory.replaceFirstChar { it.uppercase() }
                     }
 
-                    // Update last-selected data (cover, snippet, title, id, category)
-                    LastSelectedCoverStore.set(
-                        coverUrl = book.coverImageUrl,
-                        description = snippet,
-                        title = book.title,
+                    // Update last-selected data via ViewModel
+                    viewModel.setLastSelectedBook(
                         bookId = book.id,
+                        coverUrl = book.coverImageUrl,
+                        title = book.title,
+                        description = snippet,
                         categoryName = categoryName
                     )
 
@@ -201,7 +202,7 @@ fun HomeTopBar(
                 contentDescription = "User avatar",
                 modifier = Modifier
                     .clickable(onClick = {
-                        navController.navigate(ReaderScreens.ReaderStatsScreen.name)
+                        navController.navigate(ReaderScreens.StatsScreen.name)
                     })
                     .size(48.dp)
                     .clip(CircleShape)
@@ -367,7 +368,7 @@ fun BookGridSection(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(firstRowBooks) { book ->
+                items(firstRowBooks, key = { it.id }) { book ->
                     BookCard(
                         book = book,
                         isFavorite = favoriteIds.contains(book.id),
@@ -408,7 +409,7 @@ fun BookGridSection(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(secondRowBooks) { book ->
+                    items(secondRowBooks, key = { it.id }) { book ->
                         BookCard(
                             book = book,
                             isFavorite = favoriteIds.contains(book.id),
@@ -449,7 +450,7 @@ fun BookGridSection(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(thirdRowBooks) { book ->
+                    items(thirdRowBooks, key = { it.id }) { book ->
                         BookCard(
                             book = book,
                             isFavorite = favoriteIds.contains(book.id),

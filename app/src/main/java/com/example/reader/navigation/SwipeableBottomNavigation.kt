@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.reader.R
 import com.example.reader.screens.explore.ExploreScreen
-import com.example.reader.screens.SavedScreen
-import com.example.reader.screens.home.Home
+import com.example.reader.screens.savedScreen.SavedScreen
+import com.example.reader.screens.home.HomeScreen
 import com.example.reader.screens.profile.StatsScreen
 import com.example.reader.ui.theme.SubtleTextColor
 import kotlinx.coroutines.launch
@@ -109,7 +109,7 @@ fun SwipeableBottomNavigation(
             beyondViewportPageCount = 1
         ) { page ->
             when (page) {
-                0 -> Home(
+                0 -> HomeScreen(
                     navController = navController,
                     isDarkTheme = isDarkTheme,
                     onThemeToggle = onThemeToggle,

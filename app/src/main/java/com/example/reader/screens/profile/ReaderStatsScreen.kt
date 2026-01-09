@@ -67,7 +67,7 @@ fun StatsScreen(
         onConfirm = {
             loginViewModel?.logout()
             navController.navigate(ReaderScreens.LoginScreen.name) {
-                popUpTo(navController.graph.startDestinationRoute ?: ReaderScreens.ReaderHomeScreen.name) {
+                popUpTo(navController.graph.startDestinationRoute ?: ReaderScreens.HomeScreen.name) {
                     inclusive = true
                 }
                 launchSingleTop = true
@@ -126,7 +126,7 @@ private fun ProfileAvatar(navController: NavController, isGreenTheme: Boolean) {
                 modifier = Modifier
                     .matchParentSize()
                     .clip(CircleShape)
-                    .clickable { navController.navigate(ReaderScreens.ReaderStatsScreen.name) }
+                    .clickable { navController.navigate(ReaderScreens.StatsScreen.name) }
             )
 
             Box(

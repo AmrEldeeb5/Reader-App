@@ -22,6 +22,17 @@ data class CategoryBooksState(
 )
 
 /**
+ * State for the last selected book (for Discovery screen).
+ */
+data class LastSelectedBookState(
+    val bookId: String? = null,
+    val coverUrl: String? = null,
+    val title: String? = null,
+    val description: String? = null,
+    val categoryName: String? = null
+)
+
+/**
  * ViewModel for home screen using Clean Architecture.
  *
  * Manages book categories and favorites through repositories.
@@ -40,6 +51,9 @@ class HomeViewModel @Inject constructor(
 
     private val _booksState = MutableStateFlow(CategoryBooksState())
     val booksState: StateFlow<CategoryBooksState> = _booksState.asStateFlow()
+
+    private val _lastSelectedBook = MutableStateFlow(LastSelectedBookState())
+    val lastSelectedBook: StateFlow<LastSelectedBookState> = _lastSelectedBook.asStateFlow()
 
     init {
         loadBooksByCategory("novels")
@@ -103,6 +117,38 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             favoritesRepository.updateRating(bookId, rating)
         }
+    }
+
+    /**
+     * Set the last selected book for the Discovery screen.
+     *
+     * @param bookId Book identifier
+     * @param coverUrl Book cover URL
+     * @param title Book title
+     * @param description Book description
+     * @param categoryName Category display name
+     */
+    fun setLastSelectedBook(
+        bookId: String,
+        coverUrl: String?,
+        title: String,
+        description: String?,
+        categoryName: String
+    ) {
+        _lastSelectedBook.value = LastSelectedBookState(
+            bookId = bookId,
+            coverUrl = coverUrl,
+            title = title,
+            description = description,
+            categoryName = categoryName
+        )
+    }
+
+    /**
+     * Clear the last selected book state.
+     */
+    fun clearLastSelectedBook() {
+        _lastSelectedBook.value = LastSelectedBookState()
     }
 
     /**

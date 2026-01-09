@@ -1,4 +1,4 @@
-package com.example.reader.screens
+package com.example.reader.screens.savedScreen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -18,7 +18,7 @@ import com.example.reader.R
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.home.BookCard
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.reader.screens.saved.FavoritesViewModel
+import com.example.reader.screens.savedScreen.FavoritesViewModel
 import androidx.compose.ui.graphics.Color
 
 @Composable
@@ -84,7 +84,7 @@ fun SavedScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(favoriteBooks) { favorite ->
+                items(favoriteBooks, key = { it.bookId }) { favorite ->
                     BookCard(
                         book = favorite.book,
                         isFavorite = true,

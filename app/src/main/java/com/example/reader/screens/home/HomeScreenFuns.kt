@@ -166,7 +166,7 @@ fun CategoryTabs(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(topCategories) { category ->
+            items(topCategories, key = { it.id }) { category ->
                 val isSelected = category.id == selectedCategory
 
                 Box(
@@ -203,7 +203,7 @@ fun CategoryTabs(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(bottomCategories) { category ->
+                items(bottomCategories, key = { it.id }) { category ->
                     val isSelected = category.id == selectedCategory
 
                     Box(

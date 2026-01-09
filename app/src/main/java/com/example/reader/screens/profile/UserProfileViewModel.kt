@@ -27,14 +27,12 @@ class UserProfileViewModel @Inject constructor(
 ) : ViewModel() {
 
     /**
-     * Reactive username from preferences with fallback to current user or default.
+     * Reactive username from preferences with fallback to default.
      */
     val username: StateFlow<String> = userPreferencesRepository
         .observeUsername()
         .map { savedUsername ->
-            savedUsername?.takeIf { it.isNotBlank() }
-                ?: authRepository.getCurrentUser()?.displayName?.takeIf { it.isNotBlank() }
-                ?: "Andy"
+            savedUsername?.takeIf { it.isNotBlank() } ?: "Andy"
         }
         .stateIn(
             scope = viewModelScope,

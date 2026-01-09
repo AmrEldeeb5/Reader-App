@@ -59,7 +59,7 @@ fun SplashScreen(navController: NavController) {
                     val result = auth.signInWithEmailAndPassword(savedEmail, savedPassword).await()
                     if (result.user != null) {
                         // Auto-login successful, go to home
-                        navController.navigate(ReaderScreens.ReaderHomeScreen.name) {
+                        navController.navigate(ReaderScreens.HomeScreen.name) {
                             popUpTo(ReaderScreens.SplashScreen.name) { inclusive = true }
                         }
                         return@LaunchedEffect

@@ -68,4 +68,11 @@ class FavoritesRepositoryImpl @Inject constructor(
             false
         }
     }
+    
+    override fun observeFavorite(bookId: String): Flow<Boolean> {
+        return realmDataSource.observeAllFavoriteBooks()
+            .map { favorites ->
+                favorites.any { it.id == bookId }
+            }
+    }
 }
