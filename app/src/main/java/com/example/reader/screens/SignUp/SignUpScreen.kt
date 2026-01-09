@@ -43,6 +43,7 @@ import com.example.reader.utils.rememberResponsiveLayout
 import kotlinx.coroutines.launch
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.reader.screens.SignUp.SignUpScreenViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 
 // Validation functions
@@ -178,7 +179,7 @@ fun SignUpScreen(
     val userPrefs = remember { UserPreferences(context) }
 
     val userProfileViewModel: UserProfileViewModel = hiltViewModel()
-    val rememberMe by loginViewModel.rememberMe.collectAsState()
+    val rememberMe by loginViewModel.rememberMe.collectAsStateWithLifecycle()
 
     var formState by remember { mutableStateOf(SignUpFormState()) }
     var formErrors by remember { mutableStateOf(FormErrors()) }
@@ -195,8 +196,8 @@ fun SignUpScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val loading by viewModel.loading.collectAsState()
-    val signUpState by viewModel.signUpState.collectAsState()
+    val loading by viewModel.loading.collectAsStateWithLifecycle()
+    val signUpState by viewModel.signUpState.collectAsStateWithLifecycle()
 
     val layout = rememberResponsiveLayout()
     val scrollState = rememberScrollState()

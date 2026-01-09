@@ -31,6 +31,7 @@ import com.example.reader.navigation.ReaderScreens
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.reader.screens.login.LoginScreenViewModel
 import com.example.reader.screens.profile.UserProfileViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun StatsScreen(
@@ -44,7 +45,7 @@ fun StatsScreen(
     val loginViewModel: LoginScreenViewModel? = if (isPreview) null else hiltViewModel()
     val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else hiltViewModel()
     val context = LocalContext.current
-    val username by (userProfileViewModel?.username?.collectAsState() ?: remember { mutableStateOf("Andy") })
+    val username by (userProfileViewModel?.username?.collectAsStateWithLifecycle() ?: remember { mutableStateOf("Andy") })
     var showUsernameDialog by remember { mutableStateOf(false) }
     // Show logout confirmation dialog state
     var showLogoutDialog by remember { mutableStateOf(false) }

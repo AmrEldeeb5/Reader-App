@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 // Helper functions for contrast-aware color adjustment
 private fun contrastRatio(a: Color, b: Color): Double {
@@ -146,8 +147,8 @@ fun BookDetailsScreen(
     favoritesViewModel: FavoritesViewModel = hiltViewModel(),
     detailsViewModel: BookDetailsViewModel = hiltViewModel()
 ) {
-    val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsState()
-    val currentBook by favoritesViewModel.currentBook.collectAsState()
+    val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsStateWithLifecycle()
+    val currentBook by favoritesViewModel.currentBook.collectAsStateWithLifecycle()
 
     val resolvedBook: Book? = remember(bookId, currentBook, favoriteBooks) {
         when {
@@ -203,7 +204,7 @@ fun BookDetailsBottomSheet(
     LaunchedEffect(book.coverImageUrl, dynamicTheming, detailsViewModel) {
         if (dynamicTheming && detailsViewModel != null) detailsViewModel.loadPalette(context, book.id, book.coverImageUrl, translucentSheet)
     }
-    val paletteColor by (detailsViewModel?.paletteColor?.collectAsState() ?: remember { mutableStateOf<Color?>(null) })
+    val paletteColor by (detailsViewModel?.paletteColor?.collectAsStateWithLifecycle() ?: remember { mutableStateOf<Color?>(null) })
 
     // Original sheet color reused as inner Surface background (not on full-width scaffold anymore)
     val sheetBgColor = (paletteColor ?: MaterialTheme.colorScheme.surface).let { base ->

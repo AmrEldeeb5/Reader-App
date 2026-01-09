@@ -24,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.reader.screens.profile.FeedbackViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +32,7 @@ fun ViewFeedbackScreen(
     navController: NavController,
     feedbackViewModel: FeedbackViewModel = hiltViewModel()
 ) {
-    val feedbackList by feedbackViewModel.feedbackList.collectAsState()
+    val feedbackList by feedbackViewModel.feedbackList.collectAsStateWithLifecycle()
 
     val sentimentIcons = listOf(
         Icons.Filled.SentimentVeryDissatisfied,

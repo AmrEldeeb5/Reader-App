@@ -37,6 +37,7 @@ import com.example.reader.screens.home.HomeViewModel
 import com.example.reader.screens.profile.UserProfileViewModel
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.foundation.BorderStroke
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun HomeScreen(
@@ -47,10 +48,10 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     favoritesViewModel: FavoritesViewModel = hiltViewModel()
 ) {
-    val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val booksState by viewModel.booksState.collectAsState()
-    val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsState()
-    val lastSelectedBook by viewModel.lastSelectedBook.collectAsState()
+    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+    val booksState by viewModel.booksState.collectAsStateWithLifecycle()
+    val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsStateWithLifecycle()
+    val lastSelectedBook by viewModel.lastSelectedBook.collectAsStateWithLifecycle()
 
     // Create a set of favorite IDs for quick lookup
     val favoriteIds = remember(favoriteBooks) {
@@ -163,7 +164,7 @@ fun HomeTopBar(
 ) {
     val isPreview = LocalInspectionMode.current
     val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else hiltViewModel()
-    val syncedUsername by (userProfileViewModel?.username?.collectAsState() ?: remember { mutableStateOf("Andy") })
+    val syncedUsername by (userProfileViewModel?.username?.collectAsStateWithLifecycle() ?: remember { mutableStateOf("Andy") })
 
     // State for notification popup
     var showNotificationPopup by remember { mutableStateOf(false) }

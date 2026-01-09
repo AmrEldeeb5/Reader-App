@@ -20,6 +20,7 @@ import com.example.reader.screens.home.BookCard
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.reader.screens.savedScreen.FavoritesViewModel
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun SavedScreen(
@@ -28,7 +29,7 @@ fun SavedScreen(
     onThemeToggle: (Boolean) -> Unit = {},
     favoritesViewModel: FavoritesViewModel = hiltViewModel()
 ) {
-    val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsState()
+    val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier

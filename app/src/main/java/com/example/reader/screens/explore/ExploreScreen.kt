@@ -43,6 +43,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import com.example.reader.screens.home.BookCard
 import kotlinx.coroutines.launch
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,8 +53,8 @@ fun ExploreScreen(
     onThemeToggle: (Boolean) -> Unit = {},
     viewModel: ExploreViewModel = hiltViewModel()
 ) {
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val searchState by viewModel.searchState.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val searchState by viewModel.searchState.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
 
     // State for tracking scroll

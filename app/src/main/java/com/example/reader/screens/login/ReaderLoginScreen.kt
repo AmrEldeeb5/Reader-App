@@ -41,6 +41,7 @@ import com.example.reader.utils.rememberResponsiveLayout
 import kotlinx.coroutines.launch
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.reader.screens.login.LoginScreenViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 
 
@@ -286,9 +287,9 @@ fun LoginScreen(
     val scrollState = rememberScrollState()
 
     // ViewModel state observation
-    val loginState by viewModel.loginState.collectAsState()
+    val loginState by viewModel.loginState.collectAsStateWithLifecycle()
     val isLoading = loginState.status == LoadingState.Status.LOADING
-    val rememberMe by viewModel.rememberMe.collectAsState()
+    val rememberMe by viewModel.rememberMe.collectAsStateWithLifecycle()
 
     // Modern responsive layout
     val layout = rememberResponsiveLayout()
