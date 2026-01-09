@@ -2,115 +2,56 @@ package com.example.reader.screens.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.reader.data.realm.RealmRepository
-import com.example.reader.utils.UserPreferences
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.reader.domain.repository.AuthRepository
+import com.example.reader.domain.repository.UserPreferencesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class UserProfileViewModel(
-    private val userPreferences: UserPreferences,
-    private val realmRepository: RealmRepository
+/**
+ * ViewModel for user profile screen using Clean Architecture.
+ *
+ * Manages username display and updates through repositories.
+ *
+ * @property authRepository Repository for authentication operations
+ * @property userPreferencesRepository Repository for user preferences
+ */
+@HiltViewModel
+class UserProfileViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
-    private val _username = MutableStateFlow<String>("")
-    val username: StateFlow<String> = _username.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val auth = FirebaseAuth.getInstance()
-    private val firestore = FirebaseFirestore.getInstance()
-
-    init {
-        loadUsername()
-    }
-
-    private fun loadUsername() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val currentUser = auth.currentUser
-                if (currentUser != null) {
-                    // Try to get username from Firestore first
-                    val snapshot = firestore
-                        .collection("users")
-                        .document(currentUser.uid)
-                        .get()
-                        .await()
-
-                    val firestoreUsername = if (snapshot.exists()) {
-                        snapshot.getString("displayName")
-                            ?: snapshot.getString("username")
-                            ?: snapshot.getString("name")
-                    } else null
-
-                    // Try to get from Realm DB
-                    val realmProfile = realmRepository.getUserProfileOnce()
-                    val realmUsername = realmProfile?.username?.takeIf { it.isNotBlank() }
-
-                    // Fallback hierarchy: Firestore -> Realm DB -> Firebase Auth -> UserPreferences -> Default
-                    val resolvedUsername = firestoreUsername?.takeIf { it.isNotBlank() }
-                        ?: realmUsername
-                        ?: currentUser.displayName?.takeIf { it.isNotBlank() }
-                        ?: userPreferences.getSavedUserName()?.takeIf { it.isNotBlank() }
-                        ?: "Andy"
-
-                    _username.value = resolvedUsername
-                } else {
-                    // User not logged in, try Realm DB first, then saved username or default
-                    val realmProfile = realmRepository.getUserProfileOnce()
-                    _username.value = realmProfile?.username?.takeIf { it.isNotBlank() }
-                        ?: userPreferences.getSavedUserName()?.takeIf { it.isNotBlank() }
-                        ?: "Andy"
-                }
-            } catch (e: Exception) {
-                // Fallback to saved username or default on error
-                _username.value = userPreferences.getSavedUserName()?.takeIf { it.isNotBlank() } ?: "Andy"
-            }
-            _isLoading.value = false
+    /**
+     * Reactive username from preferences with fallback to current user or default.
+     */
+    val username: StateFlow<String> = userPreferencesRepository
+        .observeUsername()
+        .map { savedUsername ->
+            savedUsername?.takeIf { it.isNotBlank() }
+                ?: authRepository.getCurrentUser()?.displayName?.takeIf { it.isNotBlank() }
+                ?: "Andy"
         }
-    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = "Andy"
+        )
 
+    /**
+     * Update the username.
+     *
+     * @param newUsername New username to set
+     */
     fun updateUsername(newUsername: String) {
         if (newUsername.isBlank()) return
 
         viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                // Update local state immediately for responsive UI
-                _username.value = newUsername
-
-                // Save to UserPreferences
-                userPreferences.updateUserName(newUsername)
-
-                // Save to Realm DB
-                val email = auth.currentUser?.email ?: ""
-                realmRepository.saveUserProfile(newUsername, email)
-
-                // Update Firebase if user is logged in
-                val currentUser = auth.currentUser
-                if (currentUser != null) {
-                    // Update Firestore
-                    firestore
-                        .collection("users")
-                        .document(currentUser.uid)
-                        .update("displayName", newUsername)
-                        .await()
-                }
-            } catch (e: Exception) {
-                // On error, revert to previous username
-                loadUsername()
-            }
-            _isLoading.value = false
+            userPreferencesRepository.updateUsername(newUsername)
         }
-    }
-
-    fun refreshUsername() {
-        loadUsername()
     }
 }

@@ -28,9 +28,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.reader.R
 import com.example.reader.navigation.ReaderScreens
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.reader.screens.login.LoginScreenViewModel
-import com.example.reader.ui.theme.ReaderTheme
-import org.koin.androidx.compose.koinViewModel
+import com.example.reader.screens.profile.UserProfileViewModel
 
 @Composable
 fun StatsScreen(
@@ -41,11 +41,10 @@ fun StatsScreen(
     onColorSchemeToggle: (Boolean) -> Unit = {}
 ) {
     val isPreview = LocalInspectionMode.current
-    val loginViewModel: LoginScreenViewModel? = if (isPreview) null else koinViewModel()
-    val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else koinViewModel()
+    val loginViewModel: LoginScreenViewModel? = if (isPreview) null else hiltViewModel()
+    val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else hiltViewModel()
     val context = LocalContext.current
     val username by (userProfileViewModel?.username?.collectAsState() ?: remember { mutableStateOf("") })
-    val isLoading by (userProfileViewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) })
     var showUsernameDialog by remember { mutableStateOf(false) }
     // Show logout confirmation dialog state
     var showLogoutDialog by remember { mutableStateOf(false) }

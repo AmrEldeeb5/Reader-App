@@ -17,8 +17,8 @@ import androidx.navigation.NavController
 import com.example.reader.R
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.home.BookCard
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.reader.screens.saved.FavoritesViewModel
-import org.koin.compose.koinInject
 import androidx.compose.ui.graphics.Color
 
 @Composable
@@ -26,7 +26,7 @@ fun SavedScreen(
     navController: NavController,
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
-    favoritesViewModel: FavoritesViewModel = koinInject() // Inject same singleton instance
+    favoritesViewModel: FavoritesViewModel = hiltViewModel()
 ) {
     val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsState()
 
@@ -84,19 +84,20 @@ fun SavedScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(favoriteBooks) { book ->
+                items(favoriteBooks) { favorite ->
                     BookCard(
-                        book = book,
+                        book = favorite.book,
+                        isFavorite = true,
                         isDarkTheme = isDarkTheme,
                         onFavoriteToggle = {
-                            favoritesViewModel.removeFavorite(book.id)
+                            favoritesViewModel.removeFavorite(favorite.bookId)
                         },
                         onRatingChange = { rating ->
-                            favoritesViewModel.updateUserRating(book.id, rating)
+                            favoritesViewModel.updateUserRating(favorite.bookId, rating)
                         },
                         onBookClick = {
-                            favoritesViewModel.setCurrentBook(book)
-                            navController.navigate(ReaderScreens.DetailScreen.name + "/${book.id}")
+                            favoritesViewModel.setCurrentBook(favorite.book)
+                            navController.navigate(ReaderScreens.DetailScreen.name + "/${favorite.book.id.hashCode()}")
                         }
                     )
                 }

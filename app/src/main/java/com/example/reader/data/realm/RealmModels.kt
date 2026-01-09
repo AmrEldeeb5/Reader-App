@@ -13,21 +13,6 @@ class FeedbackRealm : RealmObject {
     var timestamp: Long = System.currentTimeMillis()
 }
 
-// Realm model for favorite books
-class FavoriteBookRealm : RealmObject {
-    @PrimaryKey
-    var id: Int = 0
-    var title: String = ""
-    var author: String = ""
-    var subtitle: String = ""
-    var rating: Double = 0.0
-    var coverImageUrl: String? = null
-    var userRating: Double? = null
-    var description: String? = null
-    var isFavorite: Boolean = true
-    var addedTimestamp: Long = System.currentTimeMillis()
-}
-
 // Realm model for user profile
 class UserProfileRealm : RealmObject {
     @PrimaryKey

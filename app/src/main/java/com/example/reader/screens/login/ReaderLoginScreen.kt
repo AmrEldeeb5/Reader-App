@@ -39,7 +39,8 @@ import com.example.reader.utils.ResponsiveLayout
 import com.example.reader.utils.UserPreferences
 import com.example.reader.utils.rememberResponsiveLayout
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.reader.screens.login.LoginScreenViewModel
 
 
 
@@ -257,7 +258,7 @@ private fun LoginButton(
 fun ReaderLoginScreen(
     navController: NavController,
     onLoginClick: (String, String) -> Unit,
-    viewModel: LoginScreenViewModel = koinViewModel(),
+    viewModel: LoginScreenViewModel = hiltViewModel(),
     isGreenTheme: Boolean = true
 ) {
     val context = LocalContext.current

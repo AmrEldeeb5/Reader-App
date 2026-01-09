@@ -4,12 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reader.data.realm.FeedbackRealm
 import com.example.reader.data.realm.RealmRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class FeedbackViewModel(private val realmRepository: RealmRepository) : ViewModel() {
+@HiltViewModel
+class FeedbackViewModel @Inject constructor(
+    private val realmRepository: RealmRepository
+) : ViewModel() {
 
     private val _feedbackList = MutableStateFlow<List<FeedbackRealm>>(emptyList())
     val feedbackList: StateFlow<List<FeedbackRealm>> = _feedbackList.asStateFlow()

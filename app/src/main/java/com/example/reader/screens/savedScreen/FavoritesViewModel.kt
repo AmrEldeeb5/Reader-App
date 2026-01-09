@@ -2,72 +2,111 @@ package com.example.reader.screens.saved
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.reader.data.model.Book
-import com.example.reader.data.realm.RealmRepository
+import com.example.reader.domain.model.Book
+import com.example.reader.domain.model.Favorite
+import com.example.reader.domain.repository.FavoritesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
- * Shared ViewModel for managing favorite books across the app
- * This ensures favorites persist across screen navigation and app restarts using Realm DB
- * Uses Koin for dependency injection as a singleton
+ * ViewModel for favorites screen using Clean Architecture.
+ *
+ * Manages favorite books with reactive updates through repositories.
+ *
+ * @property favoritesRepository Repository for favorites operations
  */
-class FavoritesViewModel(private val realmRepository: RealmRepository) : ViewModel() {
+@HiltViewModel
+class FavoritesViewModel @Inject constructor(
+    private val favoritesRepository: FavoritesRepository
+) : ViewModel() {
 
-    private val _favoriteBooks = MutableStateFlow<List<Book>>(emptyList())
-    val favoriteBooks: StateFlow<List<Book>> = _favoriteBooks.asStateFlow()
+    /**
+     * Reactive list of favorite books from Realm database.
+     */
+    val favoriteBooks: StateFlow<List<Favorite>> = favoritesRepository
+        .observeFavorites()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
-    // Hold currently selected book for details screen navigation
     private val _currentBook = MutableStateFlow<Book?>(null)
     val currentBook: StateFlow<Book?> = _currentBook.asStateFlow()
 
-    init {
-        loadFavoritesFromRealm()
-    }
-
-    private fun loadFavoritesFromRealm() {
-        viewModelScope.launch {
-            realmRepository.getAllFavoriteBooks().collect { books ->
-                _favoriteBooks.value = books
-            }
-        }
-    }
-
+    /**
+     * Set the currently selected book for navigation.
+     *
+     * @param book The book to set as current
+     */
     fun setCurrentBook(book: Book) {
         _currentBook.value = book
     }
 
+    /**
+     * Add a book to favorites.
+     *
+     * @param book The book to add
+     */
     fun addFavorite(book: Book) {
         viewModelScope.launch {
-            realmRepository.saveFavoriteBook(book)
+            favoritesRepository.addFavorite(book.id, book)
         }
     }
 
-    fun removeFavorite(bookId: Int) {
+    /**
+     * Remove a book from favorites.
+     *
+     * @param bookId Book identifier
+     */
+    fun removeFavorite(bookId: String) {
         viewModelScope.launch {
-            realmRepository.removeFavoriteBook(bookId)
+            favoritesRepository.removeFavorite(bookId)
         }
     }
 
+    /**
+     * Toggle favorite status for a book.
+     *
+     * @param book The book to toggle
+     */
     fun toggleFavorite(book: Book) {
         viewModelScope.launch {
-            if (isFavorite(book.id)) {
-                removeFavorite(book.id)
+            val isFavorite = favoritesRepository.isFavorite(book.id)
+            
+            if (isFavorite) {
+                favoritesRepository.removeFavorite(book.id)
             } else {
-                addFavorite(book)
+                favoritesRepository.addFavorite(book.id, book)
             }
         }
     }
 
-    fun isFavorite(bookId: Int): Boolean {
-        return _favoriteBooks.value.any { it.id == bookId }
+    /**
+     * Check if a book is in favorites.
+     *
+     * @param bookId Book identifier
+     * @return true if favorited, false otherwise
+     */
+    suspend fun isFavorite(bookId: String): Boolean {
+        return favoritesRepository.isFavorite(bookId)
     }
 
-    fun updateUserRating(bookId: Int, rating: Double) {
+    /**
+     * Update user rating for a favorite book.
+     *
+     * @param bookId Book identifier
+     * @param rating User's rating (1.0 to 5.0)
+     */
+    fun updateUserRating(bookId: String, rating: Double) {
         viewModelScope.launch {
-            realmRepository.updateBookRating(bookId, rating)
+            favoritesRepository.updateRating(bookId, rating)
         }
     }
 }

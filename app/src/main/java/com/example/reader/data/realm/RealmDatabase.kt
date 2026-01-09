@@ -1,5 +1,6 @@
 package com.example.reader.data.realm
 
+import com.example.reader.data.source.local.realm.entities.FavoriteBookRealm
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 

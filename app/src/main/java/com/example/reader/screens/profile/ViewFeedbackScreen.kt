@@ -20,7 +20,8 @@ import com.example.reader.R
 import com.example.reader.data.realm.FeedbackRealm
 import com.example.reader.ui.theme.animatedScaffoldContainerColor
 import com.example.reader.ui.theme.animatedTopBarContainerColor
-import org.koin.compose.koinInject
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.reader.screens.profile.FeedbackViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -28,7 +29,7 @@ import java.util.*
 @Composable
 fun ViewFeedbackScreen(
     navController: NavController,
-    feedbackViewModel: FeedbackViewModel = koinInject()
+    feedbackViewModel: FeedbackViewModel = hiltViewModel()
 ) {
     val feedbackList by feedbackViewModel.feedbackList.collectAsState()
 

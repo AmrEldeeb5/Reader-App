@@ -1,64 +1,101 @@
 package com.example.reader.screens.login
 
-import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reader.components.LoadingState
-import com.example.reader.utils.UserPreferences
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+import com.example.reader.domain.error.AppError
+import com.example.reader.domain.repository.AuthRepository
+import com.example.reader.domain.repository.UserPreferencesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginScreenViewModel: ViewModel() {
-    private val auth: FirebaseAuth = Firebase.auth
+/**
+ * ViewModel for login screen using Clean Architecture.
+ *
+ * Manages authentication state and user login operations through repositories.
+ *
+ * @property authRepository Repository for authentication operations
+ * @property userPreferencesRepository Repository for user preferences
+ */
+@HiltViewModel
+class LoginScreenViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
 
-    private val _loading = MutableLiveData(false)
-    val loading: LiveData<Boolean> = _loading
+    private val _loading = MutableStateFlow(false)
+    val loading: StateFlow<Boolean> = _loading.asStateFlow()
 
     private val _loginState = MutableStateFlow(LoadingState.IDLE)
-    val loginState: StateFlow<LoadingState> = _loginState
+    val loginState: StateFlow<LoadingState> = _loginState.asStateFlow()
 
     /**
-     * Login with email and password using Firebase Authentication
-     * Firebase automatically persists the session
+     * Attempt to sign in with email and password.
+     *
+     * @param email User's email address
+     * @param password User's password
+     * @param rememberMe Whether to save credentials for auto-login
+     * @param onResult Callback with success status and optional error message
      */
-    fun login(email: String, password: String, onResult: (Boolean, String?) -> Unit)
-    = viewModelScope.launch {
+    fun login(
+        email: String,
+        password: String,
+        rememberMe: Boolean = false,
+        onResult: (Boolean, String?) -> Unit
+    ) = viewModelScope.launch {
         if (_loginState.value == LoadingState.LOADING) return@launch
+        
         _loginState.value = LoadingState.LOADING
         _loading.value = true
 
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
+        val result = authRepository.signIn(email, password)
+        
+        result.fold(
+            onSuccess = {
+                _loginState.value = LoadingState.SUCCESS
                 _loading.value = false
-                if (task.isSuccessful) {
-                    _loginState.value = LoadingState.SUCCESS
-                    onResult(true, null)
-                } else {
-                    _loginState.value = LoadingState.error(task.exception?.message ?: "Login failed")
-                    onResult(false, task.exception?.message)
+                
+                // Save credentials if "Remember Me" is checked
+                if (rememberMe) {
+                    userPreferencesRepository.saveCredentials(email, password)
+                    userPreferencesRepository.setRememberMe(true)
                 }
+                
+                onResult(true, null)
+            },
+            onFailure = { error ->
+                val message = when (error) {
+                    is AppError.AuthError -> error.message
+                    is AppError.NetworkError -> "Network error. Please check your connection."
+                    else -> "Login failed. Please try again."
+                }
+                
+                _loginState.value = LoadingState.error(message)
+                _loading.value = false
+                onResult(false, message)
             }
+        )
     }
 
     /**
-     * Logout user from Firebase and clear saved preferences
+     * Sign out the current user and clear saved preferences.
      */
-    fun logout(context: Context) {
-        auth.signOut()
-        val userPrefs = UserPreferences(context)
-        userPrefs.clearAll()
+    fun logout() = viewModelScope.launch {
+        authRepository.signOut()
+        userPreferencesRepository.clearCredentials()
+        userPreferencesRepository.setRememberMe(false)
     }
 
     /**
-     * Check if user is already logged in (Firebase session active)
+     * Check if a user is currently logged in.
+     *
+     * @return true if user is logged in, false otherwise
      */
     fun isUserLoggedIn(): Boolean {
-        return auth.currentUser != null
+        return authRepository.isUserLoggedIn()
     }
 }

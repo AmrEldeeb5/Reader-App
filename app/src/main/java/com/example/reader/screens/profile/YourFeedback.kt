@@ -27,13 +27,14 @@ import com.example.reader.ui.theme.ReaderTheme
 import com.example.reader.ui.theme.animatedScaffoldContainerColor
 import com.example.reader.ui.theme.animatedTopBarContainerColor
 import kotlinx.coroutines.delay
-import org.koin.compose.koinInject
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.reader.screens.profile.FeedbackViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YourFeedbackScreen(
     navController: NavController,
-    feedbackViewModel: FeedbackViewModel = koinInject()
+    feedbackViewModel: FeedbackViewModel = hiltViewModel()
 ) {
     var feedback by remember { mutableStateOf("") }
     var selectedIndex by remember { mutableStateOf(3) } // default to very satisfied

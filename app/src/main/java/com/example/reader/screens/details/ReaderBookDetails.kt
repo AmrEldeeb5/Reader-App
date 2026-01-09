@@ -25,11 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.reader.R
 import com.example.reader.data.LastSelectedCoverStore
-import com.example.reader.data.model.Book
-import com.example.reader.screens.saved.FavoritesViewModel
 import coil.compose.AsyncImage
-import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.reader.screens.saved.FavoritesViewModel
+import com.example.reader.screens.details.BookDetailsViewModel
 import androidx.core.graphics.ColorUtils
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.animation.core.animateFloatAsState
@@ -144,17 +143,17 @@ private fun deriveContrastingButtonColor(paletteColor: Color?, primary: Color, s
 fun BookDetailsScreen(
     navController: NavController,
     bookId: Int?,
-    favoritesViewModel: FavoritesViewModel = koinInject(),
-    detailsViewModel: BookDetailsViewModel = koinViewModel()
+    favoritesViewModel: FavoritesViewModel = hiltViewModel(),
+    detailsViewModel: BookDetailsViewModel = hiltViewModel()
 ) {
     val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsState()
     val currentBook by favoritesViewModel.currentBook.collectAsState()
 
-    val resolvedBook: Book? = remember(bookId, currentBook, favoriteBooks) {
+    val resolvedBook: com.example.reader.domain.model.Book? = remember(bookId, currentBook, favoriteBooks) {
         when {
-            currentBook != null && currentBook?.id == bookId -> currentBook
+            currentBook != null && currentBook?.id?.hashCode() == bookId -> currentBook
             bookId == null -> null
-            else -> favoriteBooks.firstOrNull { it.id == bookId }
+            else -> favoriteBooks.firstOrNull { it.book.id.hashCode() == bookId }?.book
         }
     }
 

@@ -31,11 +31,10 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.reader.R
 import com.example.reader.data.LastSelectedCoverStore
-import com.example.reader.data.model.Book
 import com.example.reader.navigation.ReaderScreens
-import com.example.reader.screens.saved.FavoritesViewModel
-import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
+import com.example.reader.screens.savedScreen.FavoritesViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.reader.screens.home.HomeViewModel
 import com.example.reader.screens.profile.UserProfileViewModel
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.foundation.BorderStroke
@@ -46,8 +45,8 @@ fun Home(
     isDarkTheme: Boolean = false,
     onThemeToggle: (Boolean) -> Unit = {},
     isGreenTheme: Boolean = true,
-    viewModel: HomeViewModel = koinViewModel(),
-    favoritesViewModel: FavoritesViewModel = koinInject() // Inject singleton
+    viewModel: HomeViewModel = hiltViewModel(),
+    favoritesViewModel: FavoritesViewModel = hiltViewModel()
 ) {
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val booksState by viewModel.booksState.collectAsState()
@@ -55,7 +54,7 @@ fun Home(
 
     // Create a set of favorite IDs for quick lookup
     val favoriteIds = remember(favoriteBooks) {
-        favoriteBooks.map { it.id }.toSet()
+        favoriteBooks.map { it.bookId }.toSet()
     }
 
     // Animated colors for smooth theme transitions
@@ -141,7 +140,7 @@ fun Home(
                         coverUrl = book.coverImageUrl,
                         description = snippet,
                         title = book.title,
-                        bookId = book.id,
+                        bookId = book.id.hashCode(), // Convert String ID to Int for legacy store
                         categoryName = categoryName
                     )
 
@@ -162,7 +161,7 @@ fun HomeTopBar(
     isGreenTheme: Boolean
 ) {
     val isPreview = LocalInspectionMode.current
-    val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else koinViewModel()
+    val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else hiltViewModel()
     val syncedUsername by (userProfileViewModel?.username?.collectAsState() ?: remember { mutableStateOf("Andy") })
 
     // State for notification popup
@@ -303,11 +302,11 @@ fun NotificationContent(
 fun BookGridSection(
     isDarkTheme: Boolean,
     booksState: CategoryBooksState,
-    favoriteIds: Set<Int>,
-    onFavoriteToggle: (Book) -> Unit,
-    onRatingChange: (Int, Double) -> Unit,
+    favoriteIds: Set<String>,
+    onFavoriteToggle: (com.example.reader.domain.model.Book) -> Unit,
+    onRatingChange: (String, Double) -> Unit,
     navController: NavController,
-    onBookOpen: (Book) -> Unit
+    onBookOpen: (com.example.reader.domain.model.Book) -> Unit
 ) {
     when {
         booksState.isLoading -> {
@@ -370,7 +369,8 @@ fun BookGridSection(
             ) {
                 items(firstRowBooks) { book ->
                     BookCard(
-                        book = book.copy(isFavorite = favoriteIds.contains(book.id)),
+                        book = book,
+                        isFavorite = favoriteIds.contains(book.id),
                         isDarkTheme = isDarkTheme,
                         onFavoriteToggle = { onFavoriteToggle(book) },
                         onRatingChange = { rating -> onRatingChange(book.id, rating) },
@@ -410,7 +410,8 @@ fun BookGridSection(
                 ) {
                     items(secondRowBooks) { book ->
                         BookCard(
-                            book = book.copy(isFavorite = favoriteIds.contains(book.id)),
+                            book = book,
+                            isFavorite = favoriteIds.contains(book.id),
                             isDarkTheme = isDarkTheme,
                             onFavoriteToggle = { onFavoriteToggle(book) },
                             onRatingChange = { rating -> onRatingChange(book.id, rating) },
@@ -450,7 +451,8 @@ fun BookGridSection(
                 ) {
                     items(thirdRowBooks) { book ->
                         BookCard(
-                            book = book.copy(isFavorite = favoriteIds.contains(book.id)),
+                            book = book,
+                            isFavorite = favoriteIds.contains(book.id),
                             isDarkTheme = isDarkTheme,
                             onFavoriteToggle = { onFavoriteToggle(book) },
                             onRatingChange = { rating -> onRatingChange(book.id, rating) },
@@ -465,7 +467,8 @@ fun BookGridSection(
 
 @Composable
 fun BookCard(
-    book: Book,
+    book: com.example.reader.domain.model.Book,
+    isFavorite: Boolean,
     onFavoriteToggle: () -> Unit,
     onRatingChange: (Double) -> Unit = {},
     isDarkTheme: Boolean,
@@ -510,7 +513,7 @@ fun BookCard(
                 ) {
                     IconButton(onClick = onFavoriteToggle) {
                         val tint by animateColorAsState(
-                            targetValue = if (book.isFavorite) Color.Red else Color.White,
+                            targetValue = if (isFavorite) Color.Red else Color.White,
                             animationSpec = tween(300),
                             label = "favorite_color"
                         )
@@ -562,12 +565,12 @@ fun BookCard(
                     Icon(
                         imageVector = Icons.Filled.Star,
                         contentDescription = "Rating",
-                        tint = if (book.userRating != null) Color(0xFFFFB300) else Color.Gray,
+                        tint = if (book.rating > 0) Color(0xFFFFB300) else Color.Gray,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = book.userRating?.toString() ?: "Rate",
+                        text = if (book.rating > 0) book.rating.toString() else "Rate",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
@@ -580,7 +583,7 @@ fun BookCard(
     // Rating Dialog
     if (showRatingDialog) {
         RatingDialog(
-            currentRating = book.userRating ?: 0.0,
+            currentRating = book.rating,
             onDismiss = { showRatingDialog = false },
             onRatingSelected = { rating ->
                 onRatingChange(rating)

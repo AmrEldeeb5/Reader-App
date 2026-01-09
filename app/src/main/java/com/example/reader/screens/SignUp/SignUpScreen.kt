@@ -41,7 +41,8 @@ import com.example.reader.ui.theme.animatedScaffoldContainerColor
 import com.example.reader.utils.UserPreferences
 import com.example.reader.utils.rememberResponsiveLayout
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.reader.screens.SignUp.SignUpScreenViewModel
 
 
 // Validation functions
@@ -169,13 +170,13 @@ private fun SignUpButton(
 fun SignUpScreen(
     navController: NavController,
     onSignUpClick: (String, String, String) -> Unit,
-    viewModel: SignUpScreenViewModel = koinViewModel(),
+    viewModel: SignUpScreenViewModel = hiltViewModel(),
     isGreenTheme: Boolean = true
 ) {
     val context = LocalContext.current
     val userPrefs = remember { UserPreferences(context) }
 
-    val userProfileViewModel: UserProfileViewModel = koinViewModel()
+    val userProfileViewModel: UserProfileViewModel = hiltViewModel()
 
     var formState by remember { mutableStateOf(SignUpFormState()) }
     var formErrors by remember { mutableStateOf(FormErrors()) }

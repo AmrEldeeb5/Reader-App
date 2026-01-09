@@ -2,16 +2,19 @@ package com.example.reader.screens.explore
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.reader.data.api.RetrofitInstance
-import com.example.reader.data.model.Book
-import com.example.reader.data.model.BookItem
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import com.example.reader.domain.model.Book
+import com.example.reader.domain.repository.BookRepository
+import com.example.reader.domain.repository.FavoritesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+/**
+ * UI state for book search.
+ */
 data class SearchState(
     val isLoading: Boolean = false,
     val books: List<Book> = emptyList(),
@@ -19,17 +22,40 @@ data class SearchState(
     val hasSearched: Boolean = false
 )
 
-class ExploreViewModel : ViewModel() {
+/**
+ * ViewModel for explore/search screen using Clean Architecture.
+ *
+ * Manages book search and favorites through repositories.
+ *
+ * @property bookRepository Repository for book operations
+ * @property favoritesRepository Repository for favorites operations
+ */
+@HiltViewModel
+class ExploreViewModel @Inject constructor(
+    private val bookRepository: BookRepository,
+    private val favoritesRepository: FavoritesRepository
+) : ViewModel() {
+    
     private val _searchState = MutableStateFlow(SearchState())
     val searchState: StateFlow<SearchState> = _searchState.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    /**
+     * Update the search query text.
+     *
+     * @param query New search query
+     */
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
     }
 
+    /**
+     * Search for books by query.
+     *
+     * @param query Search term
+     */
     fun searchBooks(query: String) {
         if (query.isBlank()) {
             _searchState.value = SearchState(
@@ -42,76 +68,76 @@ class ExploreViewModel : ViewModel() {
         viewModelScope.launch {
             _searchState.value = SearchState(isLoading = true, hasSearched = true)
 
-            try {
-                val response = RetrofitInstance.api.getBooks(query)
-
-                val books = response.items?.mapNotNull { bookItem ->
-                    val book = bookItem.toBook()
-                    // Filter out books with "Unknown" title or author
-                    if (book.title != "Unknown" && book.author != "Unknown") {
-                        book
+            val result = bookRepository.searchBooks(query)
+            
+            result.fold(
+                onSuccess = { books ->
+                    _searchState.value = if (books.isEmpty()) {
+                        SearchState(
+                            hasSearched = true,
+                            errorMessage = "No books found for \"$query\". Try a different search term."
+                        )
                     } else {
-                        null
+                        SearchState(
+                            hasSearched = true,
+                            books = books
+                        )
                     }
-                } ?: emptyList()
-
-                _searchState.value = if (books.isEmpty()) {
-                    SearchState(
+                },
+                onFailure = { error ->
+                    _searchState.value = SearchState(
                         hasSearched = true,
-                        errorMessage = "No books found for \"$query\". Try a different search term."
-                    )
-                } else {
-                    SearchState(
-                        hasSearched = true,
-                        books = books
+                        errorMessage = error.message ?: "Failed to search books. Please check your internet connection."
                     )
                 }
-            } catch (e: Exception) {
-                _searchState.value = SearchState(
-                    hasSearched = true,
-                    errorMessage = "Failed to search books. Please check your internet connection."
-                )
+            )
+        }
+    }
+
+    /**
+     * Toggle favorite status for a book.
+     *
+     * @param book The book to toggle
+     */
+    fun toggleFavorite(book: Book) {
+        viewModelScope.launch {
+            val isFavorite = favoritesRepository.isFavorite(book.id)
+            
+            if (isFavorite) {
+                favoritesRepository.removeFavorite(book.id)
+            } else {
+                favoritesRepository.addFavorite(book.id, book)
             }
         }
     }
 
-    fun toggleFavorite(bookId: Int) {
-        _searchState.value = _searchState.value.copy(
-            books = _searchState.value.books.map { book ->
-                if (book.id == bookId) {
-                    book.copy(isFavorite = !book.isFavorite)
-                } else {
-                    book
-                }
-            }
-        )
+    /**
+     * Update user rating for a book.
+     *
+     * @param bookId Book identifier
+     * @param rating User's rating (1.0 to 5.0)
+     */
+    fun updateUserRating(bookId: String, rating: Double) {
+        viewModelScope.launch {
+            favoritesRepository.updateRating(bookId, rating)
+        }
     }
 
-    fun updateUserRating(bookId: Int, rating: Double) {
-        _searchState.value = _searchState.value.copy(
-            books = _searchState.value.books.map { book ->
-                if (book.id == bookId) {
-                    book.copy(userRating = rating)
-                } else {
-                    book
-                }
-            }
-        )
-    }
-
+    /**
+     * Clear the search query and results.
+     */
     fun clearSearch() {
         _searchQuery.value = ""
         _searchState.value = SearchState()
     }
 
-    private fun BookItem.toBook() = Book(
-        id = id.hashCode(),
-        title = volumeInfo.title ?: "Unknown",
-        author = volumeInfo.authors?.joinToString(", ") ?: "Unknown",
-        subtitle = volumeInfo.subtitle ?: "",
-        rating = volumeInfo.averageRating ?: 0.0,
-        coverImageUrl = volumeInfo.imageLinks?.thumbnail?.replace("http://", "https://"),
-        isFavorite = false,
-        description = volumeInfo.description
-    )
+    /**
+     * Check if a book is in favorites.
+     *
+     * @param bookId Book identifier
+     * @return true if favorited, false otherwise
+     */
+    suspend fun isFavorite(bookId: String): Boolean {
+        return favoritesRepository.isFavorite(bookId)
+    }
 }
