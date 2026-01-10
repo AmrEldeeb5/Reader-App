@@ -84,7 +84,7 @@ fun AboutScreen(navController: NavController) {
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             painter = painterResource(id = R.drawable.solar__check_circle_bold),
-                            contentDescription = null,
+                            contentDescription = "Feature available",
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(Modifier.width(8.dp))

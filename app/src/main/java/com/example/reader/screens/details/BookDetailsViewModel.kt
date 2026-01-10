@@ -13,13 +13,61 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import androidx.palette.graphics.Palette
 import androidx.core.graphics.ColorUtils as AndroidColorUtils
+import com.example.reader.domain.model.Book
+import com.example.reader.domain.repository.BookRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class BookDetailsViewModel : ViewModel() {
+@HiltViewModel
+class BookDetailsViewModel @Inject constructor(
+    private val bookRepository: BookRepository
+) : ViewModel() {
     private val _paletteColor = MutableStateFlow<Color?>(null)
     val paletteColor: StateFlow<Color?> = _paletteColor.asStateFlow()
 
+    private val _bookDetails = MutableStateFlow<Book?>(null)
+    val bookDetails: StateFlow<Book?> = _bookDetails.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
     // In-memory cache of raw dominant colors keyed by book id
     private val paletteCache: MutableMap<String, Color> = mutableMapOf()
+
+    /**
+     * Fetch book details by ID from repository (with cache support).
+     */
+    fun fetchBookById(bookId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            val result = bookRepository.getBookById(bookId)
+
+            result.fold(
+                onSuccess = { book ->
+                    _bookDetails.value = book
+                    _isLoading.value = false
+                },
+                onFailure = { error ->
+                    _error.value = error.message ?: "Failed to load book"
+                    _isLoading.value = false
+                }
+            )
+        }
+    }
+
+    /**
+     * Clear book details and error state
+     */
+    fun clearBookDetails() {
+        _bookDetails.value = null
+        _error.value = null
+        _isLoading.value = false
+    }
 
     /**
      * Load (or reuse) the dominant color from the book cover.

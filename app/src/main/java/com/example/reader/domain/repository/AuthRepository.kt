@@ -46,6 +46,22 @@ interface AuthRepository {
     suspend fun resetPassword(email: String): Result<Unit>
     
     /**
+     * Change the current user's password.
+     *
+     * @param currentPassword User's current password for verification
+     * @param newPassword New password to set
+     * @return Result indicating success or failure
+     */
+    suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit>
+
+    /**
+     * Get the current authenticated user ID.
+     *
+     * @return User ID if authenticated, null otherwise
+     */
+    fun getCurrentUserId(): String?
+
+    /**
      * Observe the current authenticated user.
      *
      * @return Flow emitting the current User or null if not authenticated

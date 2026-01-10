@@ -58,6 +58,19 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
     
+    override suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit> {
+        return try {
+            firebaseAuthDataSource.changePassword(currentPassword, newPassword)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e.toAppError())
+        }
+    }
+
+    override fun getCurrentUserId(): String? {
+        return firebaseAuthDataSource.getCurrentUserId()
+    }
+
     override fun getCurrentUser(): Flow<User?> {
         return firebaseAuthDataSource.observeCurrentUser()
             .map { firebaseUser ->

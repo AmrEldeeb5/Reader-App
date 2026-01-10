@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
     alias(libs.plugins.realm.kotlin)
 }
 
@@ -99,6 +100,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.crashlytics.ktx)
+    implementation(libs.firebase.analytics.ktx)
 
     // Security - Encrypted SharedPreferences
     implementation(libs.androidx.security.crypto)
@@ -114,24 +117,23 @@ dependencies {
     implementation(libs.squareup.retrofit)
     implementation(libs.squareup.retrofit.converter.gson)
     implementation(libs.squareup.okhttp)
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-
-    // Room
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
+    implementation(libs.logging.interceptor)
 
     // Image Loading
     implementation(libs.coil.kt.compose)
     implementation(libs.androidx.palette.ktx)
 
-    // Realm Database
+    // Realm Database (for caching and favorites)
     implementation(libs.realm.library.base)
+
+    // WorkManager for background tasks
+    implementation(libs.androidx.work.runtime.ktx)
 
     // Testing
     testImplementation(libs.junit)
-    testImplementation("io.mockk:mockk:1.13.8")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
-    testImplementation("app.cash.turbine:turbine:1.0.0")
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
     
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.espresso.core)

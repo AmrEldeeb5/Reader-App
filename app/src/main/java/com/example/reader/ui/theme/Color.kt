@@ -73,3 +73,33 @@ val BrownLightDivider = Color(0xFFEFEBE9)
 val LightSuccess = Color(0xFF2E7D32)
 val LightWarning = Color(0xFFF57C00)
 val LightInfo = Color(0xFF1976D2)
+
+// ===== SEMANTIC COLORS =====
+/**
+ * Semantic colors for specific use cases.
+ * Use these instead of hardcoded hex values in composables.
+ */
+
+/** Star rating color (gold/amber) */
+val StarRatingColor = Color(0xFFFFB300)
+
+/** Book cover overlay (semi-transparent black) */
+val BookCoverOverlay = Color(0x80000000)
+
+/** Success state color */
+val SuccessGreen = Color(0xFF4CAF50)
+
+/** Warning state color */
+val WarningOrange = Color(0xFFFFA726)
+
+/** Info state color */
+val InfoBlue = Color(0xFF29B6F6)
+
+/** Shimmer effect colors (for loading skeletons) */
+val ShimmerLight = Color(0xFFE0E0E0)
+val ShimmerDark = Color(0xFF424242)
+
+/** Disabled state colors */
+val DisabledLight = Color(0x61000000)
+val DisabledDark = Color(0x61FFFFFF)
+
