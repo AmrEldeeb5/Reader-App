@@ -1,6 +1,5 @@
 package com.example.reader.screens.SignUp
 
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -10,12 +9,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
 import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
 
@@ -56,45 +56,37 @@ fun LogInPrompt(navController: NavController) {
 
     val clickableString = buildAnnotatedString {
         // "Already a reader? " text
-        withStyle(
-            baseTextStyle.toSpanStyle().copy(
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-        ) {
-            append("Already a reader? ")
-        }
+        append("Already a reader? ")
 
-        // "Login" clickable text
-        pushStringAnnotation(
-            tag = LoginPromptConstants.LOG_IN_TAG,
-            annotation = LoginPromptConstants.LOGIN_ANNOTATION
-        )
-        withStyle(
-            baseTextStyle.toSpanStyle().copy(
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold,
-                textDecoration = TextDecoration.Underline
+        // "Login" clickable text using new LinkAnnotation API
+        withLink(
+            LinkAnnotation.Clickable(
+                tag = LoginPromptConstants.LOG_IN_TAG,
+                linkInteractionListener = {
+                    navController.navigate(ReaderScreens.LoginScreen.name) {
+                        popUpTo(ReaderScreens.CreateAccountScreen.name) { inclusive = true }
+                    }
+                }
             )
         ) {
-            append("Login")
+            append(
+                androidx.compose.ui.text.AnnotatedString(
+                    text = "Login",
+                    spanStyle = SpanStyle(
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
+                    )
+                )
+            )
         }
-        pop()
     }
 
-    ClickableText(
+    Text(
         text = clickableString,
-        style = baseTextStyle.copy(color = Color.Unspecified),
-        onClick = { offset ->
-            clickableString.getStringAnnotations(
-                LoginPromptConstants.LOG_IN_TAG,
-                offset,
-                offset
-            ).firstOrNull()?.let {
-                navController.navigate(ReaderScreens.LoginScreen.name) {
-                    popUpTo(ReaderScreens.CreateAccountScreen.name) { inclusive = true }
-                }
-            }
-        }
+        style = baseTextStyle.copy(
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
     )
 }
