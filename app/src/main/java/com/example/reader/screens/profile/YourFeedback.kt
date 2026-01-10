@@ -107,7 +107,7 @@ fun YourFeedbackScreen(
                 ) {
                     Icon(
                         imageVector = sentiments[selectedIndex].first,
-                        contentDescription = null,
+                        contentDescription = "Selected sentiment: ${sentiments[selectedIndex].second}",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }

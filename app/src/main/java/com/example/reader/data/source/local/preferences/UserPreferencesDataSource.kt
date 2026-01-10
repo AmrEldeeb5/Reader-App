@@ -65,6 +65,8 @@ class UserPreferencesDataSource @Inject constructor(
         private const val KEY_USER_NAME = "user_name"
         private const val KEY_DARK_THEME = "dark_theme"
         private const val KEY_GREEN_THEME = "green_theme"
+        private const val KEY_SEARCH_HISTORY = "search_history"
+        private const val MAX_SEARCH_HISTORY = 10
     }
     
     suspend fun saveCredentials(email: String, password: String) = withContext(Dispatchers.IO) {
@@ -130,5 +132,64 @@ class UserPreferencesDataSource @Inject constructor(
     
     suspend fun getSavedPassword(): String? = withContext(Dispatchers.IO) {
         encryptedPrefs.getString(KEY_SAVED_PASSWORD, null)
+    }
+
+    /**
+     * Get search history (max 10 recent queries).
+     */
+    suspend fun getSearchHistory(): List<String> = withContext(Dispatchers.IO) {
+        val historyString = prefs.getString(KEY_SEARCH_HISTORY, "") ?: ""
+        if (historyString.isEmpty()) {
+            emptyList()
+        } else {
+            historyString.split("|").filter { it.isNotBlank() }
+        }
+    }
+
+    /**
+     * Add a search query to history.
+     * Removes duplicates and limits to MAX_SEARCH_HISTORY items.
+     */
+    suspend fun addSearchHistory(query: String) = withContext(Dispatchers.IO) {
+        if (query.isBlank()) return@withContext
+
+        val currentHistory = getSearchHistory().toMutableList()
+
+        // Remove if already exists (to move it to front)
+        currentHistory.remove(query)
+
+        // Add to front
+        currentHistory.add(0, query)
+
+        // Limit to MAX_SEARCH_HISTORY
+        val limitedHistory = currentHistory.take(MAX_SEARCH_HISTORY)
+
+        // Save as pipe-separated string
+        val historyString = limitedHistory.joinToString("|")
+        prefs.edit {
+            putString(KEY_SEARCH_HISTORY, historyString)
+        }
+    }
+
+    /**
+     * Clear all search history.
+     */
+    suspend fun clearSearchHistory() = withContext(Dispatchers.IO) {
+        prefs.edit {
+            remove(KEY_SEARCH_HISTORY)
+        }
+    }
+
+    /**
+     * Remove a specific query from search history.
+     */
+    suspend fun removeSearchHistory(query: String) = withContext(Dispatchers.IO) {
+        val currentHistory = getSearchHistory().toMutableList()
+        currentHistory.remove(query)
+
+        val historyString = currentHistory.joinToString("|")
+        prefs.edit {
+            putString(KEY_SEARCH_HISTORY, historyString)
+        }
     }
 }

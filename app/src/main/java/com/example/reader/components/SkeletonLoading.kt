@@ -250,3 +250,183 @@ fun CircleSkeleton(
     )
 }
 
+/**
+ * Skeleton loading placeholder for book details screen.
+ * Shows a placeholder while book data is being fetched.
+ */
+@Composable
+fun BookDetailsSkeleton(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        // Header with back button skeleton
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Spacing.md),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            CircleSkeleton(size = 40.dp)
+            CircleSkeleton(size = 40.dp)
+        }
+
+        Spacer(modifier = Modifier.height(Spacing.md))
+
+        // Book cover skeleton (large, centered)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.xxxl),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(180.dp)
+                    .height(270.dp)
+                    .clip(RoundedCornerShape(CornerRadius.md))
+                    .background(shimmerBrush())
+            )
+        }
+
+        Spacer(modifier = Modifier.height(Spacing.lg))
+
+        // Title skeleton
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.lg),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            RectangleSkeleton(
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .height(28.dp)
+            )
+
+            Spacer(modifier = Modifier.height(Spacing.sm))
+
+            // Author skeleton
+            RectangleSkeleton(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .height(20.dp)
+            )
+
+            Spacer(modifier = Modifier.height(Spacing.sm))
+
+            // Rating skeleton
+            RectangleSkeleton(
+                modifier = Modifier
+                    .width(120.dp)
+                    .height(24.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(Spacing.lg))
+
+        // Action buttons skeleton
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.lg),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            repeat(2) {
+                RectangleSkeleton(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .padding(horizontal = Spacing.xs)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(Spacing.lg))
+
+        // Description section skeleton
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.lg)
+        ) {
+            RectangleSkeleton(
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(20.dp)
+            )
+
+            Spacer(modifier = Modifier.height(Spacing.sm))
+
+            repeat(5) {
+                RectangleSkeleton(
+                    modifier = Modifier
+                        .fillMaxWidth(if (it == 4) 0.6f else 1f)
+                        .height(16.dp)
+                )
+                Spacer(modifier = Modifier.height(Spacing.xs))
+            }
+        }
+    }
+}
+
+/**
+ * Skeleton for search results grid.
+ * Shows a grid of book card skeletons.
+ */
+@Composable
+fun SearchResultsSkeleton(
+    count: Int = 6,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(Spacing.md)
+    ) {
+        // Create rows of 2 items
+        for (i in 0 until count step 2) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+            ) {
+                BookCardGridSkeleton(modifier = Modifier.weight(1f))
+                if (i + 1 < count) {
+                    BookCardGridSkeleton(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Skeleton for category section with horizontal scroll.
+ */
+@Composable
+fun CategorySectionSkeleton(
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        // Section title skeleton
+        RectangleSkeleton(
+            modifier = Modifier
+                .width(150.dp)
+                .height(24.dp)
+                .padding(horizontal = Spacing.md)
+        )
+
+        Spacer(modifier = Modifier.height(Spacing.md))
+
+        // Horizontal scrolling books skeleton
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+        ) {
+            Spacer(modifier = Modifier.width(Spacing.xs))
+            repeat(4) {
+                BookCardGridSkeleton()
+            }
+            Spacer(modifier = Modifier.width(Spacing.xs))
+        }
+    }
+}

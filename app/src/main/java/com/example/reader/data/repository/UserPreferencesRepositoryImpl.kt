@@ -58,4 +58,20 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun updateUsername(username: String) {
         preferencesDataSource.updateUsername(username)
     }
+
+    override suspend fun getSearchHistory(): List<String> {
+        return preferencesDataSource.getSearchHistory()
+    }
+
+    override suspend fun addSearchHistory(query: String) {
+        preferencesDataSource.addSearchHistory(query)
+    }
+
+    override suspend fun clearSearchHistory() {
+        preferencesDataSource.clearSearchHistory()
+    }
+
+    override suspend fun removeSearchHistory(query: String) {
+        preferencesDataSource.removeSearchHistory(query)
+    }
 }

@@ -78,4 +78,30 @@ interface UserPreferencesRepository {
      * @param username New username
      */
     suspend fun updateUsername(username: String)
+
+    /**
+     * Get search history.
+     *
+     * @return List of recent search queries (max 10)
+     */
+    suspend fun getSearchHistory(): List<String>
+
+    /**
+     * Add a search query to history.
+     *
+     * @param query Search query to save
+     */
+    suspend fun addSearchHistory(query: String)
+
+    /**
+     * Clear all search history.
+     */
+    suspend fun clearSearchHistory()
+
+    /**
+     * Remove a specific search query from history.
+     *
+     * @param query Query to remove
+     */
+    suspend fun removeSearchHistory(query: String)
 }
