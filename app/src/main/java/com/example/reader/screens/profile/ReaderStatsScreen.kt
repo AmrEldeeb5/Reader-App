@@ -244,7 +244,7 @@ private fun IconBox(iconRes: Int) {
     ) {
         Icon(
             painterResource(iconRes),
-            contentDescription = null,
+            contentDescription = "Profile icon",  // ✅ Fixed accessibility
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(32.dp)
         )
@@ -285,7 +285,7 @@ private fun ThemeToggle(isDark: Boolean, onToggle: (Boolean) -> Unit) {
     ) {
         Icon(
             if (isDark) Icons.Filled.DarkMode else Icons.Filled.LightMode,
-            contentDescription = null,
+            contentDescription = if (isDark) "Switch to light mode" else "Switch to dark mode",  // ✅ Fixed accessibility
             tint = if (isDark) Color.White else Color(0xFF4A4A4A),
             modifier = Modifier.size(24.dp).rotate(rotation)
         )
@@ -326,7 +326,7 @@ private fun LogoutConfirmationDialog(
         icon = {
             Icon(
                 painter = painterResource(R.drawable.solar__login_2_bold),
-                contentDescription = null,
+                contentDescription = "Logout confirmation",  // ✅ Fixed accessibility
                 tint = MaterialTheme.colorScheme.primary
             )
         },

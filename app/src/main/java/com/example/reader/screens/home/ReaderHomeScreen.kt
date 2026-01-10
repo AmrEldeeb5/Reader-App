@@ -38,6 +38,13 @@ import com.example.reader.screens.profile.UserProfileViewModel
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.foundation.BorderStroke
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.reader.ui.theme.StarRatingColor
+import com.example.reader.components.BookCardSkeleton
+import com.example.reader.components.OfflineBanner
+import com.example.reader.ui.theme.Spacing
+import com.example.reader.ui.theme.CornerRadius
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun HomeScreen(
@@ -48,10 +55,16 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     favoritesViewModel: FavoritesViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val networkManager = remember { com.example.reader.utils.NetworkConnectivityManager(context) }
+
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
     val booksState by viewModel.booksState.collectAsStateWithLifecycle()
     val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsStateWithLifecycle()
     val lastSelectedBook by viewModel.lastSelectedBook.collectAsStateWithLifecycle()
+
+    // Network status
+    val isOffline = !networkManager.isNetworkAvailable()
 
     // Create a set of favorite IDs for quick lookup
     val favoriteIds = remember(favoriteBooks) {
@@ -80,8 +93,16 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
         ) {
+            // Offline indicator
+            OfflineBanner(isOffline = isOffline)
+
+            // Scrollable content
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
             BookDiscoveryScreen(
                 lastSelectedBook = lastSelectedBook,
                 onContinueReading = { id ->
@@ -149,7 +170,8 @@ fun HomeScreen(
                     navController.navigate(ReaderScreens.DetailScreen.name + "/${book.id}")
                 }
             )
-        }
+            } // End of scrollable content Column
+        } // End of outer Column
     }
 }
 
@@ -312,13 +334,24 @@ fun BookGridSection(
 ) {
     when {
         booksState.isLoading -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                contentAlignment = Alignment.Center
+            // Show skeleton loading for better UX
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                repeat(3) {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(3) {
+                            BookCardSkeleton(
+                                modifier = Modifier.width(160.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
 
@@ -482,11 +515,12 @@ fun BookCard(
         modifier = Modifier
             .width(150.dp)
             .height(290.dp)
-            .clickable { onBookClick() },
+            .clickable { onBookClick() }
+            .testTag("book_card_${book.id}"),  // ✅ Add test tag
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(CornerRadius.md),  // ✅ Use design system
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isDarkTheme) 4.dp else 1.dp
         )
@@ -567,7 +601,7 @@ fun BookCard(
                     Icon(
                         imageVector = Icons.Filled.Star,
                         contentDescription = "Rating",
-                        tint = if (book.rating > 0) Color(0xFFFFB300) else Color.Gray,
+                        tint = if (book.rating > 0) StarRatingColor else Color.Gray,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -634,7 +668,7 @@ fun RatingDialog(
                         Icon(
                             imageVector = Icons.Filled.Star,
                             contentDescription = "Star $star",
-                            tint = if (star <= selectedRating) Color(0xFFFFB300) else Color.Gray,
+                            tint = if (star <= selectedRating) StarRatingColor else Color.Gray,
                             modifier = Modifier
                                 .size(40.dp)
                                 .clickable { selectedRating = star.toDouble() }

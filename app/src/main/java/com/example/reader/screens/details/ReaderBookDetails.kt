@@ -149,17 +149,44 @@ fun BookDetailsScreen(
 ) {
     val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsStateWithLifecycle()
     val currentBook by favoritesViewModel.currentBook.collectAsStateWithLifecycle()
+    val fetchedBook by detailsViewModel.bookDetails.collectAsStateWithLifecycle()
+    val isLoading by detailsViewModel.isLoading.collectAsStateWithLifecycle()
+    val error by detailsViewModel.error.collectAsStateWithLifecycle()
 
-    val resolvedBook: Book? = remember(bookId, currentBook, favoriteBooks) {
+    // Try to resolve the book from multiple sources
+    val resolvedBook: Book? = remember(bookId, currentBook, favoriteBooks, fetchedBook) {
         when {
             currentBook != null && currentBook?.id == bookId -> currentBook
             bookId == null -> null
+            fetchedBook != null && fetchedBook?.id == bookId -> fetchedBook
             else -> favoriteBooks.firstOrNull { it.book.id == bookId }?.book
         }
     }
 
+    // Fetch book from repository if not found in memory
+    LaunchedEffect(bookId) {
+        if (bookId != null && resolvedBook == null && !isLoading) {
+            detailsViewModel.fetchBookById(bookId)
+        }
+    }
+
+    // Show loading state
+    if (isLoading && resolvedBook == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    // Show error or missing book
     if (resolvedBook == null) {
-        MissingBookContent(onBack = { navController.popBackStack() })
+        MissingBookContent(
+            onBack = { navController.popBackStack() },
+            errorMessage = error
+        )
         return
     }
 
@@ -241,7 +268,7 @@ fun BookDetailsBottomSheet(
         if (!book.coverImageUrl.isNullOrBlank()) {
             AsyncImage(
                 model = book.coverImageUrl,
-                contentDescription = null,
+                contentDescription = "Blurred book cover background",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
@@ -468,7 +495,7 @@ fun BookDetailsHeader(
 }
 
 @Composable
-private fun MissingBookContent(onBack: () -> Unit) {
+private fun MissingBookContent(onBack: () -> Unit, errorMessage: String? = null) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -477,7 +504,7 @@ private fun MissingBookContent(onBack: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Book not found",
+            text = errorMessage ?: "Book not found",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground
         )

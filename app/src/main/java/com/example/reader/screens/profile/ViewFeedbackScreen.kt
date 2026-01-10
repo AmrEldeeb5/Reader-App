@@ -74,7 +74,7 @@ fun ViewFeedbackScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Feedback,
-                        contentDescription = null,
+                        contentDescription = "No feedback available",
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                     )
