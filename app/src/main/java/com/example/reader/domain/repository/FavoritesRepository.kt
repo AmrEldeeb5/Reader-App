@@ -60,4 +60,13 @@ interface FavoritesRepository {
      * @return Flow emitting true if favorited, false otherwise
      */
     fun observeFavorite(bookId: String): Flow<Boolean>
+
+    /**
+     * Update the reading status of a favorited book.
+     *
+     * @param bookId Unique book identifier
+     * @param status New reading status
+     * @return Result indicating success or failure
+     */
+    suspend fun updateReadingStatus(bookId: String, status: com.example.reader.domain.model.ReadingStatus): Result<Unit>
 }

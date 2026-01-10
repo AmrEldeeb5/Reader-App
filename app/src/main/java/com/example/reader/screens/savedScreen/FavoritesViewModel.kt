@@ -23,7 +23,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
-    private val favoritesRepository: FavoritesRepository
+    private val favoritesRepository: FavoritesRepository,
+    private val userPreferencesRepository: com.example.reader.domain.repository.UserPreferencesRepository
 ) : ViewModel() {
 
     /**
@@ -39,6 +40,21 @@ class FavoritesViewModel @Inject constructor(
 
     private val _currentBook = MutableStateFlow<Book?>(null)
     val currentBook: StateFlow<Book?> = _currentBook.asStateFlow()
+
+    private val _readingStats = MutableStateFlow(com.example.reader.domain.model.ReadingStats())
+    val readingStats: StateFlow<com.example.reader.domain.model.ReadingStats> = _readingStats.asStateFlow()
+
+    init {
+        loadReadingStats()
+    }
+
+    private fun loadReadingStats() {
+        viewModelScope.launch {
+            _readingStats.value = userPreferencesRepository.getReadingStats().copy(
+                totalFavorites = favoriteBooks.value.size
+            )
+        }
+    }
 
     /**
      * Set the currently selected book for navigation.
@@ -109,4 +125,24 @@ class FavoritesViewModel @Inject constructor(
             favoritesRepository.updateRating(bookId, rating)
         }
     }
+
+    /**
+     * Update reading status for a favorite book.
+     *
+     * @param bookId Book identifier
+     * @param status New reading status
+     */
+    fun updateReadingStatus(bookId: String, status: com.example.reader.domain.model.ReadingStatus) {
+        viewModelScope.launch {
+            favoritesRepository.updateReadingStatus(bookId, status)
+
+            // Track stats when marking as finished
+            if (status == com.example.reader.domain.model.ReadingStatus.FINISHED) {
+                userPreferencesRepository.incrementBooksRead()
+                userPreferencesRepository.updateReadingStreak()
+                loadReadingStats()
+            }
+        }
+    }
 }
+

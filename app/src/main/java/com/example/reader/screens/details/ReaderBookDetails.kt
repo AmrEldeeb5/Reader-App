@@ -29,115 +29,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.reader.screens.savedScreen.FavoritesViewModel
 import com.example.reader.screens.details.BookDetailsViewModel
 import com.example.reader.domain.model.Book
-import androidx.core.graphics.ColorUtils
-import androidx.compose.ui.graphics.toArgb
+import com.example.reader.components.BookDetailsSkeleton
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.launch
-import kotlin.math.max
-import kotlin.math.min
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-
-// Helper functions for contrast-aware color adjustment
-private fun contrastRatio(a: Color, b: Color): Double {
-    val l1 = a.luminance()
-    val l2 = b.luminance()
-    val lighter = max(l1, l2)
-    val darker = min(l1, l2)
-    return (lighter + 0.05) / (darker + 0.05)
-}
-
-private fun adjustColorForContrast(base: Color, makeDarker: Boolean): Color {
-    // Work in HSL for intuitive lightness changes
-    val hsl = FloatArray(3)
-    ColorUtils.colorToHSL(base.toArgb(), hsl)
-    val step = if (makeDarker) -0.10f else 0.10f
-    hsl[2] = (hsl[2] + step).coerceIn(0.05f, 0.95f)
-    // Slightly boost saturation for better differentiation
-    hsl[1] = (hsl[1] * 1.08f).coerceIn(0f, 1f)
-    return Color(ColorUtils.HSLToColor(hsl))
-}
-
-// Utility to directly set a new lightness delta relative to original
-private fun shiftLightness(color: Color, delta: Float): Color {
-    val hsl = FloatArray(3)
-    ColorUtils.colorToHSL(color.toArgb(), hsl)
-    hsl[2] = (hsl[2] + delta).coerceIn(0.02f, 0.98f)
-    return Color(ColorUtils.HSLToColor(hsl))
-}
-
-private fun deriveContrastingButtonColor(paletteColor: Color?, primary: Color, sheetBg: Color): Color {
-    val base = paletteColor ?: primary
-
-    // Start from a modified variant similar to previous logic
-    val hsl = FloatArray(3)
-    ColorUtils.colorToHSL(base.toArgb(), hsl)
-    hsl[1] = (hsl[1] * 1.10f).coerceIn(0f, 1f)
-    hsl[2] = (hsl[2] * 0.85f).coerceIn(0f, 1f)
-    var candidate = Color(ColorUtils.HSLToColor(hsl))
-    var ratio = contrastRatio(candidate, sheetBg)
-
-    // Raise the desired contrast to make the button stand out more vs sheet
-    val targetRatio = 3.6 // previously 3.0; nudged up for clearer separation
-    val hardMinimum = 3.0 // absolute minimum we accept before aggressive fallback
-    val preferredHigh = 4.5 // try to approach AA text contrast if feasible
-
-    val sheetIsLight = sheetBg.luminance() > 0.5f
-
-    var attempts = 0
-    while (ratio < targetRatio && attempts < 6) {
-        candidate = adjustColorForContrast(candidate, makeDarker = sheetIsLight)
-        ratio = contrastRatio(candidate, sheetBg)
-        attempts++
-    }
-
-    // If still not great, explore a wider search space of lightness shifts (both directions)
-    if (ratio < targetRatio) {
-        val searchDeltas = listOf(-0.40f, -0.30f, -0.22f, -0.15f, 0.15f, 0.22f, 0.30f, 0.40f)
-        val variants = mutableListOf<Pair<Color, Double>>()
-        for (d in searchDeltas) {
-            val v = shiftLightness(base, if (sheetIsLight) -kotlin.math.abs(d) else kotlin.math.abs(d))
-            variants += v to contrastRatio(v, sheetBg)
-        }
-        // Also include pure primary darkened/lightened extremes
-        val darkExtreme = shiftLightness(base, if (sheetIsLight) -0.55f else 0.0f)
-        val lightExtreme = shiftLightness(base, if (sheetIsLight) 0.0f else 0.55f)
-        variants += darkExtreme to contrastRatio(darkExtreme, sheetBg)
-        variants += lightExtreme to contrastRatio(lightExtreme, sheetBg)
-
-        val best = variants.maxByOrNull { it.second }
-        if (best != null && best.second > ratio) {
-            candidate = best.first
-            ratio = best.second
-        }
-    }
-
-    // Fallbacks if still weak contrast
-    if (ratio < hardMinimum) {
-        // Use black/white whichever maximizes contrast
-        val blackRatio = contrastRatio(Color.Black, sheetBg)
-        val whiteRatio = contrastRatio(Color.White, sheetBg)
-        val extreme = if (blackRatio > whiteRatio) Color.Black else Color.White
-        // Blend a little with base for identity but keep strong contrast
-        candidate = Color(
-            ColorUtils.blendARGB(extreme.toArgb(), base.toArgb(), 0.15f)
-        )
-        ratio = contrastRatio(candidate, sheetBg)
-    }
-
-    // If we can cheaply push toward preferredHigh, do a final nudge
-    if (ratio in hardMinimum..preferredHigh && ratio < preferredHigh) {
-        var tweakAttempts = 0
-        while (contrastRatio(candidate, sheetBg) < preferredHigh && tweakAttempts < 4) {
-            candidate = adjustColorForContrast(candidate, makeDarker = sheetIsLight)
-            tweakAttempts++
-        }
-    }
-
-    return candidate
-}
+import android.content.Intent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,14 +71,9 @@ fun BookDetailsScreen(
         }
     }
 
-    // Show loading state
+    // Show loading state with skeleton
     if (isLoading && resolvedBook == null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
+        BookDetailsSkeleton(modifier = Modifier.fillMaxSize())
         return
     }
 
@@ -228,33 +124,11 @@ fun BookDetailsBottomSheet(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(book.coverImageUrl, dynamicTheming, detailsViewModel) {
-        if (dynamicTheming && detailsViewModel != null) detailsViewModel.loadPalette(context, book.id, book.coverImageUrl, translucentSheet)
-    }
-    val paletteColor by (detailsViewModel?.paletteColor?.collectAsStateWithLifecycle() ?: remember { mutableStateOf<Color?>(null) })
-
-    // Original sheet color reused as inner Surface background (not on full-width scaffold anymore)
-    val sheetBgColor = (paletteColor ?: MaterialTheme.colorScheme.surface).let { base ->
-        if (translucentSheet) base.copy(alpha = 0.80f) else base
-    }
-
-    val primaryColor = MaterialTheme.colorScheme.primary
-
-    // Replace previous buttonColorTarget derivation with contrast-aware version
-    val buttonColorTarget: Color = remember(paletteColor, primaryColor, sheetBgColor) {
-        deriveContrastingButtonColor(paletteColor, primaryColor, sheetBgColor)
-    }
-    val buttonColor by animateColorAsState(
-        targetValue = buttonColorTarget,
-        animationSpec = tween(450),
-        label = "button_color_anim"
-    )
-    val onButtonColor = if (buttonColor.luminance() > 0.5f) Color.Black else Color.White
-
-    // NEW: compute content color for the sheet based on its background luminance
-    val onSheetColor: Color = remember(sheetBgColor) {
-        if (sheetBgColor.luminance() > 0.5f) Color.Black else Color.White
-    }
+    // Simplified: Use Material3 color scheme directly
+    val sheetBgColor = MaterialTheme.colorScheme.surface
+    val buttonColor = MaterialTheme.colorScheme.primary
+    val onButtonColor = MaterialTheme.colorScheme.onPrimary
+    val onSheetColor = MaterialTheme.colorScheme.onSurface
 
     val isExpanded = sheetState.bottomSheetState.currentValue == SheetValue.Expanded
     val coverScale by animateFloatAsState(
@@ -263,8 +137,15 @@ fun BookDetailsBottomSheet(
         label = "cover_scale_anim"
     )
 
+    // Favorite animation
+    val favoriteScale by animateFloatAsState(
+        targetValue = if (isFavorite) 1.2f else 1f,
+        animationSpec = tween(200),
+        label = "favorite_scale"
+    )
+
     Box(Modifier.fillMaxSize()) {
-        // NEW: Global blurred background placed UNDER the scaffold (extends beneath top bar & sheet)
+        // Blurred background
         if (!book.coverImageUrl.isNullOrBlank()) {
             AsyncImage(
                 model = book.coverImageUrl,
@@ -313,7 +194,8 @@ fun BookDetailsBottomSheet(
                 BookDetailsHeader(
                     isFavorite = isFavorite,
                     onFavoriteToggle = onFavoriteToggle,
-                    onNavigateBack = onNavigateBack
+                    onNavigateBack = onNavigateBack,
+                    book = book
                 )
             },
             sheetContent = {
@@ -463,8 +345,11 @@ fun BookDetailsBottomSheet(
 fun BookDetailsHeader(
     isFavorite: Boolean,
     onFavoriteToggle: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    book: Book? = null
 ) {
+    val context = LocalContext.current
+
     TopAppBar(
         title = {},
         navigationIcon = {
@@ -477,16 +362,46 @@ fun BookDetailsHeader(
             )
         },
         actions = {
+            // Share button
+            if (book != null) {
+                IconButton(onClick = {
+                    val shareText = "Check out this book: ${book.title} by ${book.author}"
+                    val sendIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, shareText)
+                        type = "text/plain"
+                    }
+                    val shareIntent = Intent.createChooser(sendIntent, "Share book")
+                    context.startActivity(shareIntent)
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "Share book",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            // Favorite button with improved animation
             val tint by animateColorAsState(
                 targetValue = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurface,
                 animationSpec = tween(300),
                 label = "favorite_color"
             )
+            val scale by animateFloatAsState(
+                targetValue = if (isFavorite) 1.15f else 1f,
+                animationSpec = tween(200),
+                label = "favorite_scale"
+            )
             IconButton(onClick = onFavoriteToggle) {
                 Icon(
                     painter = painterResource(R.drawable.solar__heart_angle_bold),
                     contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
-                    tint = tint
+                    tint = tint,
+                    modifier = Modifier.graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale
+                    )
                 )
             }
         },

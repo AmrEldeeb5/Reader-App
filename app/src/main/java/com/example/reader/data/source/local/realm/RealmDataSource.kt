@@ -112,4 +112,19 @@ class RealmDataSource @Inject constructor(
             .first()
             .find()
     }
+
+    /**
+     * Update the reading status for a favorite book.
+     *
+     * @param bookId Unique book identifier
+     * @param status New reading status
+     */
+    suspend fun updateReadingStatus(bookId: String, status: String) {
+        realm.write {
+            val book = query<FavoriteBookRealm>("id == $0", bookId)
+                .first()
+                .find()
+            book?.readingStatus = status
+        }
+    }
 }

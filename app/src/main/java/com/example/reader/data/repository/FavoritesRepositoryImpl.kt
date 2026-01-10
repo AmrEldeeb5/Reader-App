@@ -75,4 +75,13 @@ class FavoritesRepositoryImpl @Inject constructor(
                 favorites.any { it.id == bookId }
             }
     }
+
+    override suspend fun updateReadingStatus(bookId: String, status: com.example.reader.domain.model.ReadingStatus): Result<Unit> {
+        return try {
+            realmDataSource.updateReadingStatus(bookId, status.name)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e.toAppError())
+        }
+    }
 }

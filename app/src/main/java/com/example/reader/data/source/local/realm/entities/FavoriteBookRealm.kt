@@ -18,4 +18,5 @@ class FavoriteBookRealm : RealmObject {
     var description: String? = null
     var publishedDate: String? = null
     var addedTimestamp: Long = System.currentTimeMillis()
+    var readingStatus: String = "ALL" // Store as string for Realm compatibility
 }

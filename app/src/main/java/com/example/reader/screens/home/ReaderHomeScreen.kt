@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.reader.ui.theme.StarRatingColor
 import com.example.reader.components.BookCardSkeleton
 import com.example.reader.components.OfflineBanner
+import com.example.reader.components.PullToRefreshContainer
 import com.example.reader.ui.theme.Spacing
 import com.example.reader.ui.theme.CornerRadius
 import androidx.compose.ui.platform.testTag
@@ -89,6 +90,9 @@ fun HomeScreen(
         },
         containerColor = animatedBackgroundColor
     ) { innerPadding ->
+        // Pull-to-refresh state
+        val isRefreshing = booksState.isRefreshing || booksState.isLoading
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -97,12 +101,18 @@ fun HomeScreen(
             // Offline indicator
             OfflineBanner(isOffline = isOffline)
 
-            // Scrollable content
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+            // Pull-to-refresh wrapper
+            PullToRefreshContainer(
+                isRefreshing = isRefreshing,
+                onRefresh = { viewModel.refreshBooks() },
+                modifier = Modifier.fillMaxSize()
             ) {
+                // Scrollable content
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                ) {
             BookDiscoveryScreen(
                 lastSelectedBook = lastSelectedBook,
                 onContinueReading = { id ->
@@ -170,7 +180,8 @@ fun HomeScreen(
                     navController.navigate(ReaderScreens.DetailScreen.name + "/${book.id}")
                 }
             )
-            } // End of scrollable content Column
+                } // End of scrollable content Column
+            } // End of PullToRefreshContainer
         } // End of outer Column
     }
 }
