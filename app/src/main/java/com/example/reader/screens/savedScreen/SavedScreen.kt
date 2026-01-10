@@ -8,19 +8,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.reader.R
 import com.example.reader.navigation.ReaderScreens
 import com.example.reader.screens.home.BookCard
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.reader.screens.savedScreen.FavoritesViewModel
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.reader.components.EmptyFavoritesView
 
 @Composable
 fun SavedScreen(
@@ -50,32 +47,11 @@ fun SavedScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "No saved books yet",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Start adding books to your favorites!",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Icon(
-                        painter = painterResource(R.drawable.streamline_stickies_color__book_library),
-                        contentDescription = "No Favorites Icon",
-                        modifier = Modifier.size(64.dp),
-                        tint = Color.Unspecified
-                    )
-
-                }
+                EmptyFavoritesView(
+                    onExploreClick = {
+                        navController.navigate(ReaderScreens.ExploreScreen.name)
+                    }
+                )
             }
         } else {
             LazyVerticalGrid(
