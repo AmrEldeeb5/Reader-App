@@ -13,12 +13,16 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * UI state for category books screen.
+ * UI state for category books screen with pagination support.
  */
 data class CategoryBooksState(
     val isLoading: Boolean = false,
     val books: List<Book> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val isLoadingMore: Boolean = false,
+    val currentPage: Int = 0,
+    val hasMore: Boolean = true,
+    val isRefreshing: Boolean = false
 )
 
 /**
@@ -71,6 +75,53 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Refresh current category books (for pull-to-refresh).
+     */
+    fun refreshBooks() {
+        viewModelScope.launch {
+            _booksState.value = _booksState.value.copy(isRefreshing = true)
+
+            val result = bookRepository.getBooksByCategory(_selectedCategory.value)
+
+            result.fold(
+                onSuccess = { books ->
+                    _booksState.value = CategoryBooksState(
+                        books = books,
+                        hasMore = books.isNotEmpty()
+                    )
+                },
+                onFailure = { error ->
+                    _booksState.value = _booksState.value.copy(
+                        isRefreshing = false,
+                        error = error.message
+                    )
+                }
+            )
+        }
+    }
+
+    /**
+     * Load more books (pagination).
+     * Note: Requires API pagination support.
+     */
+    fun loadMoreBooks() {
+        val currentState = _booksState.value
+        if (currentState.isLoadingMore || !currentState.hasMore) return
+
+        viewModelScope.launch {
+            _booksState.value = currentState.copy(isLoadingMore = true)
+
+            // Note: This is a placeholder for pagination
+            // Actual implementation depends on API support
+            // For now, we just update the state
+            _booksState.value = currentState.copy(
+                isLoadingMore = false,
+                hasMore = false // No more pages available yet
+            )
+        }
+    }
+
     private fun loadBooksByCategory(category: String) {
         viewModelScope.launch {
             _booksState.value = CategoryBooksState(isLoading = true)
@@ -79,7 +130,10 @@ class HomeViewModel @Inject constructor(
             
             result.fold(
                 onSuccess = { books ->
-                    _booksState.value = CategoryBooksState(books = books)
+                    _booksState.value = CategoryBooksState(
+                        books = books,
+                        hasMore = books.isNotEmpty()
+                    )
                 },
                 onFailure = { error ->
                     _booksState.value = CategoryBooksState(

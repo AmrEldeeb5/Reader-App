@@ -44,6 +44,12 @@ import androidx.compose.animation.core.spring
 import com.example.reader.screens.home.BookCard
 import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.reader.components.ErrorView
+import com.example.reader.components.EmptyView
+import com.example.reader.components.BookCardSkeleton
+import com.example.reader.components.OfflineBanner
+import com.example.reader.ui.theme.Spacing
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,9 +59,15 @@ fun ExploreScreen(
     onThemeToggle: (Boolean) -> Unit = {},
     viewModel: ExploreViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val networkManager = remember { com.example.reader.utils.NetworkConnectivityManager(context) }
+
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchState by viewModel.searchState.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Network status
+    val isOffline = !networkManager.isNetworkAvailable()
 
     // State for tracking scroll
     val listState = rememberLazyGridState()
@@ -96,29 +108,33 @@ fun ExploreScreen(
     Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets(0))) {
         // Main content
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = if (isTopBarVisible) 80.dp else 0.dp) // Reduced from 250.dp to 80.dp
+            modifier = Modifier.fillMaxSize()
         ) {
+            // Top spacing
+            Spacer(modifier = Modifier.height(if (isTopBarVisible) 80.dp else 0.dp))
+
+            // Offline indicator
+            OfflineBanner(isOffline = isOffline)
+
             // Content Area
             Box(modifier = Modifier.fillMaxSize()) {
                 when {
                     // Loading state
                     searchState.isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                        // Show skeleton loading for better perceived performance
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 55.dp,
+                                bottom = 16.dp
+                            )
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                CircularProgressIndicator(
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    "Searching for books...",
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
+                            items(6) {
+                                BookCardSkeleton()
                             }
                         }
                     }
@@ -129,22 +145,13 @@ fun ExploreScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(32.dp)
-                            ) {
-                                Text(
-                                    text = "📚",
-                                    fontSize = 64.sp
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = searchState.errorMessage!!,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
+                            ErrorView(
+                                error = searchState.errorMessage!!,
+                                onRetry = if (searchQuery.isNotBlank()) {
+                                    { viewModel.searchBooks(searchQuery) }
+                                } else null,
+                                modifier = Modifier.padding(Spacing.xl)
+                            )
                         }
                     }
 

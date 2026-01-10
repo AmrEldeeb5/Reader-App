@@ -75,6 +75,32 @@ class FirebaseAuthDataSource @Inject constructor(
     }
     
     /**
+     * Change the current user's password.
+     *
+     * @param currentPassword User's current password for re-authentication
+     * @param newPassword New password to set
+     * @throws Exception on failure
+     */
+    suspend fun changePassword(currentPassword: String, newPassword: String) {
+        val user = firebaseAuth.currentUser ?: throw IllegalStateException("No authenticated user")
+        val email = user.email ?: throw IllegalStateException("User email not available")
+
+        // Re-authenticate user with current password
+        val credential = com.google.firebase.auth.EmailAuthProvider.getCredential(email, currentPassword)
+        user.reauthenticate(credential).await()
+
+        // Update password
+        user.updatePassword(newPassword).await()
+    }
+
+    /**
+     * Get the current user's ID.
+     *
+     * @return User ID if authenticated, null otherwise
+     */
+    fun getCurrentUserId(): String? = firebaseAuth.currentUser?.uid
+
+    /**
      * Observe the current authenticated user.
      *
      * @return Flow emitting FirebaseUser or null when auth state changes
