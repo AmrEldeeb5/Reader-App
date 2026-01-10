@@ -14,7 +14,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -64,6 +66,7 @@ fun ExploreScreen(
 
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchState by viewModel.searchState.collectAsStateWithLifecycle()
+    val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
 
     // Network status
@@ -186,35 +189,90 @@ fun ExploreScreen(
                         }
                     }
 
-                    // Initial state (no search performed yet)
+                    // Initial state (no search performed yet) - Show search history
                     !searchState.hasSearched -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp)
+                                .padding(top = 70.dp)
                         ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(32.dp)
-                            ) {
-                                Text(
-                                    text = "🔍",
-                                    fontSize = 64.sp
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = "Search for your favorite books",
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Medium
-                                )
+                            if (searchHistory.isNotEmpty()) {
+                                // Search History Section
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Recent Searches",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                    TextButton(onClick = { viewModel.clearSearchHistory() }) {
+                                        Text("Clear All", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Try searching by book title, author, or genre",
-                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
+
+                                // Search History List
+                                searchHistory.forEach { query ->
+                                    ListItem(
+                                        headlineContent = { Text(query) },
+                                        leadingContent = {
+                                            Icon(
+                                                imageVector = Icons.Default.History,
+                                                contentDescription = "History",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        },
+                                        trailingContent = {
+                                            IconButton(onClick = { viewModel.removeFromSearchHistory(query) }) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = "Remove",
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                        },
+                                        modifier = Modifier.clickable {
+                                            viewModel.searchFromHistory(query)
+                                        }
+                                    )
+                                }
+                            } else {
+                                // Empty state when no history
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.padding(32.dp)
+                                    ) {
+                                        Text(
+                                            text = "🔍",
+                                            fontSize = 64.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Text(
+                                            text = "Search for your favorite books",
+                                            color = MaterialTheme.colorScheme.onBackground,
+                                            textAlign = TextAlign.Center,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "Try searching by book title, author, or genre",
+                                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                                            textAlign = TextAlign.Center,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

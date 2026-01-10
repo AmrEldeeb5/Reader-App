@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
@@ -12,12 +11,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.reader.navigation.ReaderScreens
@@ -49,24 +49,30 @@ fun CreateAccountPrompt(
         // Regular text
         append("New reader? ")
 
-        // Clickable "Create account" text
-        pushStringAnnotation(
-            tag = LoginComponentConstants.CREATE_ACCOUNT_TAG,
-            annotation = LoginComponentConstants.CREATE_ACCOUNT_ANNOTATION
-        )
-        withStyle(
-            SpanStyle(
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                textDecoration = TextDecoration.Underline
+        // Clickable "Create account" text using new LinkAnnotation API
+        withLink(
+            LinkAnnotation.Clickable(
+                tag = LoginComponentConstants.CREATE_ACCOUNT_TAG,
+                linkInteractionListener = {
+                    navController.navigate(ReaderScreens.CreateAccountScreen.name) {
+                        popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
+                    }
+                }
             )
         ) {
-            append("Create account")
+            withStyle(
+                SpanStyle(
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline
+                )
+            ) {
+                append("Create account")
+            }
         }
-        pop()
     }
 
-    ClickableText(
+    Text(
         text = annotatedString,
         style = (if (isCompact)
             MaterialTheme.typography.bodySmall
@@ -74,18 +80,7 @@ fun CreateAccountPrompt(
             MaterialTheme.typography.bodyMedium
                 ).copy(
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
-            ),
-        onClick = { offset ->
-            annotatedString.getStringAnnotations(
-                LoginComponentConstants.CREATE_ACCOUNT_TAG,
-                offset,
-                offset
-            ).firstOrNull()?.let {
-                navController.navigate(ReaderScreens.CreateAccountScreen.name) {
-                    popUpTo(ReaderScreens.LoginScreen.name) { inclusive = true }
-                }
-            }
-        }
+            )
     )
 }
 

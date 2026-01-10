@@ -37,9 +37,14 @@ class BookMapper @Inject constructor() {
      *
      * @param book Domain Book model
      * @param userRating User's rating (optional)
+     * @param readingStatus Reading status (defaults to ALL)
      * @return Realm entity
      */
-    fun toRealm(book: Book, userRating: Double? = null): FavoriteBookRealm {
+    fun toRealm(
+        book: Book,
+        userRating: Double? = null,
+        readingStatus: com.example.reader.domain.model.ReadingStatus = com.example.reader.domain.model.ReadingStatus.ALL
+    ): FavoriteBookRealm {
         return FavoriteBookRealm().apply {
             id = book.id
             title = book.title
@@ -51,6 +56,7 @@ class BookMapper @Inject constructor() {
             description = book.description
             publishedDate = book.publishedDate
             addedTimestamp = System.currentTimeMillis()
+            this.readingStatus = readingStatus.name
         }
     }
     
@@ -61,6 +67,12 @@ class BookMapper @Inject constructor() {
      * @return Domain Favorite model
      */
     fun fromRealm(entity: FavoriteBookRealm): Favorite {
+        val status = try {
+            com.example.reader.domain.model.ReadingStatus.valueOf(entity.readingStatus)
+        } catch (e: Exception) {
+            com.example.reader.domain.model.ReadingStatus.ALL
+        }
+
         return Favorite(
             bookId = entity.id,
             book = Book(
@@ -74,7 +86,8 @@ class BookMapper @Inject constructor() {
                 publishedDate = entity.publishedDate
             ),
             userRating = entity.userRating,
-            addedTimestamp = entity.addedTimestamp
+            addedTimestamp = entity.addedTimestamp,
+            readingStatus = status
         )
     }
     

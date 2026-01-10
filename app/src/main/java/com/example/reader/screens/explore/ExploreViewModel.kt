@@ -42,7 +42,8 @@ data class SearchState(
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
     private val bookRepository: BookRepository,
-    private val favoritesRepository: FavoritesRepository
+    private val favoritesRepository: FavoritesRepository,
+    private val userPreferencesRepository: com.example.reader.domain.repository.UserPreferencesRepository
 ) : ViewModel() {
     
     private val _searchState = MutableStateFlow(SearchState())
@@ -51,11 +52,16 @@ class ExploreViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
+    val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
+
     private var searchJob: Job? = null
 
     init {
         // Set up debounced search
         setupDebouncedSearch()
+        // Load search history
+        loadSearchHistory()
     }
 
     /**
@@ -154,6 +160,8 @@ class ExploreViewModel @Inject constructor(
                         errorMessage = "No books found for \"$query\". Try a different search term."
                     )
                 } else {
+                    // Save to search history only if results found
+                    addToSearchHistory(query)
                     SearchState(
                         hasSearched = true,
                         books = books
@@ -223,4 +231,52 @@ class ExploreViewModel @Inject constructor(
      * @return Flow emitting favorite status
      */
     fun isFavoriteFlow(bookId: String) = favoritesRepository.observeFavorite(bookId)
+
+    /**
+     * Load search history from preferences.
+     */
+    private fun loadSearchHistory() {
+        viewModelScope.launch {
+            _searchHistory.value = userPreferencesRepository.getSearchHistory()
+        }
+    }
+
+    /**
+     * Add a search query to history.
+     */
+    private fun addToSearchHistory(query: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.addSearchHistory(query)
+            loadSearchHistory()
+        }
+    }
+
+    /**
+     * Clear all search history.
+     */
+    fun clearSearchHistory() {
+        viewModelScope.launch {
+            userPreferencesRepository.clearSearchHistory()
+            _searchHistory.value = emptyList()
+        }
+    }
+
+    /**
+     * Remove a specific query from search history.
+     */
+    fun removeFromSearchHistory(query: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.removeSearchHistory(query)
+            loadSearchHistory()
+        }
+    }
+
+    /**
+     * Execute search from history (tap on history item).
+     */
+    fun searchFromHistory(query: String) {
+        _searchQuery.value = query
+        searchBooks(query)
+    }
 }
+

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reader.domain.model.User
 import com.example.reader.domain.repository.AuthRepository
+import com.example.reader.domain.error.toUserFriendlyMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -78,7 +79,8 @@ class AuthViewModel @Inject constructor(
             _passwordChangeState.value = result.fold(
                 onSuccess = { PasswordChangeState.Success },
                 onFailure = { error ->
-                    PasswordChangeState.Error(error.message ?: "Failed to change password")
+                    val userFriendlyMessage = error.toUserFriendlyMessage()
+                    PasswordChangeState.Error(userFriendlyMessage)
                 }
             )
         }

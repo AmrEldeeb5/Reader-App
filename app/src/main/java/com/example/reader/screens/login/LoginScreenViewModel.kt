@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reader.components.LoadingState
 import com.example.reader.domain.error.AppError
+import com.example.reader.domain.error.toUserFriendlyMessage
 import com.example.reader.domain.repository.AuthRepository
 import com.example.reader.domain.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -100,12 +101,8 @@ class LoginScreenViewModel @Inject constructor(
                 onResult(true, null)
             },
             onFailure = { error ->
-                val message = when (error) {
-                    is AppError.AuthError -> error.message
-                    is AppError.NetworkError -> "Network error. Please check your connection."
-                    else -> "Login failed. Please try again."
-                }
-                
+                val message = error.toUserFriendlyMessage()
+
                 _loginState.value = LoadingState.error(message)
                 _loading.value = false
                 onResult(false, message)
