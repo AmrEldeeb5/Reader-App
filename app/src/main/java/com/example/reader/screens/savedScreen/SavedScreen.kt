@@ -47,6 +47,7 @@ fun SavedScreen(
     favoritesViewModel: FavoritesViewModel = hiltViewModel()
 ) {
     val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsStateWithLifecycle()
+    val haptic = com.example.reader.utils.rememberHapticFeedback()
     var searchQuery by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(0) }
     var sortOption by remember { mutableStateOf(SortOption.RECENTLY_ADDED) }
@@ -364,6 +365,7 @@ fun SavedScreen(
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = { dismissValue ->
                                 if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                                    haptic.warning() // Haptic feedback for delete
                                     favoritesViewModel.removeFavorite(favorite.bookId)
                                     true
                                 } else {

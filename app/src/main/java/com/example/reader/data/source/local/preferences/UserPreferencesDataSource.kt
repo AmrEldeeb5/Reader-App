@@ -67,6 +67,14 @@ class UserPreferencesDataSource @Inject constructor(
         private const val KEY_GREEN_THEME = "green_theme"
         private const val KEY_SEARCH_HISTORY = "search_history"
         private const val MAX_SEARCH_HISTORY = 10
+
+        // Reading stats keys
+        private const val KEY_BOOKS_READ = "books_read_total"
+        private const val KEY_BOOKS_THIS_MONTH = "books_this_month"
+        private const val KEY_CURRENT_STREAK = "current_streak"
+        private const val KEY_LONGEST_STREAK = "longest_streak"
+        private const val KEY_LAST_READ_DATE = "last_read_date"
+        private const val KEY_GENRES = "favorite_genres"
     }
     
     suspend fun saveCredentials(email: String, password: String) = withContext(Dispatchers.IO) {
@@ -190,6 +198,103 @@ class UserPreferencesDataSource @Inject constructor(
         val historyString = currentHistory.joinToString("|")
         prefs.edit {
             putString(KEY_SEARCH_HISTORY, historyString)
+        }
+    }
+
+    /**
+     * Get reading statistics.
+     */
+    suspend fun getReadingStats(): com.example.reader.domain.model.ReadingStats = withContext(Dispatchers.IO) {
+        val totalBooksRead = prefs.getInt(KEY_BOOKS_READ, 0)
+        val booksThisMonth = prefs.getInt(KEY_BOOKS_THIS_MONTH, 0)
+        val currentStreak = prefs.getInt(KEY_CURRENT_STREAK, 0)
+        val longestStreak = prefs.getInt(KEY_LONGEST_STREAK, 0)
+        val lastReadDate = prefs.getLong(KEY_LAST_READ_DATE, 0).takeIf { it > 0 }
+
+        // Parse genres
+        val genresString = prefs.getString(KEY_GENRES, "") ?: ""
+        val genres = if (genresString.isEmpty()) {
+            emptyMap()
+        } else {
+            genresString.split("|").associate {
+                val parts = it.split(":")
+                parts[0] to (parts.getOrNull(1)?.toIntOrNull() ?: 0)
+            }
+        }
+
+        com.example.reader.domain.model.ReadingStats(
+            totalBooksRead = totalBooksRead,
+            booksThisMonth = booksThisMonth,
+            currentStreak = currentStreak,
+            longestStreak = longestStreak,
+            favoriteGenres = genres,
+            lastReadDate = lastReadDate,
+            totalFavorites = 0 // Will be calculated from favorites
+        )
+    }
+
+    /**
+     * Increment books read counter.
+     */
+    suspend fun incrementBooksRead() = withContext(Dispatchers.IO) {
+        val current = prefs.getInt(KEY_BOOKS_READ, 0)
+        val currentMonth = prefs.getInt(KEY_BOOKS_THIS_MONTH, 0)
+
+        prefs.edit {
+            putInt(KEY_BOOKS_READ, current + 1)
+            putInt(KEY_BOOKS_THIS_MONTH, currentMonth + 1)
+        }
+    }
+
+    /**
+     * Update reading streak based on last read date.
+     */
+    suspend fun updateReadingStreak() = withContext(Dispatchers.IO) {
+        val now = System.currentTimeMillis()
+        val lastRead = prefs.getLong(KEY_LAST_READ_DATE, 0)
+
+        val dayInMillis = 24 * 60 * 60 * 1000L
+        val daysSinceLastRead = if (lastRead > 0) {
+            ((now - lastRead) / dayInMillis).toInt()
+        } else {
+            Int.MAX_VALUE
+        }
+
+        val currentStreak = prefs.getInt(KEY_CURRENT_STREAK, 0)
+        val longestStreak = prefs.getInt(KEY_LONGEST_STREAK, 0)
+
+        val newStreak = when {
+            daysSinceLastRead == 0 -> currentStreak // Same day
+            daysSinceLastRead == 1 -> currentStreak + 1 // Consecutive day
+            else -> 1 // Streak broken, start new
+        }
+
+        prefs.edit {
+            putInt(KEY_CURRENT_STREAK, newStreak)
+            putInt(KEY_LONGEST_STREAK, maxOf(longestStreak, newStreak))
+            putLong(KEY_LAST_READ_DATE, now)
+        }
+    }
+
+    /**
+     * Add genre to favorites tracking.
+     */
+    suspend fun addGenreRead(genre: String) = withContext(Dispatchers.IO) {
+        val genresString = prefs.getString(KEY_GENRES, "") ?: ""
+        val genres = if (genresString.isEmpty()) {
+            mutableMapOf()
+        } else {
+            genresString.split("|").associate {
+                val parts = it.split(":")
+                parts[0] to (parts.getOrNull(1)?.toIntOrNull() ?: 0)
+            }.toMutableMap()
+        }
+
+        genres[genre] = (genres[genre] ?: 0) + 1
+
+        val newGenresString = genres.entries.joinToString("|") { "${it.key}:${it.value}" }
+        prefs.edit {
+            putString(KEY_GENRES, newGenresString)
         }
     }
 }

@@ -104,4 +104,28 @@ interface UserPreferencesRepository {
      * @param query Query to remove
      */
     suspend fun removeSearchHistory(query: String)
+
+    /**
+     * Get reading statistics.
+     *
+     * @return ReadingStats object with all statistics
+     */
+    suspend fun getReadingStats(): com.example.reader.domain.model.ReadingStats
+
+    /**
+     * Increment books read counter.
+     */
+    suspend fun incrementBooksRead()
+
+    /**
+     * Update reading streak.
+     */
+    suspend fun updateReadingStreak()
+
+    /**
+     * Add genre to favorites tracking.
+     *
+     * @param genre Genre name
+     */
+    suspend fun addGenreRead(genre: String)
 }

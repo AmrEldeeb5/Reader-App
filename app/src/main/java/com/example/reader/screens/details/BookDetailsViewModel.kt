@@ -34,6 +34,12 @@ class BookDetailsViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _recommendations = MutableStateFlow<List<Book>>(emptyList())
+    val recommendations: StateFlow<List<Book>> = _recommendations.asStateFlow()
+
+    private val _isLoadingRecommendations = MutableStateFlow(false)
+    val isLoadingRecommendations: StateFlow<Boolean> = _isLoadingRecommendations.asStateFlow()
+
     // In-memory cache of raw dominant colors keyed by book id
     private val paletteCache: MutableMap<String, Color> = mutableMapOf()
 
@@ -67,6 +73,41 @@ class BookDetailsViewModel @Inject constructor(
         _bookDetails.value = null
         _error.value = null
         _isLoading.value = false
+    }
+
+    /**
+     * Fetch similar/recommended books based on the current book's category
+     */
+    fun fetchRecommendations(category: String?) {
+        if (category.isNullOrBlank()) {
+            _recommendations.value = emptyList()
+            return
+        }
+
+        viewModelScope.launch {
+            _isLoadingRecommendations.value = true
+
+            // Search for books in the same category
+            val result = bookRepository.searchBooks(
+                query = category,
+                maxResults = 10
+            )
+
+            result.fold(
+                onSuccess = { books ->
+                    // Exclude the current book if present
+                    val currentBookId = _bookDetails.value?.id
+                    _recommendations.value = books
+                        .filter { it.id != currentBookId }
+                        .take(6) // Limit to 6 recommendations
+                    _isLoadingRecommendations.value = false
+                },
+                onFailure = {
+                    _recommendations.value = emptyList()
+                    _isLoadingRecommendations.value = false
+                }
+            )
+        }
     }
 
     /**

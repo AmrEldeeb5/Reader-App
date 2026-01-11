@@ -74,4 +74,20 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun removeSearchHistory(query: String) {
         preferencesDataSource.removeSearchHistory(query)
     }
+
+    override suspend fun getReadingStats(): com.example.reader.domain.model.ReadingStats {
+        return preferencesDataSource.getReadingStats()
+    }
+
+    override suspend fun incrementBooksRead() {
+        preferencesDataSource.incrementBooksRead()
+    }
+
+    override suspend fun updateReadingStreak() {
+        preferencesDataSource.updateReadingStreak()
+    }
+
+    override suspend fun addGenreRead(genre: String) {
+        preferencesDataSource.addGenreRead(genre)
+    }
 }

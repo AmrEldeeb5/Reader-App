@@ -13,16 +13,9 @@ interface ApiService {
     @GET("volumes")
     suspend fun getBooks(
         @Query("q") query: String,
-        @Query("langRestrict") lang: String = "en",
-        @Query("maxResults") maxResults: Int = 50
-    ): BooksResponse
-
-    @GET("volumes")
-    suspend fun getBooksByCategory(
-        @Query("q") category: String,
-        @Query("langRestrict") lang: String = "en",
-        @Query("orderBy") orderBy: String = "relevance",
-        @Query("maxResults") maxResults: Int = 60
+        @Query("maxResults") maxResults: Int = 40,
+        @Query("printType") printType: String = "books",
+        @Query("orderBy") orderBy: String = "relevance"
     ): BooksResponse
 
     /**
