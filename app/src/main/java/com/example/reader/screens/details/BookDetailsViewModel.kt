@@ -88,10 +88,7 @@ class BookDetailsViewModel @Inject constructor(
             _isLoadingRecommendations.value = true
 
             // Search for books in the same category
-            val result = bookRepository.searchBooks(
-                query = category,
-                maxResults = 10
-            )
+            val result = bookRepository.searchBooks(category)
 
             result.fold(
                 onSuccess = { books ->

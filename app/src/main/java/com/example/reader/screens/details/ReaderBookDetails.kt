@@ -19,6 +19,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -38,7 +40,12 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.content.Intent
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Upload
+import com.example.reader.components.RecommendationsSection
+import com.example.reader.components.RecommendationsSkeleton
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,6 +78,14 @@ fun BookDetailsScreen(
         }
     }
 
+    // Fetch recommendations when book is loaded
+    LaunchedEffect(resolvedBook) {
+        if (resolvedBook != null) {
+            // Use author for finding similar books since category doesn't exist
+            detailsViewModel.fetchRecommendations(resolvedBook.author)
+        }
+    }
+
     // Show loading state with skeleton
     if (isLoading && resolvedBook == null) {
         BookDetailsSkeleton(modifier = Modifier.fillMaxSize())
@@ -99,7 +114,8 @@ fun BookDetailsScreen(
         isFavorite = isFavorite,
         onFavoriteToggle = { favoritesViewModel.toggleFavorite(resolvedBook) },
         onNavigateBack = { navController.popBackStack() },
-        detailsViewModel = detailsViewModel
+        detailsViewModel = detailsViewModel,
+        navController = navController
     )
 }
 
@@ -118,11 +134,16 @@ fun BookDetailsBottomSheet(
     autoExpand: Boolean = false,
     sheetHorizontalMargin: Dp = 24.dp,
     // NEW: control visibility of drag handle; hiding it removes the small pill/outline artifact
-    showDragHandle: Boolean = false
+    showDragHandle: Boolean = false,
+    navController: NavController? = null
 ) {
     val sheetState = rememberBottomSheetScaffoldState()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
+    // Get recommendations state
+    val recommendations by (detailsViewModel?.recommendations ?: MutableStateFlow(emptyList())).collectAsStateWithLifecycle()
+    val isLoadingRecommendations by (detailsViewModel?.isLoadingRecommendations ?: MutableStateFlow(false)).collectAsStateWithLifecycle()
 
     // Simplified: Use Material3 color scheme directly
     val sheetBgColor = MaterialTheme.colorScheme.surface
@@ -248,6 +269,64 @@ fun BookDetailsBottomSheet(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = onSheetColor
                             )
+
+                            // Recommendations Section
+                            if (isLoadingRecommendations) {
+                                Spacer(Modifier.height(16.dp))
+                                HorizontalDivider()
+                                Spacer(Modifier.height(8.dp))
+                                RecommendationsSkeleton()
+                            } else if (recommendations.isNotEmpty()) {
+                                Spacer(Modifier.height(16.dp))
+                                HorizontalDivider()
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    text = "Similar Books",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = onSheetColor
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                // Display first 3 recommendations in a compact way
+                                recommendations.take(3).forEach { recommendedBook ->
+                                    ListItem(
+                                        headlineContent = {
+                                            Text(
+                                                text = recommendedBook.title,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        },
+                                        supportingContent = {
+                                            Text(
+                                                text = recommendedBook.author,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        },
+                                        leadingContent = {
+                                            AsyncImage(
+                                                model = recommendedBook.coverImageUrl,
+                                                contentDescription = recommendedBook.title,
+                                                modifier = Modifier
+                                                    .size(48.dp)
+                                                    .clip(RoundedCornerShape(4.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        },
+                                        colors = ListItemDefaults.colors(
+                                            containerColor = Color.Transparent
+                                        ),
+                                        modifier = Modifier.clickable {
+                                            // Navigate to recommended book details
+                                            navController?.navigate(
+                                                com.example.reader.navigation.ReaderScreens.DetailScreen.name + "/${recommendedBook.id}"
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+
                             Spacer(Modifier.height(120.dp)) // space for fixed button overlay
                         }
                     }
@@ -311,25 +390,69 @@ fun BookDetailsBottomSheet(
             }
         }
 
-        // Button width matches floating sheet width via same horizontal margin
-        Button(
-            onClick = onStartReading,
+        // Action buttons section - Read Preview and Upload options
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(start = sheetHorizontalMargin, end = sheetHorizontalMargin, bottom = 24.dp)
-                .clip(MaterialTheme.shapes.medium)
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = buttonColor,
-                contentColor = onButtonColor
-            )
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                "Start Reading",
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1
-            )
+            // Primary: Read Preview on Google Books
+            androidx.compose.material3.Button(
+                onClick = {
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://books.google.com/books?id=${book.id}")
+                    )
+                    context.startActivity(intent)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonColor,
+                    contentColor = onButtonColor
+                )
+            ) {
+                androidx.compose.material3.Icon(
+                    imageVector = Icons.Default.MenuBook,
+                    contentDescription = "Read",
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Read Preview on Google Books",
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1
+                )
+            }
+
+            // Secondary: Upload your own copy (PDF/EPUB)
+            OutlinedButton(
+                onClick = {
+                    // TODO: Implement file picker for PDF/EPUB upload
+                    // This will be implemented when PDF reader is added
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = buttonColor
+                )
+            ) {
+                androidx.compose.material3.Icon(
+                    imageVector = Icons.Default.Upload,
+                    contentDescription = "Upload",
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Upload Your Copy (PDF/EPUB)",
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1
+                )
+            }
         }
     }
 

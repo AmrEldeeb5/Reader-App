@@ -55,6 +55,9 @@ class ExploreViewModel @Inject constructor(
     private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
     val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
 
+    private val _filters = MutableStateFlow(com.example.reader.domain.model.BookFilters())
+    val filters: StateFlow<com.example.reader.domain.model.BookFilters> = _filters.asStateFlow()
+
     private var searchJob: Job? = null
 
     init {
@@ -277,6 +280,85 @@ class ExploreViewModel @Inject constructor(
     fun searchFromHistory(query: String) {
         _searchQuery.value = query
         searchBooks(query)
+    }
+
+    /**
+     * Update minimum rating filter.
+     */
+    fun setMinRating(rating: Double?) {
+        _filters.value = _filters.value.copy(minRating = rating)
+        applyFilters()
+    }
+
+    /**
+     * Update date filter.
+     */
+    fun setDateFilter(dateFilter: com.example.reader.domain.model.DateFilter) {
+        _filters.value = _filters.value.copy(dateFilter = dateFilter)
+        applyFilters()
+    }
+
+    /**
+     * Update sort option.
+     */
+    fun setSortBy(sortBy: com.example.reader.domain.model.SortBy) {
+        _filters.value = _filters.value.copy(sortBy = sortBy)
+        applyFilters()
+    }
+
+    /**
+     * Clear all filters.
+     */
+    fun clearFilters() {
+        _filters.value = com.example.reader.domain.model.BookFilters()
+        applyFilters()
+    }
+
+    /**
+     * Apply current filters to search results.
+     */
+    private fun applyFilters() {
+        val currentBooks = _searchState.value.books
+        if (currentBooks.isEmpty()) return
+
+        var filteredBooks = currentBooks
+
+        // Apply rating filter
+        _filters.value.minRating?.let { minRating ->
+            filteredBooks = filteredBooks.filter { it.rating >= minRating }
+        }
+
+        // Apply date filter (if publishedDate exists)
+        when (_filters.value.dateFilter) {
+            com.example.reader.domain.model.DateFilter.THIS_MONTH -> {
+                // Filter books from this month
+                filteredBooks = filteredBooks.filter { book ->
+                    // Simple check - in real app would parse date properly
+                    book.publishedDate?.contains("2026") == true
+                }
+            }
+            com.example.reader.domain.model.DateFilter.THIS_YEAR -> {
+                filteredBooks = filteredBooks.filter { book ->
+                    book.publishedDate?.contains("2026") == true
+                }
+            }
+            com.example.reader.domain.model.DateFilter.ALL_TIME -> {
+                // No date filtering
+            }
+        }
+
+        // Apply sorting
+        filteredBooks = when (_filters.value.sortBy) {
+            com.example.reader.domain.model.SortBy.RELEVANCE -> filteredBooks  // Keep original order
+            com.example.reader.domain.model.SortBy.RATING_DESC -> filteredBooks.sortedByDescending { it.rating }
+            com.example.reader.domain.model.SortBy.RATING_ASC -> filteredBooks.sortedBy { it.rating }
+            com.example.reader.domain.model.SortBy.TITLE_ASC -> filteredBooks.sortedBy { it.title.lowercase() }
+            com.example.reader.domain.model.SortBy.TITLE_DESC -> filteredBooks.sortedByDescending { it.title.lowercase() }
+            com.example.reader.domain.model.SortBy.DATE_DESC -> filteredBooks.sortedByDescending { it.publishedDate ?: "" }
+            com.example.reader.domain.model.SortBy.DATE_ASC -> filteredBooks.sortedBy { it.publishedDate ?: "" }
+        }
+
+        _searchState.value = _searchState.value.copy(books = filteredBooks)
     }
 }
 

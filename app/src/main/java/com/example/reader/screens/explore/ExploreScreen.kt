@@ -50,6 +50,7 @@ import com.example.reader.components.ErrorView
 import com.example.reader.components.EmptyView
 import com.example.reader.components.BookCardSkeleton
 import com.example.reader.components.OfflineBanner
+import com.example.reader.components.PullToRefreshContainer
 import com.example.reader.ui.theme.Spacing
 import androidx.compose.ui.platform.LocalContext
 
@@ -67,7 +68,10 @@ fun ExploreScreen(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchState by viewModel.searchState.collectAsStateWithLifecycle()
     val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
+    val filters by viewModel.filters.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    var showFilterDialog by remember { mutableStateOf(false) }
 
     // Network status
     val isOffline = !networkManager.isNetworkAvailable()
@@ -119,7 +123,16 @@ fun ExploreScreen(
             // Offline indicator
             OfflineBanner(isOffline = isOffline)
 
-            // Content Area
+            // Content Area with Pull-to-Refresh
+            PullToRefreshContainer(
+                isRefreshing = searchState.isLoading,
+                onRefresh = {
+                    if (searchQuery.isNotBlank()) {
+                        viewModel.searchBooks(searchQuery)
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 when {
                     // Loading state
@@ -132,7 +145,7 @@ fun ExploreScreen(
                             contentPadding = PaddingValues(
                                 start = 16.dp,
                                 end = 16.dp,
-                                top = 55.dp,
+                                top = 200.dp, // Increased to prevent header overlap
                                 bottom = 16.dp
                             )
                         ) {
@@ -168,7 +181,7 @@ fun ExploreScreen(
                             contentPadding = PaddingValues(
                                 start = 16.dp,
                                 end = 16.dp,
-                                top = 55.dp,
+                                top = 200.dp, // Increased to prevent header overlap
                                 bottom = 16.dp
                             )
                         ) {
@@ -183,6 +196,12 @@ fun ExploreScreen(
                                     },
                                     onRatingChange = { rating ->
                                         viewModel.updateUserRating(book.id, rating)
+                                    },
+                                    onBookClick = {
+                                        // Navigate to book details
+                                        navController.navigate(
+                                            com.example.reader.navigation.ReaderScreens.DetailScreen.name + "/${book.id}"
+                                        )
                                     }
                                 )
                             }
@@ -278,6 +297,7 @@ fun ExploreScreen(
                     }
                 }
             }
+            } // End PullToRefreshContainer
         }
 
         // Collapsible Top Section (SearchBar + Button)
@@ -372,7 +392,101 @@ fun ExploreScreen(
                         Text("Search", fontSize = 16.sp, fontWeight = FontWeight.Medium)
                     }
                 }
+
+                // Filter chips (only show when there are search results)
+                if (searchState.books.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Rating filter chip
+                        FilterChip(
+                            selected = filters.minRating != null,
+                            onClick = {
+                                if (filters.minRating != null) {
+                                    viewModel.setMinRating(null)
+                                } else {
+                                    viewModel.setMinRating(4.0)
+                                }
+                            },
+                            label = { Text("4+ ⭐") }
+                        )
+
+                        // Sort dropdown chip
+                        FilterChip(
+                            selected = filters.sortBy != com.example.reader.domain.model.SortBy.RELEVANCE,
+                            onClick = { showFilterDialog = true },
+                            label = {
+                                Text(when (filters.sortBy) {
+                                    com.example.reader.domain.model.SortBy.RELEVANCE -> "Sort"
+                                    com.example.reader.domain.model.SortBy.RATING_DESC -> "Rating ↓"
+                                    com.example.reader.domain.model.SortBy.RATING_ASC -> "Rating ↑"
+                                    com.example.reader.domain.model.SortBy.TITLE_ASC -> "A-Z"
+                                    com.example.reader.domain.model.SortBy.TITLE_DESC -> "Z-A"
+                                    com.example.reader.domain.model.SortBy.DATE_DESC -> "Newest"
+                                    com.example.reader.domain.model.SortBy.DATE_ASC -> "Oldest"
+                                })
+                            }
+                        )
+
+                        // Clear filters if any are active
+                        if (filters.minRating != null || filters.sortBy != com.example.reader.domain.model.SortBy.RELEVANCE) {
+                            TextButton(onClick = { viewModel.clearFilters() }) {
+                                Text("Clear", fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
             }
+        }
+
+        // Sort dialog
+        if (showFilterDialog) {
+            AlertDialog(
+                onDismissRequest = { showFilterDialog = false },
+                title = { Text("Sort By") },
+                text = {
+                    Column {
+                        listOf(
+                            com.example.reader.domain.model.SortBy.RELEVANCE to "Relevance",
+                            com.example.reader.domain.model.SortBy.RATING_DESC to "Highest Rated",
+                            com.example.reader.domain.model.SortBy.RATING_ASC to "Lowest Rated",
+                            com.example.reader.domain.model.SortBy.TITLE_ASC to "Title (A-Z)",
+                            com.example.reader.domain.model.SortBy.TITLE_DESC to "Title (Z-A)",
+                            com.example.reader.domain.model.SortBy.DATE_DESC to "Newest First",
+                            com.example.reader.domain.model.SortBy.DATE_ASC to "Oldest First"
+                        ).forEach { (sortBy, label) ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        viewModel.setSortBy(sortBy)
+                                        showFilterDialog = false
+                                    }
+                                    .padding(vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = filters.sortBy == sortBy,
+                                    onClick = {
+                                        viewModel.setSortBy(sortBy)
+                                        showFilterDialog = false
+                                    }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(label)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showFilterDialog = false }) {
+                        Text("Done")
+                    }
+                }
+            )
         }
     }
 }

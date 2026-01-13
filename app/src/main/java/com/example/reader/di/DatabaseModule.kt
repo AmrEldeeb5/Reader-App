@@ -24,7 +24,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    private const val SCHEMA_VERSION = 2L // Incremented for BookCacheRealm
+    private const val SCHEMA_VERSION = 5L // Incremented for readingStatus field
     private const val TAG = "DatabaseModule"
 
     // Realm Configuration
@@ -41,9 +41,9 @@ object DatabaseModule {
         )
             .name("reader_app.realm")
             .schemaVersion(SCHEMA_VERSION)
-            // Use automatic migration for simple schema changes
-            .migration(AutomaticSchemaMigration {
-                Log.d(TAG, "Schema migration completed successfully from version ${it.oldRealm.version()} to ${it.newRealm.version()}")
+            .deleteRealmIfMigrationNeeded() // Delete and recreate if migration fails
+            .migration(AutomaticSchemaMigration { context ->
+                Log.d(TAG, "Schema migration from version ${context.oldRealm.version()} to ${context.newRealm.version()}")
             })
             .build()
     }

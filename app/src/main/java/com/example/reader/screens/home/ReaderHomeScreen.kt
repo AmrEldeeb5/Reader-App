@@ -46,6 +46,8 @@ import com.example.reader.ui.theme.Spacing
 import com.example.reader.ui.theme.CornerRadius
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 
 @Composable
 fun HomeScreen(
@@ -520,18 +522,21 @@ fun BookCard(
     isDarkTheme: Boolean,
     onBookClick: () -> Unit = {}
 ) {
+    val haptic = com.example.reader.utils.rememberHapticFeedback()
     var showRatingDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .width(150.dp)
             .height(290.dp)
-            .clickable { onBookClick() }
-            .testTag("book_card_${book.id}"),  // ✅ Add test tag
+            .clickable(
+                onClickLabel = "View ${book.title} details" // Accessibility label
+            ) { onBookClick() }
+            .testTag("book_card_${book.id}"),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        shape = RoundedCornerShape(CornerRadius.md),  // ✅ Use design system
+        shape = RoundedCornerShape(CornerRadius.md),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isDarkTheme) 4.dp else 1.dp
         )
@@ -544,7 +549,7 @@ fun BookCard(
             ) {
                 AsyncImage(
                     model = book.coverImageUrl,
-                    contentDescription = book.title,
+                    contentDescription = "Cover image of ${book.title} by ${book.author}", // Descriptive accessibility
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
@@ -558,7 +563,18 @@ fun BookCard(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.Top
                 ) {
-                    IconButton(onClick = onFavoriteToggle) {
+                    IconButton(
+                        onClick = {
+                            haptic.success()
+                            onFavoriteToggle()
+                        },
+                        modifier = Modifier.semantics {
+                            contentDescription = if (isFavorite)
+                                "Remove ${book.title} from favorites"
+                            else
+                                "Add ${book.title} to favorites"
+                        }
+                    ) {
                         val tint by animateColorAsState(
                             targetValue = if (isFavorite) Color.Red else Color.White,
                             animationSpec = tween(300),

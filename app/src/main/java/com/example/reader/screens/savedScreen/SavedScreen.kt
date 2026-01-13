@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.reader.screens.savedScreen.FavoritesViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.reader.components.EmptyFavoritesView
+import com.example.reader.components.PullToRefreshContainer
 import com.example.reader.domain.model.ReadingStatus
 
 enum class SortOption {
@@ -47,6 +48,7 @@ fun SavedScreen(
     favoritesViewModel: FavoritesViewModel = hiltViewModel()
 ) {
     val favoriteBooks by favoritesViewModel.favoriteBooks.collectAsStateWithLifecycle()
+    val isRefreshing by favoritesViewModel.isRefreshing.collectAsStateWithLifecycle()
     val haptic = com.example.reader.utils.rememberHapticFeedback()
     var searchQuery by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(0) }
@@ -87,6 +89,11 @@ fun SavedScreen(
         }
     }
 
+    PullToRefreshContainer(
+        isRefreshing = isRefreshing,
+        onRefresh = { favoritesViewModel.refresh() },
+        modifier = Modifier.fillMaxSize()
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -428,4 +435,5 @@ fun SavedScreen(
             }
         }
     }
+    } // End PullToRefreshContainer
 }

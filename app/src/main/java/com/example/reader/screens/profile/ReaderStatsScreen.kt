@@ -39,13 +39,21 @@ fun StatsScreen(
     isDarkTheme: Boolean,
     onThemeToggle: (Boolean) -> Unit,
     isGreenTheme: Boolean = true,
-    onColorSchemeToggle: (Boolean) -> Unit = {}
+    onColorSchemeToggle: (Boolean) -> Unit = {},
+    favoritesViewModel: com.example.reader.screens.savedScreen.FavoritesViewModel? = if (LocalInspectionMode.current) null else hiltViewModel()
 ) {
     val isPreview = LocalInspectionMode.current
     val loginViewModel: LoginScreenViewModel? = if (isPreview) null else hiltViewModel()
     val userProfileViewModel: UserProfileViewModel? = if (isPreview) null else hiltViewModel()
     val context = LocalContext.current
     val username by (userProfileViewModel?.username?.collectAsStateWithLifecycle() ?: remember { mutableStateOf("Andy") })
+    val readingStats by (favoritesViewModel?.readingStats?.collectAsStateWithLifecycle() ?: remember {
+        mutableStateOf(com.example.reader.domain.model.ReadingStats())
+    })
+    val favoriteBooks by (favoritesViewModel?.favoriteBooks?.collectAsStateWithLifecycle() ?: remember {
+        mutableStateOf(emptyList())
+    })
+
     var showUsernameDialog by remember { mutableStateOf(false) }
     // Show logout confirmation dialog state
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -93,6 +101,70 @@ fun StatsScreen(
         Spacer(Modifier.height(24.dp))
 
         UsernameRow(username) { showUsernameDialog = true }
+        Spacer(Modifier.height(24.dp))
+
+        // Reading Statistics Section
+        Text(
+            text = "Reading Statistics",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // Stats Grid
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            StatCard(
+                value = favoriteBooks.size.toString(),
+                label = "Favorites",
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                value = readingStats.totalBooksRead.toString(),
+                label = "Finished",
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            StatCard(
+                value = "${readingStats.currentStreak}",
+                label = "Day Streak",
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                value = readingStats.booksThisMonth.toString(),
+                label = "This Month",
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        // Top Genres (if any)
+        if (readingStats.favoriteGenres.isNotEmpty()) {
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Top Genres",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(8.dp))
+
+            readingStats.favoriteGenres.entries
+                .sortedByDescending { it.value }
+                .take(3)
+                .forEach { (genre, count) ->
+                    GenreItem(genre, count)
+                    Spacer(Modifier.height(4.dp))
+                }
+        }
+
         Spacer(Modifier.height(24.dp))
 
         MenuItem(R.drawable.solar__smile_circle_bold, "Your Feedback") {
@@ -345,6 +417,62 @@ private fun LogoutConfirmationDialog(
     )
 }
 
+@Composable
+private fun StatCard(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun GenreItem(genre: String, count: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = genre,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = "$count books",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
 @Preview(name = "Light", showBackground = true)
 @Composable
 private fun PreviewLight() {
@@ -360,3 +488,4 @@ private fun PreviewDark() {
         StatsScreen(rememberNavController(), true, {})
     }
 }
+

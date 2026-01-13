@@ -24,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
     private val favoritesRepository: FavoritesRepository,
-    private val userPreferencesRepository: com.example.reader.domain.repository.UserPreferencesRepository
+    private val userPreferencesRepository: com.example.reader.domain.repository.UserPreferencesRepository,
+    private val firebaseSyncRepository: com.example.reader.data.repository.FirebaseSyncRepository
 ) : ViewModel() {
 
     /**
@@ -44,8 +45,23 @@ class FavoritesViewModel @Inject constructor(
     private val _readingStats = MutableStateFlow(com.example.reader.domain.model.ReadingStats())
     val readingStats: StateFlow<com.example.reader.domain.model.ReadingStats> = _readingStats.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     init {
         loadReadingStats()
+    }
+
+    /**
+     * Refresh favorites list (reloads stats).
+     */
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            loadReadingStats()
+            kotlinx.coroutines.delay(500) // Brief delay for UX
+            _isRefreshing.value = false
+        }
     }
 
     private fun loadReadingStats() {
@@ -73,6 +89,20 @@ class FavoritesViewModel @Inject constructor(
     fun addFavorite(book: Book) {
         viewModelScope.launch {
             favoritesRepository.addFavorite(book.id, book)
+
+            // Sync to Firebase if user is signed in
+            if (firebaseSyncRepository.isUserSignedIn()) {
+                val favorite = favoriteBooks.value.find { it.book.id == book.id }
+                favorite?.let {
+                    firebaseSyncRepository.syncFavoriteToCloud(
+                        bookId = it.bookId,
+                        book = it.book,
+                        readingStatus = it.readingStatus,
+                        userRating = it.userRating,
+                        addedTimestamp = it.addedTimestamp
+                    )
+                }
+            }
         }
     }
 
@@ -84,6 +114,11 @@ class FavoritesViewModel @Inject constructor(
     fun removeFavorite(bookId: String) {
         viewModelScope.launch {
             favoritesRepository.removeFavorite(bookId)
+
+            // Remove from Firebase if user is signed in
+            if (firebaseSyncRepository.isUserSignedIn()) {
+                firebaseSyncRepository.removeFavoriteFromCloud(bookId)
+            }
         }
     }
 
@@ -141,6 +176,20 @@ class FavoritesViewModel @Inject constructor(
                 userPreferencesRepository.incrementBooksRead()
                 userPreferencesRepository.updateReadingStreak()
                 loadReadingStats()
+            }
+
+            // Sync to Firebase if user is signed in
+            if (firebaseSyncRepository.isUserSignedIn()) {
+                val favorite = favoriteBooks.value.find { it.bookId == bookId }
+                favorite?.let {
+                    firebaseSyncRepository.syncFavoriteToCloud(
+                        bookId = it.bookId,
+                        book = it.book,
+                        readingStatus = it.readingStatus,
+                        userRating = it.userRating,
+                        addedTimestamp = it.addedTimestamp
+                    )
+                }
             }
         }
     }

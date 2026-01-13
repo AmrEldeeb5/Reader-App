@@ -19,4 +19,10 @@ class FavoriteBookRealm : RealmObject {
     var publishedDate: String? = null
     var addedTimestamp: Long = System.currentTimeMillis()
     var readingStatus: String = "ALL" // Store as string for Realm compatibility
+
+    // Reading progress fields
+    var currentPage: Int = 0
+    var totalPages: Int = 0
+    var progressPercentage: Float = 0f
+    var lastReadTimestamp: Long = 0L
 }

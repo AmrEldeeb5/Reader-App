@@ -19,6 +19,10 @@ enum class ReadingStatus {
  * @property userRating User's personal rating for the book (optional)
  * @property addedTimestamp Timestamp when the book was added to favorites
  * @property readingStatus Current reading status of the book
+ * @property currentPage Current page number (0 if not started)
+ * @property totalPages Total pages in the book (0 if unknown)
+ * @property progressPercentage Reading progress as percentage (0.0 to 100.0)
+ * @property lastReadTimestamp Last time the book was read
  */
 @Immutable
 data class Favorite(
@@ -26,5 +30,9 @@ data class Favorite(
     val book: Book,
     val userRating: Double?,
     val addedTimestamp: Long,
-    val readingStatus: ReadingStatus = ReadingStatus.ALL
+    val readingStatus: ReadingStatus = ReadingStatus.ALL,
+    val currentPage: Int = 0,
+    val totalPages: Int = 0,
+    val progressPercentage: Float = 0f,
+    val lastReadTimestamp: Long = 0L
 )

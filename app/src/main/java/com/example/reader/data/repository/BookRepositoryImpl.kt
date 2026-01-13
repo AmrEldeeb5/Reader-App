@@ -108,7 +108,8 @@ class BookRepositoryImpl @Inject constructor(
         // Online mode - fetch from API
         return try {
             val query = mapCategoryToQuery(category)
-            val response = apiService.getBooksByCategory(query)
+            appLogger.logInfo("Fetching books for category '$category' with query: '$query'")
+            val response = apiService.getBooks(query) // Use simpler getBooks instead
             val books = response.items?.mapNotNull { bookItem ->
                 val book = bookMapper.toDomain(bookItem)
                 // Filter out books with "Unknown" title or author
@@ -189,20 +190,21 @@ class BookRepositoryImpl @Inject constructor(
      * Map category name to Google Books API query.
      */
     private fun mapCategoryToQuery(category: String): String {
+        // Use simple keyword searches - Google Books API works best with plain terms
         return when (category.lowercase()) {
-            "novels" -> "subject:fiction"
-            "self love", "self-love", "selflove" -> "subject:self-help+self-love"
-            "science" -> "subject:science"
-            "romance" -> "subject:romance"
-            "fantasy" -> "subject:fantasy"
-            "mystery" -> "subject:mystery"
-            "biography" -> "subject:biography"
-            "history" -> "subject:history"
-            "psychology" -> "subject:psychology"
-            "business" -> "subject:business"
-            "technology" -> "subject:technology"
-            "philosophy" -> "subject:philosophy"
-            else -> "subject:$category"
+            "novels" -> "fiction books"
+            "self love", "self-love", "selflove" -> "self help motivation"
+            "science" -> "science"
+            "romance" -> "romance"
+            "fantasy" -> "fantasy"
+            "mystery" -> "mystery"
+            "biography" -> "biography"
+            "history" -> "history"
+            "psychology" -> "psychology"
+            "business" -> "business"
+            "technology" -> "technology programming"
+            "philosophy" -> "philosophy"
+            else -> category
         }
     }
 }
